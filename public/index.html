@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" class="vast">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bookflix">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0F0E11">
 <link rel="preload" href="fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-700.woff2" as="font" type="font/woff2" crossorigin>
@@ -355,8 +355,14 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
    --krimp: het bord verkleint zichzelf in stapjes als het toch niet past. */
 @media (min-width:600px) and (min-height:560px){
   html,body{height:100%}
+  /* Scorebord en startpagina passen altijd op het scherm: daar kan niets scrollen */
+  html.vast, html.vast body{overflow:hidden}
   .merk{font-size:1.45em}
-  .wrap{max-width:none; min-height:100%; padding-inline:2.4em; padding-block:2em 1.2em; gap:1.4em; grid-template-rows:auto minmax(0,1fr)}
+  .wrap{max-width:none; min-height:100%; gap:1.4em; grid-template-rows:auto minmax(0,1fr);
+    padding-inline:calc(2.4em + env(safe-area-inset-left,0px)) calc(2.4em + env(safe-area-inset-right,0px));
+    padding-block:calc(2em + env(safe-area-inset-top,0px)) calc(1.2em + env(safe-area-inset-bottom,0px))}
+  /* Passend scherm: niet laten verschuiven of meeveren als je over het scherm veegt (iPad) */
+  html, body{overscroll-behavior:none}
   .wrap.intro{height:100%; grid-template-rows:minmax(0,1fr); padding-block:1.6em}
   .start{align-items:stretch; min-height:0}
   .wand{grid-template-rows:repeat(4,minmax(0,1fr)); min-height:0}
@@ -415,7 +421,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 </style>
 <style>
 /* Poort: inloggen als leerkracht of meedoen met de klascode */
-.poort{position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:clamp(16px,4vw,48px); overflow:auto;
+.poort{position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:clamp(16px,4vw,48px); padding-top:calc(clamp(16px,4vw,48px) + env(safe-area-inset-top,0px)); overflow:auto;
   background:radial-gradient(60em 34em at 6% 8%, var(--glow) 0%, transparent 62%) no-repeat, var(--bg); font-size:clamp(1rem,.7rem + .6vw,1.3rem)}
 .poort-blok{display:grid; gap:1.2em; width:100%; max-width:46em}
 .poort .start-merk{font-family:var(--display); font-weight:400; font-size:clamp(4rem,16vw,8em)}
@@ -437,7 +443,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .poort:not(.kind) #poortIkJuf{display:none}
 #poortIkJuf{justify-self:start}
 /* iPads koppelen: groot op het digibord, zodat kinderen vanaf hun plek kunnen scannen */
-.koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); overflow:auto;
+.koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); padding-top:calc(clamp(16px,3vw,40px) + env(safe-area-inset-top,0px)); overflow:auto;
   background:radial-gradient(60em 34em at 6% 8%, var(--glow) 0%, transparent 62%) no-repeat, var(--bg)}
 /* Twee even grote vierkanten naast elkaar: de QR-code en de klascode */
 .koppel-blok{--qr:min(66vh,42vw); display:grid; grid-template-columns:var(--qr) var(--qr); gap:clamp(20px,3vw,56px); justify-items:center}
@@ -2659,6 +2665,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasAan);
 
   function kies(welke) {
+    document.documentElement.classList.toggle("vast", welke === "bord" || welke === "start");
+    if (welke === "bord" || welke === "start") window.scrollTo(0, 0);
     $("start").hidden = welke !== "start";
     $("wrap").classList.toggle("intro", welke === "start");
     Object.keys(TABS).forEach(function (k) {
