@@ -22,7 +22,7 @@ function bewaar(k, v) { try { if (v) localStorage.setItem(k, v); else localStora
 function foutTekst(e) {
   const c = (e && e.code) || "";
   if (/closed-by-user|cancelled-popup/.test(c)) return "";
-  if (c === "auth/operation-not-allowed" || c === "auth/admin-restricted-operation")
+  if (c === "auth/configuration-not-found" || c === "auth/operation-not-allowed" || c === "auth/admin-restricted-operation")
     return "Deze manier van inloggen staat nog uit. Zet in Firebase bij Authentication 'Google' en 'Anonymous' aan.";
   if (c === "auth/unauthorized-domain")
     return "Dit adres mag nog niet inloggen. Voeg het in Firebase toe bij Authentication > Settings > Authorized domains.";
