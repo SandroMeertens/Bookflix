@@ -405,15 +405,24 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .poort:not(.kind) #poortIkJuf{display:none}
 #poortIkJuf{justify-self:start}
 /* iPads koppelen: groot op het digibord, zodat kinderen vanaf hun plek kunnen scannen */
-.koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); background:var(--sluier); overflow:auto}
-.koppel-blok{display:grid; gap:1.2em; justify-items:center; text-align:center; width:100%; max-width:70em}
-.koppel-blok h2{font-size:clamp(2.2rem,5vw,4em)}
-.koppel-rij{display:grid; grid-template-columns:auto minmax(0,1fr); gap:clamp(20px,4vw,64px); align-items:center; text-align:left}
-.koppel-qr{width:min(62vh,42vw); padding:.6em; border-radius:14px}
-.koppel-code{font-family:var(--display); font-size:clamp(4rem,11vw,9em); letter-spacing:.14em; line-height:1}
-.koppel-stappen{display:grid; gap:.4em; padding-left:1.2em; list-style:decimal; font-weight:700; font-size:1.25em; max-width:22em}
+.koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); overflow:auto;
+  background:radial-gradient(60em 34em at 6% 8%, var(--glow) 0%, transparent 62%) no-repeat, var(--bg)}
+.koppel-blok{--qr:min(64vh,40vw); display:grid; grid-template-columns:var(--qr) minmax(0,26em); gap:clamp(24px,3.5vw,64px); align-items:stretch;
+  background:var(--surface); border-radius:18px; padding:clamp(20px,2.6vw,44px); box-shadow:0 1em 3em rgb(0 0 0 / .45)}
+.koppel-qr{width:var(--qr); aspect-ratio:1; padding:.7em; border-radius:12px; align-self:start}
+.koppel-tekst{display:grid; grid-template-rows:auto auto 1fr auto; gap:.9em; min-width:0; text-align:left}
+.koppel-tekst h2{font-size:clamp(2rem,3vw,2.8em); line-height:.95}
+.koppel-codeblok{display:grid; gap:.15em}
+.koppel-code{font-family:var(--display); font-size:clamp(3.5rem,6vw,6em); letter-spacing:.08em; line-height:.9; font-variant-numeric:tabular-nums}
+.koppel-stappen{display:grid; gap:.7em; align-content:start; margin:0; padding:0; list-style:none}
+.koppel-stappen li{display:grid; grid-template-columns:1.8em minmax(0,1fr); gap:.7em; align-items:center; font-weight:600; font-size:1.05em; line-height:1.35}
+.koppel-stappen li .nr{display:grid; place-items:center; width:1.8em; height:1.8em; border-radius:50%; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
+.koppel-voet{display:flex; align-items:center; justify-content:space-between; gap:1em; padding-top:1em; border-top:1px solid var(--line)}
 .koppel-tel{font-weight:800; color:var(--ok); min-height:1.4em}
-@media (max-width:700px){ .koppel-rij{grid-template-columns:minmax(0,1fr); justify-items:center; text-align:center} .koppel-qr{width:min(80vw,22em)} .koppel-stappen{text-align:left} }
+@media (max-width:760px){
+  .koppel-blok{--qr:min(78vw,22em); grid-template-columns:minmax(0,1fr); justify-items:center}
+  .koppel-tekst{width:100%}
+}
 /* Klas en iPads in Instellen */
 .klas-rij{display:grid; grid-template-columns:9em minmax(0,1fr); gap:1em; align-items:center}
 .qr{background:#fff; border-radius:8px; padding:.3em; aspect-ratio:1}
@@ -738,20 +747,22 @@ body:not(.lid) .alleen-lid{display:none!important}
 
 <div class="koppel" id="koppelScherm" role="dialog" aria-modal="true" aria-labelledby="koppelKop" hidden>
   <div class="koppel-blok">
-    <h2 id="koppelKop">Doe mee met de iPad</h2>
-    <div class="koppel-rij">
-      <div class="qr koppel-qr" id="koppelQR" aria-label="QR-code om een iPad te koppelen"></div>
-      <div class="koppel-tekst">
+    <div class="qr koppel-qr" id="koppelQR" aria-label="QR-code om een iPad te koppelen"></div>
+    <div class="koppel-tekst">
+      <h2 id="koppelKop">Doe mee met de iPad</h2>
+      <div class="koppel-codeblok">
         <p class="eyebrow">Klascode</p>
         <p class="koppel-code" id="koppelCode">-----</p>
-        <ol class="koppel-stappen">
-          <li>Open de <b>camera</b> van de iPad en richt hem op de QR-code.</li>
-          <li>Of open de <b>Bookflix-app</b> en typ de klascode.</li>
-        </ol>
+      </div>
+      <ol class="koppel-stappen">
+        <li><span class="nr">1</span><span>Open de <b>camera</b> van de iPad en richt hem op de QR-code.</span></li>
+        <li><span class="nr">2</span><span>Of open de <b>Bookflix-app</b> en typ de klascode.</span></li>
+      </ol>
+      <div class="koppel-voet">
         <p class="koppel-tel" id="koppelTel"></p>
+        <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
       </div>
     </div>
-    <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
   </div>
 </div>
 
