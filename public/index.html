@@ -410,10 +410,11 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .koppel-blok{--qr:min(64vh,40vw); display:grid; grid-template-columns:var(--qr) minmax(0,26em); gap:clamp(24px,3.5vw,64px); align-items:stretch;
   background:var(--surface); border-radius:18px; padding:clamp(20px,2.6vw,44px); box-shadow:0 1em 3em rgb(0 0 0 / .45)}
 .koppel-qr{width:var(--qr); aspect-ratio:1; padding:.7em; border-radius:12px; align-self:start}
-.koppel-tekst{display:grid; grid-template-rows:auto auto 1fr auto; gap:.9em; min-width:0; text-align:left}
+.koppel-tekst{display:grid; grid-template-rows:auto 1fr auto auto; gap:1em; min-width:0; text-align:left}
 .koppel-tekst h2{font-size:clamp(2rem,3vw,2.8em); line-height:.95}
-.koppel-codeblok{display:grid; gap:.15em}
-.koppel-code{font-family:var(--display); font-size:clamp(3.5rem,6vw,6em); letter-spacing:.08em; line-height:.9; font-variant-numeric:tabular-nums}
+.koppel-codeblok{display:grid; gap:.2em; align-content:center}
+.koppel-code{font-family:var(--display); font-size:clamp(4rem,8.5vw,8.5em); letter-spacing:.08em; line-height:.9; font-variant-numeric:tabular-nums}
+.koppel-hint{font-weight:700; font-size:1.15em; color:var(--muted)}
 .koppel-stappen{display:grid; gap:.7em; align-content:start; margin:0; padding:0; list-style:none}
 .koppel-stappen li{display:grid; grid-template-columns:1.8em minmax(0,1fr); gap:.7em; align-items:center; font-weight:600; font-size:1.05em; line-height:1.35}
 .koppel-stappen li .nr{display:grid; place-items:center; width:1.8em; height:1.8em; border-radius:50%; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
@@ -754,10 +755,7 @@ body:not(.lid) .alleen-lid{display:none!important}
         <p class="eyebrow">Klascode</p>
         <p class="koppel-code" id="koppelCode">-----</p>
       </div>
-      <ol class="koppel-stappen">
-        <li><span class="nr">1</span><span>Open de <b>camera</b> van de iPad en richt hem op de QR-code.</span></li>
-        <li><span class="nr">2</span><span>Of open de <b>Bookflix-app</b> en typ de klascode.</span></li>
-      </ol>
+      <p class="koppel-hint">Scan met de camera, of typ de code in de app.</p>
       <div class="koppel-voet">
         <p class="koppel-tel" id="koppelTel"></p>
         <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
