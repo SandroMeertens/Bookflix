@@ -530,7 +530,14 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:699px){ .invoer.stap3 .inv-kant{grid-template-columns:minmax(0,1fr); justify-items:center} }
 @media (min-width:700px){ .invoer{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)} }
 /* Ruim en in het midden van het scherm, niet tegen de bovenkant gedrukt */
-.invoer{align-self:center; justify-self:center; width:min(100%,68em); align-items:center; column-gap:clamp(24px,5vw,96px); padding-block:1em}
+.invoer{align-self:center; justify-self:center; width:100%; align-items:center; justify-content:center; column-gap:clamp(32px,6vw,112px); padding-block:1em}
+@media (min-width:700px){ .invoer{grid-template-columns:minmax(0,34em) auto} }
+/* Rijknoppen allemaal even hoog, tekst netjes in het midden */
+.inv-rijen{grid-auto-rows:1fr}
+.inv-rij{display:flex; align-items:center}
+/* Uitgeschakelde knop: rustig omlijnd in plaats van een grijs blok */
+.inv-vorm .knop.wit:disabled{background:transparent; color:var(--muted); box-shadow:inset 0 0 0 2px var(--line); opacity:1}
+.inv-kaft{width:min(17em,44vh)}
 .inv-kant{justify-items:center}
 .inv-deel{gap:.9em}
 .inv-deel1 h2, .inv-deel2 .inv-label:first-child{margin-bottom:.3em}
