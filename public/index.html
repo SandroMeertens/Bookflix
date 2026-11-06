@@ -412,6 +412,25 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-rijen.gekozen .inv-rij:not([aria-checked="true"]){opacity:.35}
 .inv-rijen:not(.gekozen) .inv-rij{opacity:1}
 #invKlaar{justify-self:start; margin-top:.2em}
+.inv-vragen{display:grid; gap:.8em}
+.inv-vraag{display:grid; gap:.3em}
+.inv-vraag label{font-weight:700}
+.inv-vraag textarea{font:inherit; font-weight:600; font-size:max(1.05em,16px); color:var(--fg); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:.5em .65em; min-height:3.6em; resize:vertical; width:100%}
+.inv-vraag textarea:focus-visible{outline:3px solid var(--fg); outline-offset:2px}
+/* Leesvragen nakijken */
+.tab .tel{display:inline-block; margin-left:.4em; min-width:1.5em; padding:0 .4em; border-radius:99px; background:var(--accent); color:var(--fg); font-size:.8em; text-align:center}
+.antw{display:grid; gap:1em; align-content:start; max-width:60em; min-width:0}
+.antw-lijst{display:grid; gap:.9em}
+.antw-kaart{display:grid; grid-template-columns:5.2em minmax(0,1fr); gap:.4em 1.1em; background:var(--surface); border-radius:10px; padding:1em 1.2em}
+.antw-kaart.ok{opacity:.55}
+.antw-kaart .kaft{grid-row:span 3; align-self:start}
+.antw-kop{display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em}
+.antw-kop b{font-weight:800; font-size:1.15em}
+.antw-kop span{color:var(--muted); font-weight:600; font-size:.9em}
+.antw-qa{display:grid; gap:.45em}
+.antw-qa dt{color:var(--muted); font-weight:700; font-size:.9em}
+.antw-qa dd{margin:0 0 .2em; font-weight:600; white-space:pre-wrap; overflow-wrap:anywhere}
+.antw-knoppen{display:flex; flex-wrap:wrap; align-items:center; gap:.5em 1em}
 .inv-kant{display:grid; gap:1em; justify-items:center; align-content:start}
 .inv-kaft{width:min(100%,15em)}
 .inv-bedankt{display:grid; gap:.5em; justify-items:center; text-align:center}
@@ -439,6 +458,7 @@ body:not(.lid) .alleen-lid{display:none!important}
       <button class="tab" id="tabBord" type="button" aria-pressed="true">Scorebord</button>
       <button class="tab" id="tabLijst" type="button" aria-pressed="false">Boeken</button>
       <button class="tab" id="tabFinale" type="button" aria-pressed="false">Awards</button>
+      <button class="tab alleen-juf" id="tabAntw" type="button" aria-pressed="false">Leesvragen<span class="tel" id="antwTel" hidden></span></button>
       <button class="tab" id="tabRegels" type="button" aria-pressed="false">Spelregels</button>
     </nav>
     <div class="kop-rechts">
@@ -478,11 +498,11 @@ body:not(.lid) .alleen-lid{display:none!important}
           <span class="week-tekst" id="weekTekst"></span>
         </div>
         <p class="opbouw" id="opbouw" hidden></p>
-        <div class="acties schrijf">
+        <div class="acties schrijf alleen-juf">
           <input type="text" id="boekTitel" maxlength="80" placeholder="Welk boek?" aria-label="Titel van het boek bij deze duim" list="titels" autocomplete="off">
           <button class="knop" id="terug" type="button" disabled>Laatste duim terug</button>
         </div>
-        <div class="kies schrijf">
+        <div class="kies schrijf alleen-juf">
           <p class="eyebrow" id="kiesKop">Duim erbij: tik op de rij van het boek</p>
           <div class="genres" id="genres" role="group" aria-labelledby="kiesKop"></div>
         </div>
@@ -524,8 +544,10 @@ body:not(.lid) .alleen-lid{display:none!important}
       <input type="text" id="invTitel" maxlength="80" placeholder="Titel van je boek" list="titels" autocomplete="off" enterkeyhint="next">
       <p class="inv-label" id="invRijKop"><span class="inv-nr">2</span>Wat voor boek is het?</p>
       <div class="inv-rijen" id="invRijen" role="radiogroup" aria-labelledby="invRijKop"></div>
-      <p class="inv-label"><span class="inv-nr">3</span>Klaar? Dan krijgt je boek een duim.</p>
+      <p class="inv-label"><span class="inv-nr">3</span>Beantwoord de drie vragen over je boek.</p>
+      <div class="inv-vragen" id="invVragen"><p class="uitleg">Kies eerst je boek en de rij, dan komen hier de vragen.</p></div>
       <button class="knop wit groot" id="invKlaar" type="submit" disabled>Zet op de plank</button>
+      <p class="uitleg" id="invHint" role="status"></p>
     </form>
     <div class="inv-kant">
       <div class="inv-kaft" id="invKaft"></div>
@@ -540,10 +562,20 @@ body:not(.lid) .alleen-lid{display:none!important}
     </div>
   </main>
 
+  <main class="antw" id="antw" hidden>
+    <div>
+      <h2>Leesvragen nakijken</h2>
+      <p class="uitleg">Wat leerlingen op de iPad antwoordden. De duim staat al op de plank. Klopt het niet, haal de duim dan weg. Dit scherm laat antwoorden zien: zet het niet voor de klas op het digibord.</p>
+    </div>
+    <label class="vink" for="antwAlles"><input type="checkbox" id="antwAlles"> <span>Ook nagekeken antwoorden tonen</span></label>
+    <p class="uitleg" id="antwLeeg">Nog geen antwoorden om na te kijken.</p>
+    <ul class="antw-lijst" id="antwLijst"></ul>
+  </main>
+
   <main class="regels" id="regels" hidden>
     <h2>Zo werkt het</h2>
     <ul class="regel-lijst">
-      <li><h3>Duim</h3><p>Boek uit? Zet het op de Bookflix en tik hier op de rij van je boek. Dat is één duim: er komt een boek op de plank.</p></li>
+      <li><h3>Duim</h3><p>Boek uit? Pak een iPad, kies bij Mijn boek je boek en beantwoord drie vragen. Dan krijgt je boek een duim en komt het op de plank.</p></li>
       <li><h3>Beloning</h3><p id="regelBeloning">Bij een volle plank speelt de klas een beloning vrij.</p></li>
       <li><h3>Samen</h3><p>We sparen als klas. Een dun boek telt even zwaar als een dik boek, en het is geen wedstrijd.</p></li>
     </ul>
@@ -636,6 +668,21 @@ body:not(.lid) .alleen-lid{display:none!important}
     <p class="poort-meld" id="poortMeld" role="status"></p>
   </div>
 </div>
+<dialog id="vragenDlg" aria-labelledby="vragenKop">
+  <h2 id="vragenKop">Vragen bij dit boek</h2>
+  <form class="instel" id="vragenVorm" method="dialog">
+    <p class="uitleg" id="vragenUitleg"></p>
+    <input type="text" id="vraag0" maxlength="160" aria-label="Vraag 1">
+    <input type="text" id="vraag1" maxlength="160" aria-label="Vraag 2">
+    <input type="text" id="vraag2" maxlength="160" aria-label="Vraag 3">
+    <div class="opnieuw">
+      <button class="knop wit" id="vragenOk" type="button">Opslaan</button>
+      <button class="tekstknop" id="vragenStandaard" type="button">Terug naar de standaardvragen</button>
+      <button class="tekstknop" id="vragenDicht" type="button">Annuleer</button>
+    </div>
+  </form>
+</dialog>
+
 <datalist id="titels"></datalist>
 
 <div class="feest" id="feest" role="dialog" aria-modal="true" aria-labelledby="feestNaam" hidden>
@@ -725,6 +772,15 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       }),
       beloningen: [0, 1, 2, 3].map(function (i) { return Array.isArray(d.beloningen) ? tekst(d.beloningen[i], 60) : BELONINGEN[i][0]; }),
       awards: a,
+      vragen: (function () {
+        /* Eigen vragen van de leerkracht per titel: drie zinnen */
+        var v = {};
+        if (d.vragen && typeof d.vragen === "object") Object.keys(d.vragen).slice(0, 300).forEach(function (x) {
+          var q = d.vragen[x];
+          if (Array.isArray(q) && q.length === 3 && q.every(function (y) { return typeof y === "string" && y.trim(); })) v[x.slice(0, 80)] = q.map(function (y) { return y.slice(0, 160); });
+        });
+        return v;
+      })(),
       kaften: (function () {
         /* Gevonden echte kaften per titel; "-" betekent: de getekende kaft */
         var k = {};
@@ -1182,7 +1238,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     kaft.classList.add("tik-kaft");
     kaft.setAttribute("role", "button"); kaft.tabIndex = 0;
     kaft.setAttribute("aria-label", naam + ". Tik voor nog een duim.");
-    var geef = function () { duimErbij(g.g, g.t); };
+    var geef = function () {
+      if (document.body.classList.contains("lid")) { naarMijnBoek(g.t, g.g); return; }
+      duimErbij(g.g, g.t);
+    };
     kaft.addEventListener("click", geef);
     kaft.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); geef(); } });
   }
@@ -1383,7 +1442,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Titels: laatste op de plank, en per rij de lijst met het meest geduimde boek bovenaan */
   var boekenStempel = null;
   function toonBoeken() {
-    var stempel = JSON.stringify([state.boeken, state.kaften, kanSchrijven]);
+    var stempel = JSON.stringify([state.boeken, state.kaften, state.vragen, kanSchrijven]);
     if (stempel === boekenStempel) return;
     boekenStempel = stempel;
 
@@ -1443,7 +1502,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
           }, function () { ander.disabled = false; meld("let", "Kaften zoeken lukt nu niet. Is er internet?"); });
         });
         var knoppen = el("span", "boek-knoppen");
-        knoppen.appendChild(ander); knoppen.appendChild(weg);
+        var vr = el("button", "tekstknop schrijf alleen-juf", state.vragen[g.k] ? "Eigen vragen" : "Vragen");
+        vr.type = "button"; vr.setAttribute("aria-label", "Vragen bij " + g.t);
+        vr.addEventListener("click", function () { openVragen(g.t, g.g); });
+        knoppen.appendChild(ander); knoppen.appendChild(vr); knoppen.appendChild(weg);
         li.appendChild(kaft); li.appendChild(knoppen);
         ul.appendChild(li);
       });
@@ -1680,6 +1742,47 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       }
     }, false);
   });
+  /* Leesvragen: per rij een vaste eerste vraag en twee uit een rijtje. Welke twee hangt aan de titel,
+     zodat iedereen bij hetzelfde boek dezelfde vragen krijgt. De leerkracht kan per boek eigen vragen zetten. */
+  var VRAGEN = {
+    s: ["Wie is de hoofdpersoon, en wat voor iemand is hij of zij?",
+        ["Wat was het spannendste moment in het boek?", "Waar speelt het verhaal zich af?", "Wat was het geheim of probleem, en hoe werd het opgelost?", "Hoe liep het verhaal af?", "Welke persoon in het boek vertrouwde je niet, en waarom?"]],
+    f: ["Wie is de hoofdpersoon, en wat moet hij of zij doen?",
+        ["Beschrijf de wereld waarin het verhaal zich afspeelt.", "Welke magische of bijzondere dingen komen in het boek voor?", "Wie of wat was de tegenstander?", "Hoe liep het avontuur af?", "Welk moment zou je graag zelf meemaken, en waarom?"]],
+    l: ["Wie is de hoofdpersoon, en wat voor iemand is hij of zij?",
+        ["Vertel het grappigste stuk uit het boek na.", "Wat ging er allemaal mis in het verhaal?", "Wie in het boek vond je het grappigst, en waarom?", "Hoe liep het verhaal af?", "Waar speelt het verhaal zich af?"]],
+    w: ["Waar gaat dit boek over?",
+        ["Noem twee dingen die je van dit boek hebt geleerd.", "Wat vond je het verbazingwekkendste feit?", "Welke vraag heb je nog na het lezen?", "Aan wie zou je dit boek aanraden, en waarom?", "Welk hoofdstuk of stuk vond je het interessantst?"]],
+    t: ["Wie zijn de belangrijkste personages?",
+        ["Wat was het grootste probleem in het verhaal?", "Beschrijf je favoriete plaatje of stuk.", "Hoe liep het verhaal af?", "Wat zie je in de tekeningen dat niet in de tekst staat?", "Welk personage vond je het leukst, en waarom?"]],
+    a: ["Waar gaat het boek over? Vertel het in een paar zinnen.",
+        ["Wie is de hoofdpersoon?", "Welk stuk is je het meest bijgebleven?", "Hoe liep het verhaal af?", "Aan wie zou je dit boek aanraden, en waarom?", "Waar speelt het verhaal zich af?"]]
+  };
+  function standaardVragen(titel, g) {
+    var v = VRAGEN[g] || VRAGEN.a, k = sleutelVan(titel), h = 11;
+    for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+    var pool = v[1], a = h % pool.length, b = (a + 1 + (h >>> 5) % (pool.length - 1)) % pool.length;
+    return [v[0], pool[a], pool[b]];
+  }
+  function vragenVoor(titel, g) {
+    var eigen = state.vragen[sleutelVan(titel)];
+    return eigen && eigen.length === 3 ? eigen.slice() : standaardVragen(titel, g);
+  }
+
+  /* Antwoorden bewaren: online via opslag.js, in de demo op dit apparaat */
+  var ANTW = null;
+  function lokaleAntwoorden() {
+    var SL = "bookflix-antwoorden-demo", luisteraars = [];
+    function lees() { try { return JSON.parse(localStorage.getItem(SL) || "[]"); } catch (e) { return []; } }
+    function zet(a) { try { localStorage.setItem(SL, JSON.stringify(a.slice(-300))); } catch (e) {} luisteraars.forEach(function (f) { f(a); }); }
+    return {
+      voegToe: function (d) { var a = lees(); a.push(Object.assign({ id: "l" + Date.now() + Math.random().toString(36).slice(2, 6) }, d)); zet(a); return Promise.resolve(); },
+      luister: function (cb) { luisteraars.push(cb); cb(lees()); },
+      zet: function (id, d) { zet(lees().map(function (x) { return x.id === id ? Object.assign({}, x, d) : x; })); return Promise.resolve(); },
+      weg: function (id) { zet(lees().filter(function (x) { return x.id !== id; })); return Promise.resolve(); }
+    };
+  }
+
   /* Mijn boek: titel, rij, en dan op de plank */
   var invRij = "", invKlok = null, invFoto = {}, invZoekKlok = null;
   function invTeken() {
@@ -1687,8 +1790,38 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var vak = $("invKaft"); vak.textContent = "";
     var foto = state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k];
     vak.appendChild(maakKaft(titel || "Jouw boek", invRij || "a", 0, foto || "-"));
-    $("invKlaar").disabled = !titel || !invRij || !kanSchrijven;
     $("invRijen").classList.toggle("gekozen", !!invRij);
+    invVragenTeken();
+  }
+  /* De drie vragen: verschijnen zodra titel en rij gekozen zijn. Wat al getypt is, blijft staan. */
+  var invVragenSleutel = "", MIN_ANTWOORD = 8;
+  function invVragenTeken() {
+    var titel = $("invTitel").value.trim(), doos = $("invVragen");
+    var sl = titel && invRij ? sleutelVan(titel) + "|" + invRij + "|" + JSON.stringify(state.vragen[sleutelVan(titel)] || "") : "";
+    if (sl !== invVragenSleutel) {
+      var oud = Array.prototype.map.call(doos.querySelectorAll("textarea"), function (x) { return x.value; });
+      invVragenSleutel = sl; doos.textContent = "";
+      if (!sl) {
+        doos.appendChild(el("p", "uitleg", "Kies eerst je boek en de rij, dan komen hier de vragen."));
+      } else {
+        vragenVoor(titel, invRij).forEach(function (v, i) {
+          var blok = el("div", "inv-vraag"), lab = el("label", null, (i + 1) + ". " + v), ta = document.createElement("textarea");
+          ta.id = "invAntw" + i; lab.htmlFor = ta.id; ta.maxLength = 400; ta.rows = 2; ta.value = oud[i] || "";
+          ta.addEventListener("input", invKlaarZet);
+          blok.appendChild(lab); blok.appendChild(ta); doos.appendChild(blok);
+        });
+      }
+    }
+    invKlaarZet();
+  }
+  function invAntwoorden() { return Array.prototype.map.call($("invVragen").querySelectorAll("textarea"), function (x) { return x.value.trim(); }); }
+  function invKlaarZet() {
+    var titel = $("invTitel").value.trim(), a = invAntwoorden();
+    var open = a.length !== 3 ? 3 : a.filter(function (x) { return x.length < MIN_ANTWOORD; }).length;
+    $("invKlaar").disabled = !titel || !invRij || !kanSchrijven || open > 0;
+    $("invHint").textContent = !titel || !invRij ? "" :
+      open === 3 ? "Beantwoord de vragen in je eigen woorden." :
+      open > 0 ? "Nog " + open + (open === 1 ? " vraag" : " vragen") + " te gaan. Schrijf per vraag minstens één zin." : "";
   }
   GENRES.forEach(function (g) {
     var b = el("button", "inv-rij g-" + g.id, g.lang);
@@ -1715,17 +1848,34 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("invTitel").addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); this.blur(); }
   });
+  var invWacht = null;
+  function invVerstuur() {
+    var d = invWacht; invWacht = null;
+    if (d && ANTW) ANTW.voegToe(d).catch(function (e) { console.warn(e); meld("let", "Antwoorden opslaan lukte niet."); });
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") invVerstuur(); });
+  window.addEventListener("pagehide", invVerstuur);
+  function naarMijnBoek(titel, rij) {
+    invOpnieuw();
+    $("invTitel").value = titel; invRij = rij;
+    Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === rij)); });
+    kies("invoer"); invTeken();
+    var ta = $("invAntw0"); if (ta) ta.focus();
+  }
   function invOpnieuw() {
+    invVerstuur();
     clearTimeout(invKlok);
     $("invoer").classList.remove("klaar"); $("invBedankt").hidden = true;
-    $("invTitel").value = ""; invRij = "";
+    $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x";
+    Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
     invTeken();
   }
   $("invVorm").addEventListener("submit", function (e) {
     e.preventDefault();
     var titel = $("invTitel").value.trim();
-    if (!titel || !invRij || !kanSchrijven) return;
+    if (!titel || !invRij || !kanSchrijven || $("invKlaar").disabled) return;
+    invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: vragenVoor(titel, invRij), a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
     duimErbij(invRij, titel);
     $("invoer").classList.add("klaar"); $("invBedankt").hidden = false;
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
@@ -1734,8 +1884,71 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invKlok = setTimeout(invOpnieuw, 12000);
   });
   $("invNog").addEventListener("click", function () { invOpnieuw(); $("invTitel").focus(); });
-  $("invOeps").addEventListener("click", function () { $("terug").click(); invOpnieuw(); });
+  $("invOeps").addEventListener("click", function () { invWacht = null; $("terug").click(); invOpnieuw(); });
   invTeken();
+
+  /* Eigen vragen per boek */
+  var vragenBoek = null;
+  function openVragen(titel, g) {
+    vragenBoek = { t: titel, g: g, k: sleutelVan(titel) };
+    $("vragenUitleg").textContent = "Deze drie vragen krijgen leerlingen bij \u201c" + titel + "\u201d.";
+    vragenVoor(titel, g).forEach(function (v, i) { $("vraag" + i).value = v; });
+    $("vragenDlg").showModal();
+  }
+  $("vragenOk").addEventListener("click", function () {
+    var q = [0, 1, 2].map(function (i) { return $("vraag" + i).value.trim().slice(0, 160); }), b = vragenBoek;
+    if (b && q.every(Boolean)) {
+      var std = standaardVragen(b.t, b.g);
+      wijzig(function (s) { if (q.join("|") === std.join("|")) delete s.vragen[b.k]; else s.vragen[b.k] = q; }, false);
+    }
+    $("vragenDlg").close();
+  });
+  $("vragenStandaard").addEventListener("click", function () {
+    var b = vragenBoek;
+    if (b) wijzig(function (s) { delete s.vragen[b.k]; }, false);
+    $("vragenDlg").close();
+  });
+  $("vragenDlg").addEventListener("click", function (e) { if (e.target === this) this.close(); });
+
+  /* Leesvragen nakijken (alleen de leerkracht) */
+  var antwoorden = [];
+  function toonAntwoorden() {
+    var lijst = $("antwLijst"), alles = $("antwAlles").checked;
+    var open = antwoorden.filter(function (x) { return !x.ok; });
+    $("antwTel").hidden = !open.length; $("antwTel").textContent = open.length;
+    var rij = antwoorden.slice().sort(function (a, b) { return (a.ok ? 1 : 0) - (b.ok ? 1 : 0) || (b.ts || 0) - (a.ts || 0); })
+      .filter(function (x) { return alles || !x.ok; }).slice(0, 80);
+    lijst.textContent = "";
+    $("antwLeeg").hidden = rij.length > 0;
+    rij.forEach(function (x) {
+      var li = el("li", "antw-kaart" + (x.ok ? " ok" : ""));
+      li.appendChild(maakKaft(x.t || "?", x.g || "a", 0));
+      var kop = el("div", "antw-kop");
+      kop.appendChild(el("b", null, x.t || "?"));
+      kop.appendChild(el("span", null, rijNaam(x.g) + (x.d ? " \u00b7 " + x.d.split("-").reverse().join("-") : "")));
+      li.appendChild(kop);
+      var dl = el("dl", "antw-qa");
+      (x.v || []).forEach(function (v, i) { dl.appendChild(el("dt", null, v)); dl.appendChild(el("dd", null, (x.a && x.a[i]) || "\u2014")); });
+      li.appendChild(dl);
+      var kn = el("div", "antw-knoppen");
+      var goed = el("button", "knop", x.ok ? "Toch weer openzetten" : "Goed gelezen");
+      goed.type = "button";
+      goed.addEventListener("click", function () { if (ANTW) ANTW.zet(x.id, { ok: !x.ok }).catch(function (e) { console.warn(e); }); });
+      var weg = el("button", "tekstknop", "Duim weghalen");
+      weg.type = "button";
+      weg.addEventListener("click", function () {
+        wijzig(function (s) {
+          if (s.genres[x.g] > 0) s.genres[x.g]--;
+          for (var i = s.boeken.length - 1; i >= 0; i--) if (sleutelVan(s.boeken[i].t) === sleutelVan(x.t || "")) { s.boeken.splice(i, 1); break; }
+        }, false);
+        if (ANTW) ANTW.weg(x.id).catch(function (e) { console.warn(e); });
+      });
+      kn.appendChild(goed); kn.appendChild(weg);
+      li.appendChild(kn);
+      lijst.appendChild(li);
+    });
+  }
+  $("antwAlles").addEventListener("change", toonAntwoorden);
 
   $("einde").addEventListener("change", function () {
     var v = this.value;
@@ -1749,7 +1962,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   });
 
   /* Weergave: scorebord of Awards */
-  var TABS = { invoer: "tabInvoer", bord: "tabBord", lijst: "tabLijst", finale: "tabFinale", regels: "tabRegels" };
+  var TABS = { invoer: "tabInvoer", bord: "tabBord", lijst: "tabLijst", finale: "tabFinale", antw: "tabAntw", regels: "tabRegels" };
   /* Passend maken: op een liggend scherm mag het scorebord nooit scrollen.
      Past het niet (ander lettertype, lange namen, afwijkend scherm), dan krimpt het in stapjes. */
   var bordMQ = window.matchMedia("(min-width:600px) and (min-height:560px)"), pasWacht = false;
@@ -1908,6 +2121,9 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       try { localStorage.setItem("bookflix.laatste", o.klas); } catch (e) {}
     }
     if (o && o.rol === "lid") kies("invoer");
+    ANTW = o && o.antwoorden ? o.antwoorden : (o ? null : lokaleAntwoorden());
+    /* De leerkracht (en de demo) ziet de antwoorden binnenkomen */
+    if (ANTW && !(o && o.rol === "lid")) ANTW.luister(function (a) { antwoorden = a; toonAntwoorden(); });
     if (o && o.ref) {
       ref = o.ref;
       ref.onSnapshot(function (snap) {

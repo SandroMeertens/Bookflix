@@ -144,6 +144,15 @@ async function begin() {
         onSnapshot: (cb, fout) => F.onSnapshot(r,
           (s) => cb({ exists: s.exists(), data: () => s.data(), metadata: s.metadata }),
           (e) => { console.warn(e); if (fout) fout(e); })
+      },
+      /* Antwoorden op de leesvragen: aparte documenten. iPads mogen ze alleen toevoegen, de leerkracht leest ze. */
+      antwoorden: {
+        voegToe: (data) => F.addDoc(F.collection(db, "klassen", kid, "antwoorden"), data),
+        luister: (cb) => F.onSnapshot(F.collection(db, "klassen", kid, "antwoorden"),
+          (s) => cb(s.docs.map((x) => Object.assign({ id: x.id }, x.data()))),
+          (e) => console.warn(e)),
+        zet: (id, data) => F.updateDoc(d("klassen", kid, "antwoorden", id), data),
+        weg: (id) => F.deleteDoc(d("klassen", kid, "antwoorden", id))
       }
     });
     if (rol === "juf") vulKlasBlok();

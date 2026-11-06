@@ -4,6 +4,8 @@ Leesscorebord voor de klas in Netflix-stijl. Elk gelezen boek krijgt een duim en
 
 De leerkracht logt in met Google; de stand wordt bij dat account bewaard. iPads van de klas doen mee met een klascode (staat bij **Instellen**, met QR-code).
 
+Op de iPad zet een leerling zijn boek zelf op de plank bij **Mijn boek**: titel, rij en drie leesvragen. De antwoorden (zonder naam) ziet alleen de leerkracht bij **Leesvragen**. Bij **Boeken** kan de leerkracht per boek eigen vragen zetten.
+
 ## Mappen
 
 | Bestand | Wat |
