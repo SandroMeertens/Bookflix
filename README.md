@@ -4,7 +4,7 @@ Leesscorebord voor de klas in Netflix-stijl. Elk gelezen boek krijgt een duim en
 
 De leerkracht logt in met Google; de stand wordt bij dat account bewaard. iPads van de klas doen mee met een klascode (staat bij **Instellen**, met QR-code).
 
-Op de iPad zet een leerling zijn boek zelf op de plank bij **Mijn boek**: titel, rij en drie leesvragen. De antwoorden (zonder naam) ziet alleen de leerkracht bij **Leesvragen**. Bij **Boeken** kan de leerkracht per boek eigen vragen zetten.
+Op de iPad zet een leerling zijn boek zelf op de plank bij **Mijn boek**: titel, rij en drie leesvragen. De antwoorden (zonder naam) ziet alleen de leerkracht bij **Leesvragen**. Bij een nieuw boek maakt Bookflix zelf drie vragen bij dat boek (Firebase AI Logic met Gemini, op basis van de achterflaptekst van Google Boeken). Lukt dat niet, dan krijgen leerlingen standaardvragen op drie niveaus: onthouden, verbanden en nadenken. Bij **Boeken → Vragen** kan de leerkracht de vragen nakijken, aanpassen of opnieuw laten maken. Naar Gemini gaan alleen de titel en de achterflaptekst, nooit iets van een leerling.
 
 ## Mappen
 

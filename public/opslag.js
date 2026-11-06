@@ -159,6 +159,7 @@ async function begin() {
           (e) => { console.warn(e); if (fout) fout(e); })
       },
       /* Antwoorden op de leesvragen: aparte documenten. iPads mogen ze alleen toevoegen, de leerkracht leest ze. */
+      ai: maakAI(),
       antwoorden: {
         voegToe: (data) => F.addDoc(F.collection(db, "klassen", kid, "antwoorden"), data),
         luister: (cb) => F.onSnapshot(F.collection(db, "klassen", kid, "antwoorden"),
@@ -169,6 +170,35 @@ async function begin() {
       }
     });
     if (rol === "juf") vulKlasBlok();
+  }
+
+  /* ---------- AI voor leesvragen (Firebase AI Logic, Gemini Developer API) ----------
+     Werkt alleen als AI Logic in de Firebase-console aanstaat. Lukt het niet, dan gebruikt
+     Bookflix de standaardvragen. Modelnamen veranderen in de loop van de tijd: we proberen ze op volgorde. */
+  const MODELLEN = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
+  function maakAI() {
+    let ai = null;
+    try { ai = F.getAI(app, { backend: new F.GoogleAIBackend() }); } catch (e) { console.warn(e); return null; }
+    let begin = Math.max(0, MODELLEN.indexOf(lees("bookflix.model")));
+    return {
+      async vraag(prompt) {
+        let laatste = null;
+        for (let i = begin; i < MODELLEN.length; i++) {
+          try {
+            const m = F.getGenerativeModel(ai, { model: MODELLEN[i], generationConfig: { responseMimeType: "application/json", temperature: 0.4 } });
+            const r = await m.generateContent(prompt);
+            if (i !== begin) { begin = i; bewaar("bookflix.model", MODELLEN[i]); }
+            return r.response.text();
+          } catch (e) {
+            laatste = e;
+            const t = String((e && (e.message || e.code)) || "");
+            /* Alleen als dit model niet (meer) bestaat, het volgende proberen */
+            if (!/not.?found|404|is not supported|unsupported|deprecat|no longer available/i.test(t)) throw e;
+          }
+        }
+        throw laatste || new Error("geen model");
+      }
+    };
   }
 
   /* ---------- Instellen: klascode, QR-code, nieuwe code, uitloggen ---------- */

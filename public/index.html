@@ -694,7 +694,8 @@ body:not(.lid) .alleen-lid{display:none!important}
     <input type="text" id="vraag2" maxlength="160" aria-label="Vraag 3">
     <div class="opnieuw">
       <button class="knop wit" id="vragenOk" type="button">Opslaan</button>
-      <button class="tekstknop" id="vragenStandaard" type="button">Terug naar de standaardvragen</button>
+      <button class="tekstknop" id="vragenStandaard" type="button">Eigen vragen weghalen</button>
+      <button class="tekstknop" id="vragenNieuw" type="button">Nieuwe vragen laten maken</button>
       <button class="tekstknop" id="vragenDicht" type="button">Annuleer</button>
     </div>
   </form>
@@ -794,6 +795,15 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         var v = {};
         if (d.vragen && typeof d.vragen === "object") Object.keys(d.vragen).slice(0, 300).forEach(function (x) {
           var q = d.vragen[x];
+          if (Array.isArray(q) && q.length === 3 && q.every(function (y) { return typeof y === "string" && y.trim(); })) v[x.slice(0, 80)] = q.map(function (y) { return y.slice(0, 160); });
+        });
+        return v;
+      })(),
+      aiVragen: (function () {
+        /* Automatisch gemaakte vragen per titel */
+        var v = {};
+        if (d.aiVragen && typeof d.aiVragen === "object") Object.keys(d.aiVragen).slice(0, 600).forEach(function (x) {
+          var q = d.aiVragen[x];
           if (Array.isArray(q) && q.length === 3 && q.every(function (y) { return typeof y === "string" && y.trim(); })) v[x.slice(0, 80)] = q.map(function (y) { return y.slice(0, 160); });
         });
         return v;
@@ -1459,7 +1469,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Titels: laatste op de plank, en per rij de lijst met het meest geduimde boek bovenaan */
   var boekenStempel = null;
   function toonBoeken() {
-    var stempel = JSON.stringify([state.boeken, state.kaften, state.vragen, kanSchrijven]);
+    var stempel = JSON.stringify([state.boeken, state.kaften, state.vragen, state.aiVragen, kanSchrijven]);
     if (stempel === boekenStempel) return;
     boekenStempel = stempel;
 
@@ -1529,6 +1539,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       blok.appendChild(ul); lijst.appendChild(blok);
     });
     setTimeout(vulKaften, 0);
+    setTimeout(vulVragen, 1500);
     volgorde.forEach(function (g) {
       var opt = document.createElement("option"); opt.value = g.t; data.appendChild(opt);
     });
@@ -1762,28 +1773,123 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Leesvragen: per rij een vaste eerste vraag en twee uit een rijtje. Welke twee hangt aan de titel,
      zodat iedereen bij hetzelfde boek dezelfde vragen krijgt. De leerkracht kan per boek eigen vragen zetten. */
   var VRAGEN = {
-    s: ["Wie is de hoofdpersoon, en wat voor iemand is hij of zij?",
-        ["Wat was het spannendste moment in het boek?", "Waar speelt het verhaal zich af?", "Wat was het geheim of probleem, en hoe werd het opgelost?", "Hoe liep het verhaal af?", "Welke persoon in het boek vertrouwde je niet, en waarom?"]],
-    f: ["Wie is de hoofdpersoon, en wat moet hij of zij doen?",
-        ["Beschrijf de wereld waarin het verhaal zich afspeelt.", "Welke magische of bijzondere dingen komen in het boek voor?", "Wie of wat was de tegenstander?", "Hoe liep het avontuur af?", "Welk moment zou je graag zelf meemaken, en waarom?"]],
-    l: ["Wie is de hoofdpersoon, en wat voor iemand is hij of zij?",
-        ["Vertel het grappigste stuk uit het boek na.", "Wat ging er allemaal mis in het verhaal?", "Wie in het boek vond je het grappigst, en waarom?", "Hoe liep het verhaal af?", "Waar speelt het verhaal zich af?"]],
-    w: ["Waar gaat dit boek over?",
-        ["Noem twee dingen die je van dit boek hebt geleerd.", "Wat vond je het verbazingwekkendste feit?", "Welke vraag heb je nog na het lezen?", "Aan wie zou je dit boek aanraden, en waarom?", "Welk hoofdstuk of stuk vond je het interessantst?"]],
-    t: ["Wie zijn de belangrijkste personages?",
-        ["Wat was het grootste probleem in het verhaal?", "Beschrijf je favoriete plaatje of stuk.", "Hoe liep het verhaal af?", "Wat zie je in de tekeningen dat niet in de tekst staat?", "Welk personage vond je het leukst, en waarom?"]],
-    a: ["Waar gaat het boek over? Vertel het in een paar zinnen.",
-        ["Wie is de hoofdpersoon?", "Welk stuk is je het meest bijgebleven?", "Hoe liep het verhaal af?", "Aan wie zou je dit boek aanraden, en waarom?", "Waar speelt het verhaal zich af?"]]
+    s: [["Noem een bijpersoon uit het boek en vertel wat die deed.", "Wat gebeurde er ongeveer in het midden van het boek?", "Schrijf een spannende zin uit het boek over. Op welke bladzijde staat hij?", "Beschrijf de plek waar het spannendste stuk zich afspeelt."],
+        ["Wat was het grootste probleem in het verhaal, en hoe kwam dat?", "Welk moment veranderde alles in het verhaal? Wat gebeurde er daarna?", "Hoe werd het raadsel of probleem opgelost? Wie hielp daarbij?"],
+        ["Hoe veranderde de hoofdpersoon van begin tot eind? Waaraan merk je dat?", "Welke keuze van de hoofdpersoon vond je dapper of dom? Leg uit waarom.", "Wie in het verhaal vertrouwde je niet, en waarom?"]],
+    f: [["Beschrijf de wereld waarin het verhaal speelt: wat is daar anders dan bij ons?", "Noem een bijpersoon of wezen uit het boek en vertel wat die deed.", "Wat gebeurde er ongeveer in het midden van het avontuur?", "Schrijf een zin uit het boek over die je mooi vond. Op welke bladzijde staat hij?"],
+        ["Wat moest de hoofdpersoon bereiken, en wat stond in de weg?", "Wie of wat was de tegenstander, en waarom?", "Welk bijzonder voorwerp of welke kracht was belangrijk, en waarvoor?"],
+        ["Hoe veranderde de hoofdpersoon tijdens het avontuur? Waaraan merk je dat?", "Welk moment zou je zelf willen meemaken, en waarom juist dat?", "Was het einde eerlijk voor iedereen? Leg uit waarom wel of niet."]],
+    l: [["Vertel het grappigste stuk na in een paar zinnen.", "Noem een bijpersoon en vertel wat die grappig maakte.", "Schrijf een grappige zin uit het boek over. Op welke bladzijde staat hij?", "Wat gebeurde er ongeveer in het midden van het boek?"],
+        ["Wat ging er mis, en wat was daarvan het gevolg?", "Hoe kwam de hoofdpersoon in de problemen, en hoe kwam hij of zij eruit?", "Welk plan werkte helemaal niet, en waarom niet?"],
+        ["Waarom is dit boek grappig? Leg uit wat de schrijver doet om je te laten lachen.", "Wat zou jij anders hebben gedaan dan de hoofdpersoon? Waarom?", "Hoe veranderde de hoofdpersoon van begin tot eind?"]],
+    w: [["Noem een feit uit het boek met een getal of naam erin.", "Welke onderwerpen staan er in het boek? Noem er twee.", "Schrijf een zin over die je verraste. Op welke bladzijde staat hij?"],
+        ["Leg in je eigen woorden uit hoe iets uit het boek werkt.", "Welke oorzaak en welk gevolg leerde je uit dit boek?", "Welke twee dingen uit het boek horen bij elkaar? Leg het verband uit."],
+        ["Wat wist je nog niet, en wat vind je daarvan? Leg uit waarom.", "Welke vraag heb je nog na het lezen, en waar zou je het antwoord kunnen vinden?", "Aan wie zou je dit boek aanraden, en waarom juist aan die persoon?"]],
+    t: [["Noem twee personages en vertel wat ze deden.", "Beschrijf je favoriete plaatje: wat zie je erop?", "Wat gebeurde er ongeveer in het midden van de strip?"],
+        ["Wat was het grootste probleem in het verhaal, en hoe werd het opgelost?", "Wat zie je in de plaatjes dat niet in de tekst staat? Waarom is dat belangrijk?", "Hoe laat de tekenaar zien dat iemand boos, bang of blij is?"],
+        ["Welk personage vond je het leukst, en waarom?", "Zou dit verhaal ook werken zonder plaatjes? Leg uit waarom wel of niet.", "Hoe veranderde de hoofdpersoon van begin tot eind?"]],
+    a: [["Noem een bijpersoon en vertel wat die deed.", "Wat gebeurde er ongeveer in het midden van het boek?", "Schrijf een zin uit het boek over die je bijbleef. Op welke bladzijde staat hij?"],
+        ["Wat was het belangrijkste probleem in het boek, en hoe kwam dat?", "Welk moment veranderde het verhaal? Wat gebeurde er daarna?", "Hoe hangen het begin en het eind van het boek samen?"],
+        ["Hoe veranderde de hoofdpersoon van begin tot eind? Waaraan merk je dat?", "Welke keuze van een personage vond je goed of fout? Leg uit waarom.", "Aan wie zou je dit boek aanraden, en waarom?"]]
   };
+  /* Standaardvragen: één vraag om te onthouden, één over verbanden, één om over na te denken */
   function standaardVragen(titel, g) {
     var v = VRAGEN[g] || VRAGEN.a, k = sleutelVan(titel), h = 11;
     for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
-    var pool = v[1], a = h % pool.length, b = (a + 1 + (h >>> 5) % (pool.length - 1)) % pool.length;
-    return [v[0], pool[a], pool[b]];
+    return [v[0][h % v[0].length], v[1][(h >>> 4) % v[1].length], v[2][(h >>> 9) % v[2].length]];
+  }
+  /* Welke vragen krijgt een boek: eigen vragen van de leerkracht, anders de automatisch gemaakte, anders de standaard */
+  var aiKlaar = {};
+  function vragenBron(titel) {
+    var k = sleutelVan(titel);
+    if (state.vragen[k]) return "eigen";
+    if (state.aiVragen[k] || aiKlaar[k]) return "ai";
+    return "standaard";
   }
   function vragenVoor(titel, g) {
-    var eigen = state.vragen[sleutelVan(titel)];
-    return eigen && eigen.length === 3 ? eigen.slice() : standaardVragen(titel, g);
+    var k = sleutelVan(titel), v = state.vragen[k] || state.aiVragen[k] || aiKlaar[k];
+    return v && v.length === 3 ? v.slice() : standaardVragen(titel, g);
+  }
+
+  /* ---------- Vragen bij het boek laten maken ----------
+     De achterflaptekst komt van Google Boeken; de AI (Gemini via Firebase) maakt er drie vragen bij.
+     Alleen de titel en de achterflaptekst gaan naar die diensten, nooit iets van een leerling. */
+  var AI = null, aiZoek = {}, aiUit = false;
+  var infoZoek = {};
+  function boekInfo(titel) {
+    var k = sleutelVan(titel);
+    if (!infoZoek[k]) {
+      var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent("intitle:" + titel) +
+        "&printType=books&maxResults=8&langRestrict=nl&fields=items(volumeInfo(title,authors,description))";
+      infoZoek[k] = fetch(url).then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
+        var items = (j.items || []).map(function (x) { return x.volumeInfo || {}; });
+        var best = items.filter(function (v) { return lijkt(v.title, titel) && v.description; })[0] ||
+                   items.filter(function (v) { return lijkt(v.title, titel); })[0] || {};
+        var tekst = String(best.description || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 1200);
+        return { auteur: (best.authors || []).slice(0, 2).join(" en "), tekst: tekst };
+      }).catch(function () { return { auteur: "", tekst: "" }; });
+    }
+    return infoZoek[k];
+  }
+  function vragenPrompt(titel, g, info) {
+    var niveaus = g === "w"
+      ? "Vraag 1 (onthouden): naar een concreet feit uit het boek. Vraag 2 (verbanden): laat het kind iets uit het boek in eigen woorden uitleggen, of een oorzaak en gevolg noemen. Vraag 3 (nadenken): wat het kind ervan vindt of wat het nog wil weten, met 'waarom'."
+      : "Vraag 1 (onthouden): naar een gebeurtenis of bijpersoon uit het verhaal. Vraag 2 (verbanden): naar een oorzaak en gevolg, of hoe een probleem werd opgelost. Vraag 3 (nadenken): naar een keuze of verandering van de hoofdpersoon, met 'waarom'.";
+    return "Je bent leerkracht in groep 8 (kinderen van 11 tot 12 jaar). Maak drie leesvragen bij het boek \u201c" + titel + "\u201d" +
+      (info.auteur ? " van " + info.auteur : "") + " (soort boek: " + rijNaam(g).toLowerCase() + ").\n" +
+      (info.tekst ? "Achterflaptekst: \u201c" + info.tekst + "\u201d\n" : "Er is geen achterflaptekst gevonden.\n") +
+      "De vragen moeten controleren of een kind het boek echt gelezen heeft. Ze mogen dus niet te beantwoorden zijn met alleen de achterflap.\n" +
+      niveaus + "\n" +
+      "Regels: gebruik namen en gebeurtenissen alleen als je zeker weet dat ze in dit boek voorkomen (uit de achterflap of omdat je het boek goed kent). Verzin niets: weet je het niet zeker, stel dan een open vraag over de hoofdpersoon of het verhaal. Eenvoudig Nederlands, korte zinnen, hoogstens 140 tekens per vraag, elke vraag eindigt met een vraagteken.\n" +
+      "Geef alleen JSON terug, precies zo: {\"vragen\": [\"...\", \"...\", \"...\"]}";
+  }
+  function leesVragen(tekst) {
+    try {
+      var m = String(tekst).match(/\{[\s\S]*\}/), j = JSON.parse(m ? m[0] : tekst), v = j && j.vragen;
+      if (!Array.isArray(v) || v.length < 3) return null;
+      v = v.slice(0, 3).map(function (x) { return String(x || "").replace(/\s+/g, " ").trim().slice(0, 160); });
+      return v.every(function (x) { return x.length >= 10; }) ? v : null;
+    } catch (e) { return null; }
+  }
+  /* Vragen maken voor één titel; onthoudt het resultaat in dit apparaat (aiKlaar) */
+  function maakVragen(titel, g) {
+    var k = sleutelVan(titel);
+    if (!k || !AI || aiUit) return Promise.resolve(null);
+    if (state.aiVragen[k] || aiKlaar[k]) return Promise.resolve(state.aiVragen[k] || aiKlaar[k]);
+    if (!aiZoek[k]) {
+      aiZoek[k] = boekInfo(titel).then(function (info) {
+        return Promise.race([AI.vraag(vragenPrompt(titel, g, info)), new Promise(function (_, nee) { setTimeout(function () { nee(new Error("traag")); }, 20000); })]);
+      }).then(function (antw) {
+        var v = leesVragen(antw);
+        if (v) aiKlaar[k] = v;
+        return v;
+      }).catch(function (e) {
+        console.warn("Vragen maken lukte niet:", e);
+        /* Staat AI Logic uit of geen toegang? Dan niet steeds opnieuw proberen */
+        if (/permission|api.?key|not enabled|disabled|PERMISSION_DENIED|403|billing/i.test(String(e && (e.message || e.code)))) aiUit = true;
+        delete aiZoek[k];
+        return null;
+      });
+    }
+    return aiZoek[k];
+  }
+  /* Op het apparaat van de leerkracht: titels zonder vragen één voor één voorzien */
+  var vulVragenBezig = false, vragenMislukt = {};
+  function vulVragen() {
+    if (vulVragenBezig || !AI || aiUit || !kanSchrijven || document.body.classList.contains("lid")) return;
+    var open = null;
+    for (var i = state.boeken.length - 1; i >= 0; i--) {
+      var b = state.boeken[i], k = sleutelVan(b.t);
+      if (!state.vragen[k] && !state.aiVragen[k] && !vragenMislukt[k]) { open = b; break; }
+    }
+    if (!open) return;
+    vulVragenBezig = true;
+    var ko = sleutelVan(open.t);
+    maakVragen(open.t, open.g).then(function (v) {
+      if (v && !state.aiVragen[ko]) wijzig(function (s) { s.aiVragen[ko] = v; }, false);
+      if (!v) vragenMislukt[ko] = true;
+      setTimeout(function () { vulVragenBezig = false; vulVragen(); }, 3000);
+    });
   }
 
   /* Antwoorden bewaren: online via opslag.js, in de demo op dit apparaat */
@@ -1811,18 +1917,36 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invVragenTeken();
   }
   /* De drie vragen: verschijnen zodra titel en rij gekozen zijn. Wat al getypt is, blijft staan. */
-  var invVragenSleutel = "", MIN_ANTWOORD = 8;
+  var invVragenSleutel = "", MIN_ANTWOORD = 15, invLaden = "", invVast = null;
   function invVragenTeken() {
-    var titel = $("invTitel").value.trim(), doos = $("invVragen");
-    var sl = titel && invRij ? sleutelVan(titel) + "|" + invRij + "|" + JSON.stringify(state.vragen[sleutelVan(titel)] || "") : "";
+    var titel = $("invTitel").value.trim(), doos = $("invVragen"), k = sleutelVan(titel);
+    /* Nog geen vragen bij dit boek? Eerst laten maken (hoogstens 10 seconden wachten) */
+    if (titel && invRij && AI && !aiUit && vragenBron(titel) === "standaard" && invLaden !== k + "|klaar" && !(invVast && invVast.k === k + "|" + invRij)) {
+      if (invLaden !== k) {
+        invLaden = k;
+        var klaar = function () { if (invLaden === k) { invLaden = k + "|klaar"; invVragenTeken(); } };
+        maakVragen(titel, invRij).then(klaar);
+        setTimeout(klaar, 10000);
+      }
+      if (invVragenSleutel !== "laden|" + k) {
+        invVragenSleutel = "laden|" + k; doos.textContent = "";
+        doos.appendChild(el("p", "uitleg", "Even geduld: de vragen bij jouw boek worden gemaakt\u2026"));
+      }
+      invKlaarZet();
+      return;
+    }
+    /* Vragen die al in beeld staan, blijven staan, ook als er later andere klaar zijn */
+    var v = invVast && invVast.k === k + "|" + invRij ? invVast.v : (titel && invRij ? vragenVoor(titel, invRij) : null);
+    if (v) invVast = { k: k + "|" + invRij, v: v, bron: invVast && invVast.k === k + "|" + invRij ? invVast.bron : vragenBron(titel) };
+    var sl = v ? k + "|" + invRij + "|" + JSON.stringify(v) : "";
     if (sl !== invVragenSleutel) {
       var oud = Array.prototype.map.call(doos.querySelectorAll("textarea"), function (x) { return x.value; });
       invVragenSleutel = sl; doos.textContent = "";
       if (!sl) {
         doos.appendChild(el("p", "uitleg", "Kies eerst je boek en de rij, dan komen hier de vragen."));
       } else {
-        vragenVoor(titel, invRij).forEach(function (v, i) {
-          var blok = el("div", "inv-vraag"), lab = el("label", null, (i + 1) + ". " + v), ta = document.createElement("textarea");
+        v.forEach(function (vr, i) {
+          var blok = el("div", "inv-vraag"), lab = el("label", null, (i + 1) + ". " + vr), ta = document.createElement("textarea");
           ta.id = "invAntw" + i; lab.htmlFor = ta.id; ta.maxLength = 400; ta.rows = 2; ta.value = oud[i] || "";
           ta.addEventListener("input", invKlaarZet);
           blok.appendChild(lab); blok.appendChild(ta); doos.appendChild(blok);
@@ -1838,12 +1962,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("invKlaar").disabled = !titel || !invRij || !kanSchrijven || open > 0;
     $("invHint").textContent = !titel || !invRij ? "" :
       open === 3 ? "Beantwoord de vragen in je eigen woorden." :
-      open > 0 ? "Nog " + open + (open === 1 ? " vraag" : " vragen") + " te gaan. Schrijf per vraag minstens één zin." : "";
+      open > 0 ? "Nog " + open + (open === 1 ? " vraag" : " vragen") + " te gaan. Schrijf per vraag minstens één hele zin." : "";
   }
   GENRES.forEach(function (g) {
     var b = el("button", "inv-rij g-" + g.id, g.lang);
     b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.dataset.g = g.id;
     b.addEventListener("click", function () {
+      if (invRij !== g.id) invVast = null;
       invRij = g.id;
       Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === invRij)); });
       invTeken();
@@ -1851,6 +1976,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("invRijen").appendChild(b);
   });
   $("invTitel").addEventListener("input", function () {
+    invVast = null;
     invTeken();
     clearTimeout(invZoekKlok);
     var titel = $("invTitel").value.trim();
@@ -1860,6 +1986,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         invFoto[sleutelVan(titel)] = a[0] || "-";
         if ($("invTitel").value.trim() === titel) invTeken();
       }, function () {});
+      if (invRij) boekInfo(titel);
     }, 600);
   });
   $("invTitel").addEventListener("keydown", function (e) {
@@ -1883,7 +2010,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invVerstuur();
     clearTimeout(invKlok);
     $("invoer").classList.remove("klaar"); $("invBedankt").hidden = true;
-    $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x";
+    $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x"; invVast = null; invLaden = "";
     Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
     invTeken();
@@ -1892,8 +2019,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     e.preventDefault();
     var titel = $("invTitel").value.trim();
     if (!titel || !invRij || !kanSchrijven || $("invKlaar").disabled) return;
-    invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: vragenVoor(titel, invRij), a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
+    var getoond = invVast ? invVast.v : vragenVoor(titel, invRij), kk = sleutelVan(titel);
+    invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: getoond, a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
     duimErbij(invRij, titel);
+    if (invVast && invVast.bron === "ai" && !state.aiVragen[kk] && !state.vragen[kk]) wijzig(function (s) { s.aiVragen[kk] = getoond; }, false);
     $("invoer").classList.add("klaar"); $("invBedankt").hidden = false;
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
@@ -1908,17 +2037,33 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   var vragenBoek = null;
   function openVragen(titel, g) {
     vragenBoek = { t: titel, g: g, k: sleutelVan(titel) };
-    $("vragenUitleg").textContent = "Deze drie vragen krijgen leerlingen bij \u201c" + titel + "\u201d.";
+    var bron = vragenBron(titel);
+    $("vragenUitleg").textContent = "Deze drie vragen krijgen leerlingen bij \u201c" + titel + "\u201d. " +
+      (bron === "eigen" ? "Dit zijn je eigen vragen." :
+       bron === "ai" ? "Ze zijn automatisch bij dit boek gemaakt. Kijk even of ze kloppen; je kunt ze hier aanpassen." :
+       AI && !aiUit ? "Dit zijn nog de standaardvragen; vragen bij dit boek worden zo gemaakt." : "Dit zijn de standaardvragen. Voor vragen bij dit boek moet AI Logic in Firebase aanstaan.");
+    $("vragenStandaard").hidden = bron !== "eigen";
+    $("vragenNieuw").hidden = !AI || aiUit;
     vragenVoor(titel, g).forEach(function (v, i) { $("vraag" + i).value = v; });
     $("vragenDlg").showModal();
   }
   $("vragenOk").addEventListener("click", function () {
     var q = [0, 1, 2].map(function (i) { return $("vraag" + i).value.trim().slice(0, 160); }), b = vragenBoek;
     if (b && q.every(Boolean)) {
-      var std = standaardVragen(b.t, b.g);
-      wijzig(function (s) { if (q.join("|") === std.join("|")) delete s.vragen[b.k]; else s.vragen[b.k] = q; }, false);
+      var auto = state.aiVragen[b.k] || standaardVragen(b.t, b.g);
+      wijzig(function (s) { if (q.join("|") === auto.join("|")) delete s.vragen[b.k]; else s.vragen[b.k] = q; }, false);
     }
     $("vragenDlg").close();
+  });
+  $("vragenNieuw").addEventListener("click", function () {
+    var b = vragenBoek; if (!b) return;
+    delete aiKlaar[b.k]; vragenMislukt[b.k] = false;
+    $("vragenUitleg").textContent = "Nieuwe vragen worden gemaakt\u2026";
+    wijzig(function (s) { delete s.aiVragen[b.k]; delete s.vragen[b.k]; }, false);
+    maakVragen(b.t, b.g).then(function (v) {
+      if (v) { wijzig(function (s) { s.aiVragen[b.k] = v; }, false); v.forEach(function (x, i) { $("vraag" + i).value = x; }); $("vragenUitleg").textContent = "Nieuwe vragen gemaakt. Kijk even of ze kloppen."; }
+      else $("vragenUitleg").textContent = "Vragen maken lukte nu niet. De standaardvragen blijven staan.";
+    });
   });
   $("vragenStandaard").addEventListener("click", function () {
     var b = vragenBoek;
@@ -2139,6 +2284,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     }
     if (o && o.rol === "lid") kies("invoer");
     ANTW = o && o.antwoorden ? o.antwoorden : (o ? null : lokaleAntwoorden());
+    AI = o && o.ai ? o.ai : null;
     /* De leerkracht (en de demo) ziet de antwoorden binnenkomen */
     if (ANTW && !(o && o.rol === "lid")) ANTW.luister(function (a) { antwoorden = a; toonAntwoorden(); });
     if (o && o.ref) {

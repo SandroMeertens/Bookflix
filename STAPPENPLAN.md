@@ -27,7 +27,12 @@ Net als bij Alfabet Race: een eigen Firebase-project, en GitHub zet de site daar
    - `FIREBASE_PROJECT_ID`: het project-ID, bijvoorbeeld `bookflix-1a2b3`.
 3. Gooi het JSON-bestand daarna weg; het is een wachtwoord.
 
-## 6. Online
+## 6. Vragen per boek (AI Logic)
+1. Firebase: links **AI services → AI Logic → Get started**.
+2. Kies **Gemini Developer API** (gratis, zonder betaalgegevens) en zet hem aan.
+3. Daarna maakt Bookflix bij elk nieuw boek zelf drie leesvragen. Staat dit uit, dan krijgen leerlingen de standaardvragen.
+
+## 7. Online
 1. In GitHub: **Actions → Online zetten → Run workflow** (of doe een wijziging op `main`).
 2. Na een paar minuten staat Bookflix op **https://JOUW-PROJECT-ID.web.app**.
 
