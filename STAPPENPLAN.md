@@ -36,6 +36,9 @@ Net als bij Alfabet Race: een eigen Firebase-project, en GitHub zet de site daar
 1. In GitHub: **Actions → Online zetten → Run workflow** (of doe een wijziging op `main`).
 2. Na een paar minuten staat Bookflix op **https://JOUW-PROJECT-ID.web.app**.
 
+## Controleren
+Open Bookflix, log in en ga naar **Instellen → Werkt alles? → Controleer de koppelingen**. Vier groene vinkjes betekent dat opslaan, boeken zoeken, kaften en de AI-vragen werken.
+
 ## In de klas
 - Open de site op het digibord en log in met Google.
 - **Instellen → iPads koppelen**: scan de QR-code met de iPad, of vul de klascode in.

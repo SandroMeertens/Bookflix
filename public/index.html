@@ -12,7 +12,16 @@
 <meta name="apple-mobile-web-app-title" content="Bookflix">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0F0E11">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="preload" href="fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/nunito-700.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Lettertypes staan in de eigen map (fonts/), zodat ze ook werken als het schoolnetwerk Google Fonts blokkeert */
+@font-face{font-family:"Bebas Neue"; font-weight:400; font-display:swap; src:url(fonts/bebas-neue-400.woff2) format("woff2")}
+@font-face{font-family:"Nunito"; font-weight:400; font-display:swap; src:url(fonts/nunito-400.woff2) format("woff2")}
+@font-face{font-family:"Nunito"; font-weight:600; font-display:swap; src:url(fonts/nunito-600.woff2) format("woff2")}
+@font-face{font-family:"Nunito"; font-weight:700; font-display:swap; src:url(fonts/nunito-700.woff2) format("woff2")}
+@font-face{font-family:"Nunito"; font-weight:800; font-display:swap; src:url(fonts/nunito-800.woff2) format("woff2")}
+</style>
 <style>body{margin:0}[hidden]{display:none!important}</style>
 <style>
 /* Layout: a streaming show page for one class. Left: the class total and four episode tiles that each carry their own bookshelf (every thumb puts one book on the shelf). Right: the books the class gave the most thumbs. One dark world by choice; on a 16:9 board it all scales to fit one screen. */
@@ -450,6 +459,24 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:760px){
   .koppel-blok{--qr:min(78vw,22em); grid-template-columns:var(--qr)}
 }
+/* Nieuw op de plank: een boek van een iPad verschijnt even groot op het digibord */
+.nieuw{position:fixed; left:50%; bottom:6vh; z-index:22; display:grid; grid-template-columns:auto minmax(0,22em); gap:1.4em; align-items:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:1.1em 1.6em 1.1em 1.1em; box-shadow:0 1.2em 3em rgb(0 0 0 / .6);
+  transform:translateX(-50%); animation:nieuw-in .5s cubic-bezier(.2,1.3,.4,1)}
+.nieuw.weg{animation:nieuw-uit .4s ease forwards}
+.nieuw-kaft{width:8em}
+.nieuw-titel{font-family:var(--display); font-size:2.6em; line-height:.95; letter-spacing:.02em; overflow-wrap:anywhere}
+.nieuw-rij{display:inline-flex; align-items:center; gap:.5em; margin-top:.4em; font-weight:800; color:var(--muted)}
+.nieuw-rij::before{content:""; width:.5em; height:1.2em; border-radius:.1em; background:var(--c)}
+@keyframes nieuw-in{from{transform:translate(-50%,140%)}}
+@keyframes nieuw-uit{to{transform:translate(-50%,160%); opacity:0}}
+@media (prefers-reduced-motion:reduce){ .nieuw, .nieuw.weg{animation:none} }
+/* Controle van de koppelingen in Instellen */
+.controle{display:grid; gap:.35em; margin:0; padding:0; list-style:none}
+.controle li{display:grid; grid-template-columns:1.6em minmax(0,1fr); gap:.5em; align-items:start; font-weight:600}
+.controle li b{font-weight:800}
+.controle .ok{color:var(--ok)} .controle .mis{color:var(--warn)}
+.controle small{display:block; color:var(--muted); font-weight:600}
 /* Klas en iPads in Instellen */
 .klas-rij{display:grid; grid-template-columns:9em minmax(0,1fr); gap:1em; align-items:center}
 .qr{background:#fff; border-radius:8px; padding:.3em; aspect-ratio:1}
@@ -774,6 +801,12 @@ body:not(.lid) .alleen-lid{display:none!important}
         </div>
       </div>
     </section>
+    <section class="instel alleen-juf" id="controleBlok">
+      <h3>Werkt alles?</h3>
+      <p class="uitleg">Controleert opslaan, boeken zoeken, kaften en de vragen van de AI.</p>
+      <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button></div>
+      <ul class="controle" id="controleLijst"></ul>
+    </section>
     <h3>Stand corrigeren</h3>
     <div class="corrigeer" id="corrigeer"></div>
     <div class="opnieuw">
@@ -841,6 +874,15 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="koppel-plank" aria-hidden="true"><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span><span class="g-t"></span><span class="g-a"></span><span class="g-s"></span><span class="g-l"></span><span class="g-f"></span><span class="g-w"></span><span class="g-a"></span><span class="g-t"></span><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span></div>
     </div>
     <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
+  </div>
+</div>
+
+<div class="nieuw" id="nieuwPlank" role="status" aria-live="polite" hidden>
+  <div class="nieuw-kaft" id="nieuwKaft"></div>
+  <div class="nieuw-tekst">
+    <p class="eyebrow">Nieuw op de plank</p>
+    <p class="nieuw-titel" id="nieuwTitel"></p>
+    <p class="nieuw-rij" id="nieuwRij"></p>
   </div>
 </div>
 
@@ -2342,6 +2384,39 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("invOeps").addEventListener("click", function () { invWacht = null; $("terug").click(); invOpnieuw(); });
   invTeken();
 
+  /* Controle: werken opslag, zoeken, kaften en AI? */
+  $("controleKnop").addEventListener("click", function () {
+    var lijst = $("controleLijst"), knop = this;
+    knop.disabled = true; lijst.textContent = "";
+    function rij(naam) {
+      var li = el("li"), teken = el("span", null, "\u2026"), tk = el("span");
+      tk.appendChild(el("b", null, naam)); var uitleg = el("small", null, "Bezig\u2026"); tk.appendChild(uitleg);
+      li.appendChild(teken); li.appendChild(tk); lijst.appendChild(li);
+      return function (goed, tekst) { teken.textContent = goed ? "\u2713" : "\u2717"; teken.className = goed ? "ok" : "mis"; uitleg.textContent = tekst; };
+    }
+    var r1 = rij("Opslaan"), r2 = rij("Boeken zoeken"), r3 = rij("Kaften laden"), r4 = rij("Vragen maken (AI)");
+    r1(!!ref && !lokaal, ref && !lokaal ? "De stand wordt bij je account bewaard." : document.body.classList.contains("demo") ? "Demo: de stand staat alleen op dit apparaat." : "De stand staat nu alleen op dit apparaat. Ben je ingelogd?");
+    var test = "Dolfje Weerwolfje";
+    var zoek = zoekBoeken(test, true).catch(function () { return []; }).then(function (a) { return a.length ? a : zoekOpenLibrary(test).catch(function () { return []; }); });
+    var stappen = [zoek.then(function (a) {
+      r2(a.length > 0, a.length ? "Gevonden: \u201c" + a[0].t + "\u201d" + (a[0].a ? " van " + a[0].a : "") + "." : "Geen boeken gevonden. Mogelijk blokkeert het netwerk Google Boeken.");
+      var u = (a.filter(function (x) { return x.img; })[0] || {}).img;
+      if (!u) { r3(false, "Geen kaft om te testen."); return; }
+      return new Promise(function (klaar) {
+        var img = new Image(), af = false;
+        var einde = function (ok) { if (af) return; af = true; r3(ok, ok ? "Kaften komen goed binnen." : "Kaften laden niet. De getekende kaften blijven werken."); klaar(); };
+        img.onload = function () { einde(true); }; img.onerror = function () { einde(false); };
+        setTimeout(function () { einde(false); }, 8000);
+        img.referrerPolicy = "no-referrer"; img.src = u;
+      });
+    })];
+    if (!AI) r4(false, document.body.classList.contains("demo") ? "Niet beschikbaar in de demo." : "AI staat niet aan. Zet in Firebase AI Logic aan (Gemini Developer API).");
+    else stappen.push(Promise.race([AI.vraag('Antwoord alleen met deze JSON: {"vragen": ["Werkt het?", "Ja.", "Zeker."]}'), new Promise(function (_, nee) { setTimeout(function () { nee(new Error("geen antwoord binnen 20 seconden")); }, 20000); })])
+      .then(function (antw) { var ok = !!leesVragen(antw) || /vragen/.test(String(antw)); aiUit = !ok && aiUit; r4(ok, ok ? "De AI maakt vragen bij nieuwe boeken." : "De AI gaf een vreemd antwoord; probeer het later nog eens."); })
+      .catch(function (e) { r4(false, "Lukt niet: " + String((e && (e.message || e.code)) || e).slice(0, 160) + ". Staat AI Logic aan met de Gemini Developer API?"); }));
+    Promise.all(stappen).then(function () { knop.disabled = false; });
+  });
+
   /* Eigen vragen per boek */
   var vragenBoek = null;
   function openVragen(titel, g) {
@@ -2584,6 +2659,22 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   if (kopie) state = kopie;
   toon();
 
+  /* Nieuw op de plank tonen, één boek tegelijk */
+  var eersteSnap = true, nieuwRij = [], nieuwBezig = false;
+  function toonNieuw() {
+    if (nieuwBezig || !nieuwRij.length) return;
+    var b = nieuwRij.shift(), doos = $("nieuwPlank");
+    nieuwBezig = true;
+    $("nieuwKaft").textContent = ""; $("nieuwKaft").appendChild(maakKaft(b.t, b.g, 0));
+    $("nieuwTitel").textContent = b.t;
+    $("nieuwRij").className = "nieuw-rij g-" + b.g; $("nieuwRij").textContent = rijNaam(b.g);
+    doos.classList.remove("weg"); doos.hidden = false;
+    setTimeout(function () {
+      doos.classList.add("weg");
+      setTimeout(function () { doos.hidden = true; nieuwBezig = false; toonNieuw(); }, 420);
+    }, 5000);
+  }
+
   var start = (async function () {
     var o = null;
     try { o = await window.bookflixOpslag; } catch (e) { o = null; }
@@ -2611,10 +2702,19 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
             state = eigen; toon(); vuil = true; schrijf(); return;
           }
         }
+        /* Wat is er op een ander apparaat (een iPad) bijgekomen? */
+        var oud = state, nieuweBoeken = eersteSnap ? [] : gedeeld.boeken.slice(oud.boeken.length).filter(function () { return gedeeld.boeken.length > oud.boeken.length; });
+        var voorVrij = vrij(oud);
+        eersteSnap = false;
         state = gedeeld;
         if (kanSchrijven) schrijfLokaal(state);
         toon();
         meldBewaard();
+        if (!document.body.classList.contains("lid")) {
+          nieuweBoeken.forEach(function (b) { nieuwRij.push(b); });
+          toonNieuw();
+          if (vrij(state) > voorVrij) setTimeout(function () { vier(vrij(state) - 1); }, nieuweBoeken.length ? 5500 : 0);
+        }
       }, function (e) {
         naarLokaal();
         if (e && e.code === "permission-denied") meld("let", "Deze iPad is niet meer gekoppeld. Tik op Ontkoppelen en vul de nieuwe klascode in.");
