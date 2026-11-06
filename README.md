@@ -32,4 +32,6 @@ Zie [STAPPENPLAN.md](STAPPENPLAN.md). Kort: Firebase-project (Spark, gratis) →
 
 ## Privacy
 
-Vul geen achternamen of foto's van leerlingen in: de site bewaart alleen boektitels, aantallen duimen en beloningen. Houd deze GitHub-map **privé**.
+Vul geen achternamen of foto's van leerlingen in: de site bewaart alleen boektitels, aantallen duimen en beloningen.
+
+Echte kaften worden opgezocht bij Google Boeken (en anders Open Library). Daarbij gaat alleen de boektitel naar die zoekdienst. Wordt er geen kaft gevonden, dan krijgt het boek een getekende kaft. Bij **Boeken** kan de leerkracht met **Andere kaft** een andere uitgave kiezen of terug naar de getekende kaft. Houd deze GitHub-map **privé**.
