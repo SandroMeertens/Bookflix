@@ -1,0 +1,46 @@
+rules_version = '2';
+// Bookflix — wie mag wat?
+// - De leerkracht logt in met Google. Elke leerkracht heeft één klas; die heet net als het account (uid).
+// - Een iPad van de klas logt anoniem in en wordt "lid" van de klas door de klascode in te vullen.
+// - Het scorebord is alleen te zien voor de leerkracht en voor gekoppelde iPads.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isJuf() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+    function klas(k) { return get(/databases/$(database)/documents/klassen/$(k)).data; }
+    function isOwner(k) { return signedIn() && request.auth.uid == k; }
+    function isLid(k) { return signedIn() && exists(/databases/$(database)/documents/klassen/$(k)/leden/$(request.auth.uid)); }
+
+    // Klascode -> klas. Wie is ingelogd (ook anoniem) mag één code opzoeken, maar niet de lijst van codes.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if isJuf() && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.klas == request.auth.uid;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /klassen/{k} {
+      allow create: if isJuf() && k == request.auth.uid && request.resource.data.owner == request.auth.uid;
+      allow get: if isOwner(k) || isLid(k);
+      allow list: if false;
+      allow update: if isOwner(k) && request.resource.data.owner == resource.data.owner;
+      allow delete: if isOwner(k);
+
+      // Een iPad meldt zich aan met de klascode.
+      match /leden/{uid} {
+        allow create, update: if signedIn() && uid == request.auth.uid
+                    && request.resource.data.code == klas(k).code;
+        allow read: if signedIn() && (uid == request.auth.uid || isOwner(k));
+        allow delete: if signedIn() && (uid == request.auth.uid || isOwner(k));
+      }
+
+      // Het scorebord zelf: één document met de hele stand.
+      match /bord/{d} {
+        allow read, write: if isOwner(k) || isLid(k);
+      }
+    }
+  }
+}
