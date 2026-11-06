@@ -203,8 +203,16 @@ async function begin() {
 
   /* ---------- Instellen: klascode, QR-code, nieuwe code, uitloggen ---------- */
   function adres() { return location.origin + location.pathname; }
+  let ledenStop = null;
   function vulKlasBlok() {
     $("klasBlok").hidden = false;
+    $("koppelKnop").hidden = false; $("startKoppel").hidden = false;
+    $("koppelCode").textContent = klasData.code;
+    /* Hoeveel iPads zijn er gekoppeld? */
+    if (!ledenStop) ledenStop = F.onSnapshot(F.collection(db, "klassen", klasId, "leden"), (s) => {
+      const n = s.size;
+      $("koppelTel").textContent = n ? n + (n === 1 ? " iPad gekoppeld" : " iPads gekoppeld") : "Nog geen iPads gekoppeld";
+    }, (e) => console.warn(e));
     $("klasCode").textContent = klasData.code;
     $("klasAdres").textContent = location.host;
     tekenQR();
@@ -225,8 +233,18 @@ async function begin() {
     const q = window.qrcode(0, "M");
     q.addData(adres() + "?code=" + klasData.code);
     q.make();
-    $("klasQR").innerHTML = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    const svg = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    $("klasQR").innerHTML = svg;
+    $("koppelQR").innerHTML = svg;
   }
+  /* Het grote koppelscherm voor het digibord */
+  function koppelOpen() { if (!klasData) return; $("koppelScherm").hidden = false; tekenQR(); setTimeout(() => $("koppelDicht").focus(), 30); }
+  function koppelDicht() { $("koppelScherm").hidden = true; }
+  $("koppelKnop").addEventListener("click", koppelOpen);
+  $("startKoppel").addEventListener("click", koppelOpen);
+  $("koppelDicht").addEventListener("click", koppelDicht);
+  $("koppelScherm").addEventListener("click", (e) => { if (e.target === $("koppelScherm")) koppelDicht(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("koppelScherm").hidden) koppelDicht(); });
   $("nieuweCode").addEventListener("click", async () => {
     if (!klasData || bezig) return;
     bezig = true; $("klasMeld").textContent = "Nieuwe code maken…";

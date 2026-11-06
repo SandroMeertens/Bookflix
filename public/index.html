@@ -404,6 +404,16 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .poort.kind .poort-code .knop{font-size:1.3em; padding:.4em 1em}
 .poort:not(.kind) #poortIkJuf{display:none}
 #poortIkJuf{justify-self:start}
+/* iPads koppelen: groot op het digibord, zodat kinderen vanaf hun plek kunnen scannen */
+.koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); background:var(--sluier); overflow:auto}
+.koppel-blok{display:grid; gap:1.2em; justify-items:center; text-align:center; width:100%; max-width:70em}
+.koppel-blok h2{font-size:clamp(2.2rem,5vw,4em)}
+.koppel-rij{display:grid; grid-template-columns:auto minmax(0,1fr); gap:clamp(20px,4vw,64px); align-items:center; text-align:left}
+.koppel-qr{width:min(62vh,42vw); padding:.6em; border-radius:14px}
+.koppel-code{font-family:var(--display); font-size:clamp(4rem,11vw,9em); letter-spacing:.14em; line-height:1}
+.koppel-stappen{display:grid; gap:.4em; padding-left:1.2em; list-style:decimal; font-weight:700; font-size:1.25em; max-width:22em}
+.koppel-tel{font-weight:800; color:var(--ok); min-height:1.4em}
+@media (max-width:700px){ .koppel-rij{grid-template-columns:minmax(0,1fr); justify-items:center; text-align:center} .koppel-qr{width:min(80vw,22em)} .koppel-stappen{text-align:left} }
 /* Klas en iPads in Instellen */
 .klas-rij{display:grid; grid-template-columns:9em minmax(0,1fr); gap:1em; align-items:center}
 .qr{background:#fff; border-radius:8px; padding:.3em; aspect-ratio:1}
@@ -420,17 +430,18 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-label{display:flex; align-items:center; gap:.6em; font-weight:800; font-size:1.15em; margin-top:.4em}
 .inv-nr{display:inline-grid; place-items:center; width:1.7em; height:1.7em; border-radius:50%; background:var(--accent); color:var(--fg); font-size:.85em; flex:none}
 #invTitel{font-size:max(1.35em,16px); padding:.55em .7em}
-.inv-rijen{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6em}
-.inv-rij{border:0; border-radius:10px; background:var(--c); color:var(--ink); font-weight:800; font-size:1.15em; padding:.75em .8em; text-align:left; min-height:3.2em; opacity:.55; transition:opacity .15s, transform .15s}
+.inv-rijen{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6em}
+@media (max-width:599px){ .inv-rijen{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.inv-rij{border:0; border-radius:10px; background:var(--c); color:var(--ink); font-weight:800; font-size:1.1em; line-height:1.2; padding:.6em .8em; text-align:left; min-height:3em; opacity:.55; transition:opacity .15s, transform .15s}
 .inv-rij:hover{opacity:.8}
 .inv-rij[aria-checked="true"]{opacity:1; outline:.2em solid var(--fg); outline-offset:.15em}
 .inv-rijen.gekozen .inv-rij:not([aria-checked="true"]){opacity:.35}
 .inv-rijen:not(.gekozen) .inv-rij{opacity:1}
 #invKlaar{justify-self:start; margin-top:.2em}
-.inv-vragen{display:grid; gap:.8em}
+.inv-vragen{display:grid; gap:.65em}
 .inv-vraag{display:grid; gap:.3em}
 .inv-vraag label{font-weight:700}
-.inv-vraag textarea{font:inherit; font-weight:600; font-size:max(1.05em,16px); color:var(--fg); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:.5em .65em; min-height:3.6em; resize:vertical; width:100%}
+.inv-vraag textarea{font:inherit; font-weight:600; font-size:max(1.05em,16px); color:var(--fg); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:.45em .65em; min-height:3em; resize:vertical; width:100%}
 .inv-vraag textarea:focus-visible{outline:3px solid var(--fg); outline-offset:2px}
 /* Leesvragen nakijken */
 .tab .tel{display:inline-block; margin-left:.4em; min-width:1.5em; padding:0 .4em; border-radius:99px; background:var(--accent); color:var(--fg); font-size:.8em; text-align:center}
@@ -451,7 +462,21 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-bedankt{display:grid; gap:.5em; justify-items:center; text-align:center}
 .inv-hoera{font-family:var(--display); font-size:2.6em; line-height:1; letter-spacing:.03em; color:var(--gold)}
 .inv-bedankt .opnieuw{justify-content:center}
-.invoer.klaar .inv-vorm{opacity:.35; pointer-events:none}
+/* Drie stappen, elk passend op één iPad-scherm: 1 boek kiezen, 2 vragen, 3 op de plank */
+.inv-deel{display:grid; gap:.75em; min-width:0}
+.invoer .inv-deel2, .invoer .inv-bedankt{display:none}
+.invoer.stap2 .inv-deel1{display:none}
+.invoer.stap2 .inv-deel2{display:grid}
+.invoer.stap3 .inv-vorm{display:none}
+.invoer.stap3 .inv-bedankt{display:grid}
+.invoer.stap3{grid-template-columns:minmax(0,1fr)!important; justify-items:center}
+.invoer.stap3 .inv-kant{grid-template-columns:auto minmax(0,24em); align-items:center; gap:2em}
+.inv-voet{display:flex; flex-wrap:wrap; align-items:center; gap:.4em 1.2em}
+.inv-voet .uitleg{flex-basis:100%}
+#invVerder{justify-self:start}
+.inv-kaft{width:min(100%,15em,36vh)}
+.invoer.stap2 .inv-kaft{width:min(100%,11em,28vh)}
+@media (max-width:699px){ .invoer.stap3 .inv-kant{grid-template-columns:minmax(0,1fr); justify-items:center} }
 @media (min-width:700px){ .invoer{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)} }
 body:not(.lid) .alleen-lid{display:none!important}
 @media (max-width:600px){ .klas-rij{grid-template-columns:7em minmax(0,1fr)} }
@@ -478,6 +503,7 @@ body:not(.lid) .alleen-lid{display:none!important}
     </nav>
     <div class="kop-rechts">
       <p class="bewaard" id="status" role="status"><span class="stip"></span><span id="statusTekst">Stand wordt geladen</span></p>
+      <button class="knop alleen-juf" id="koppelKnop" type="button" hidden>iPads koppelen</button>
       <button class="tekstknop schrijf alleen-juf" id="instelKnop" type="button">Instellen</button>
       <button class="tekstknop alleen-lid" id="ontkoppel" type="button">Ontkoppelen</button>
       <button class="tekstknop" id="volKnop" type="button" hidden>Volledig scherm</button>
@@ -493,6 +519,7 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="start-knoppen">
         <button class="knop wit groot" id="startGa" type="button"><span class="speel" aria-hidden="true"></span>Naar het scorebord</button>
         <button class="knop" id="startRegels" type="button">Spelregels</button>
+        <button class="knop alleen-juf" id="startKoppel" type="button" hidden>iPads koppelen</button>
         <button class="tekstknop" id="volKnop2" type="button" hidden>Volledig scherm</button>
       </div>
     </div>
@@ -554,19 +581,27 @@ body:not(.lid) .alleen-lid{display:none!important}
 
   <main class="invoer" id="invoer" hidden>
     <form class="inv-vorm" id="invVorm" autocomplete="off">
-      <h2>Boek uit? Zet het op de plank!</h2>
-      <label class="inv-label" for="invTitel"><span class="inv-nr">1</span>Welk boek heb je gelezen?</label>
-      <input type="text" id="invTitel" maxlength="80" placeholder="Titel van je boek" list="titels" autocomplete="off" enterkeyhint="next">
-      <p class="inv-label" id="invRijKop"><span class="inv-nr">2</span>Wat voor boek is het?</p>
-      <div class="inv-rijen" id="invRijen" role="radiogroup" aria-labelledby="invRijKop"></div>
-      <p class="inv-label"><span class="inv-nr">3</span>Beantwoord de drie vragen over je boek.</p>
-      <div class="inv-vragen" id="invVragen"><p class="uitleg">Kies eerst je boek en de rij, dan komen hier de vragen.</p></div>
-      <button class="knop wit groot" id="invKlaar" type="submit" disabled>Zet op de plank</button>
-      <p class="uitleg" id="invHint" role="status"></p>
+      <div class="inv-deel inv-deel1">
+        <h2>Boek uit? Zet het op de plank!</h2>
+        <label class="inv-label" for="invTitel"><span class="inv-nr">1</span>Welk boek heb je gelezen?</label>
+        <input type="text" id="invTitel" maxlength="80" placeholder="Titel van je boek" list="titels" autocomplete="off" enterkeyhint="done">
+        <p class="inv-label" id="invRijKop"><span class="inv-nr">2</span>Wat voor boek is het?</p>
+        <div class="inv-rijen" id="invRijen" role="radiogroup" aria-labelledby="invRijKop"></div>
+        <button class="knop wit groot" id="invVerder" type="button" disabled>Naar de vragen</button>
+      </div>
+      <div class="inv-deel inv-deel2">
+        <p class="inv-label"><span class="inv-nr">3</span><span>Vragen over <b id="invBoekNaam"></b></span></p>
+        <div class="inv-vragen" id="invVragen"><p class="uitleg">Kies eerst je boek en de rij, dan komen hier de vragen.</p></div>
+        <div class="inv-voet">
+          <button class="knop wit groot" id="invKlaar" type="submit" disabled>Zet op de plank</button>
+          <button class="tekstknop" id="invTerug" type="button">Terug</button>
+          <p class="uitleg" id="invHint" role="status"></p>
+        </div>
+      </div>
     </form>
     <div class="inv-kant">
       <div class="inv-kaft" id="invKaft"></div>
-      <div class="inv-bedankt" id="invBedankt" role="status" hidden>
+      <div class="inv-bedankt" id="invBedankt" role="status">
         <p class="inv-hoera">Je boek staat op de plank!</p>
         <p class="uitleg" id="invStand"></p>
         <div class="opnieuw">
@@ -700,6 +735,25 @@ body:not(.lid) .alleen-lid{display:none!important}
     </div>
   </form>
 </dialog>
+
+<div class="koppel" id="koppelScherm" role="dialog" aria-modal="true" aria-labelledby="koppelKop" hidden>
+  <div class="koppel-blok">
+    <h2 id="koppelKop">Doe mee met de iPad</h2>
+    <div class="koppel-rij">
+      <div class="qr koppel-qr" id="koppelQR" aria-label="QR-code om een iPad te koppelen"></div>
+      <div class="koppel-tekst">
+        <p class="eyebrow">Klascode</p>
+        <p class="koppel-code" id="koppelCode">-----</p>
+        <ol class="koppel-stappen">
+          <li>Open de <b>camera</b> van de iPad en richt hem op de QR-code.</li>
+          <li>Of open de <b>Bookflix-app</b> en typ de klascode.</li>
+        </ol>
+        <p class="koppel-tel" id="koppelTel"></p>
+      </div>
+    </div>
+    <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
+  </div>
+</div>
 
 <datalist id="titels"></datalist>
 
@@ -1914,7 +1968,18 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var foto = state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k];
     vak.appendChild(maakKaft(titel || "Jouw boek", invRij || "a", 0, foto || "-"));
     $("invRijen").classList.toggle("gekozen", !!invRij);
+    $("invVerder").disabled = !titel || !invRij || !kanSchrijven;
     invVragenTeken();
+  }
+  function invStap(n) {
+    var inv = $("invoer");
+    inv.classList.toggle("stap2", n === 2); inv.classList.toggle("stap3", n === 3);
+    if (n === 2) {
+      $("invBoekNaam").textContent = $("invTitel").value.trim();
+      invVragenTeken();
+      setTimeout(function () { var ta = $("invAntw0"); if (ta && !ta.value) ta.focus(); }, 60);
+    }
+    window.scrollTo(0, 0);
   }
   /* De drie vragen: verschijnen zodra titel en rij gekozen zijn. Wat al getypt is, blijft staan. */
   var invVragenSleutel = "", MIN_ANTWOORD = 15, invLaden = "", invVast = null;
@@ -2003,13 +2068,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invOpnieuw();
     $("invTitel").value = titel; invRij = rij;
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === rij)); });
-    kies("invoer"); invTeken();
-    var ta = $("invAntw0"); if (ta) ta.focus();
+    kies("invoer"); invTeken(); invStap(2);
   }
   function invOpnieuw() {
     invVerstuur();
     clearTimeout(invKlok);
-    $("invoer").classList.remove("klaar"); $("invBedankt").hidden = true;
+    invStap(1);
     $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x"; invVast = null; invLaden = "";
     Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
@@ -2023,13 +2087,15 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: getoond, a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
     duimErbij(invRij, titel);
     if (invVast && invVast.bron === "ai" && !state.aiVragen[kk] && !state.vragen[kk]) wijzig(function (s) { s.aiVragen[kk] = getoond; }, false);
-    $("invoer").classList.add("klaar"); $("invBedankt").hidden = false;
+    invStap(3);
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
     clearTimeout(invKlok);
     invKlok = setTimeout(invOpnieuw, 12000);
   });
   $("invNog").addEventListener("click", function () { invOpnieuw(); $("invTitel").focus(); });
+  $("invVerder").addEventListener("click", function () { if (!this.disabled) invStap(2); });
+  $("invTerug").addEventListener("click", function () { invStap(1); });
   $("invOeps").addEventListener("click", function () { invWacht = null; $("terug").click(); invOpnieuw(); });
   invTeken();
 
