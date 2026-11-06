@@ -18,6 +18,22 @@ function nieuweCode() {
 }
 function lees(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
 function bewaar(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
+/* Duidelijke melding bij een fout, met de code erbij zodat je weet waar het zit */
+function foutTekst(e) {
+  const c = (e && e.code) || "";
+  if (/closed-by-user|cancelled-popup/.test(c)) return "";
+  if (c === "auth/operation-not-allowed" || c === "auth/admin-restricted-operation")
+    return "Deze manier van inloggen staat nog uit. Zet in Firebase bij Authentication 'Google' en 'Anonymous' aan.";
+  if (c === "auth/unauthorized-domain")
+    return "Dit adres mag nog niet inloggen. Voeg het in Firebase toe bij Authentication > Settings > Authorized domains.";
+  if (c === "auth/popup-blocked") return "Het inlogvenster werd tegengehouden. Sta pop-ups toe voor deze site.";
+  if (c === "permission-denied" || c === "firestore/permission-denied")
+    return "Inloggen is gelukt, maar de database weigert nog. Staan de regels er al? (GitHub Actions moet helemaal groen zijn.)";
+  if (c === "not-found" || c === "failed-precondition" || c === "firestore/not-found")
+    return "De database bestaat nog niet. Maak in Firebase een Firestore Database aan.";
+  if (c === "unavailable") return "Geen verbinding met de database. Controleer de internetverbinding.";
+  return "Dat lukte niet" + (c ? " (" + c + ")" : "") + ". Probeer het nog eens.";
+}
 function schoon(c) { return String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5); }
 
 if (!firebaseConfig || !firebaseConfig.apiKey) {
@@ -55,11 +71,9 @@ async function begin() {
       const r = await F.signInWithPopup(auth, pr);
       await alsLeerkracht(r.user);
     } catch (e) {
-      if (e && /popup/.test(e.code || "") && !/closed-by-user|cancelled/.test(e.code || "")) {
-        await F.signInWithRedirect(auth, pr); return;
-      }
+      if (e && e.code === "auth/popup-blocked") { await F.signInWithRedirect(auth, pr); return; }
       console.warn(e);
-      poortMeld(e && /closed-by-user|cancelled/.test(e.code || "") ? "" : "Inloggen lukte niet. Probeer het nog eens.");
+      poortMeld(foutTekst(e));
     }
     bezig = false;
   });
@@ -68,7 +82,7 @@ async function begin() {
     const c = schoon($("poortCode").value);
     if (c.length !== 5) { poortMeld("Een klascode heeft 5 tekens."); return; }
     if (bezig) return; bezig = true; poortMeld("Bezig met koppelen…");
-    try { await meedoen(c); } catch (err) { console.warn(err); poortMeld("Koppelen lukte niet. Klopt de code?"); }
+    try { await meedoen(c); } catch (err) { console.warn(err); poortMeld(foutTekst(err)); }
     bezig = false;
   });
 
@@ -185,7 +199,10 @@ async function begin() {
   /* ---------- Begin: wie is er al ingelogd? ---------- */
   const eerste = await new Promise((res) => { const stop = F.onAuthStateChanged(auth, (u) => { stop(); res(u); }); });
   const linkCode = schoon(new URLSearchParams(location.search).get("code"));
-  if (eerste && !eerste.isAnonymous) { await alsLeerkracht(eerste); return; }
+  if (eerste && !eerste.isAnonymous) {
+    try { await alsLeerkracht(eerste); } catch (e) { console.warn(e); toonPoort(foutTekst(e)); }
+    return;
+  }
   if (eerste && eerste.isAnonymous) {
     const kid = lees(KLAS_SLEUTEL);
     if (kid && !linkCode && await nogLid(kid)) { klaarMet(kid, "lid"); return; }
@@ -193,7 +210,7 @@ async function begin() {
   }
   if (linkCode) {
     bezig = true;
-    try { if (await meedoen(linkCode)) { bezig = false; return; } } catch (e) { console.warn(e); }
+    try { if (await meedoen(linkCode)) { bezig = false; return; } } catch (e) { console.warn(e); poortMeld(foutTekst(e)); }
     bezig = false;
   }
   toonPoort();
