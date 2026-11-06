@@ -373,6 +373,11 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
   .toplijst{grid-template-columns:repeat(6,minmax(0,1fr)); grid-template-rows:minmax(0,1fr)}
   .teller{font-size:7em}
 }
+/* Smaller liggend scherm (iPad, kleine laptop): de kop mag over twee regels */
+@media (min-width:600px) and (max-width:1300px){
+  .kop{flex-wrap:wrap!important}
+  .kop-rechts{margin-left:auto}
+}
 /* Aanraakscherm: iOS zoomt in op kleine invoervelden, dus die blijven minstens 16px */
 @media (pointer:coarse){
   input[type=text], input[type=number], input[type=date], .acties input{font-size:max(1em,16px)}
@@ -493,6 +498,20 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-voet{display:flex; flex-wrap:wrap; align-items:center; gap:.4em 1.2em}
 .inv-voet .uitleg{flex-basis:100%}
 #invVerder, #invPlank{justify-self:start}
+/* Zoeken op titel of schrijver: een lijstje echte boeken om uit te kiezen */
+.inv-zoek{position:relative; min-width:0}
+.inv-zoek input{width:100%}
+.inv-sug{position:absolute; left:0; right:0; top:calc(100% + .3em); z-index:6; display:grid; gap:.15em; padding:.35em; margin:0; list-style:none;
+  background:var(--raised); border:1px solid var(--line); border-radius:12px; box-shadow:0 1em 2.4em rgb(0 0 0 / .55); max-height:min(60vh,26em); overflow:auto}
+.inv-sug button{display:grid; grid-template-columns:2.6em minmax(0,1fr); gap:.8em; align-items:center; width:100%; border:0; border-radius:8px; background:none; padding:.4em .5em; text-align:left}
+.inv-sug button:hover, .inv-sug button:focus-visible{background:var(--raised-2)}
+.inv-sug .kaft{border-radius:.15em .3em .3em .15em}
+.inv-sug .kaft-titel, .inv-sug .kaft-n{display:none}
+.sug-tekst{display:grid; gap:.05em; min-width:0}
+.sug-tekst b{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sug-tekst span{color:var(--muted); font-weight:600; font-size:.9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sug-tekst em{font-style:normal; font-size:.75em; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ok)}
+.sug-leeg{padding:.5em .6em; color:var(--muted); font-weight:600}
 /* Leerkracht: kies uit de gevonden kaften de goede */
 .inv-keuze{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.45em; width:min(100%,18em)}
 .inv-keuze:empty{display:none}
@@ -612,7 +631,10 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="inv-deel inv-deel1">
         <h2>Boek uit? Zet het op de plank!</h2>
         <label class="inv-label" for="invTitel"><span class="inv-nr">1</span>Welk boek heb je gelezen?</label>
-        <input type="text" id="invTitel" maxlength="80" placeholder="Titel van je boek" list="titels" autocomplete="off" enterkeyhint="done">
+        <div class="inv-zoek">
+          <input type="text" id="invTitel" maxlength="80" placeholder="Typ de titel of de schrijver" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="invSug">
+          <ul class="inv-sug" id="invSug" role="listbox" aria-label="Gevonden boeken" hidden></ul>
+        </div>
         <p class="inv-label" id="invRijKop"><span class="inv-nr">2</span>Wat voor boek is het?</p>
         <div class="inv-rijen" id="invRijen" role="radiogroup" aria-labelledby="invRijKop"></div>
         <button class="knop wit groot alleen-lid" id="invVerder" type="button" disabled>Naar de vragen</button>
@@ -2090,9 +2112,93 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     $("invRijen").appendChild(b);
   });
+  /* ---------- Zoeken op titel of schrijver ---------- */
+  var sugKlok = null, sugNr = 0, sugGekozen = {};
+  function schoonTekst(s) { return String(s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(); }
+  function zoekBoeken(tekst, nl) {
+    var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(tekst) + "&printType=books&maxResults=10" +
+      (nl ? "&langRestrict=nl" : "") + "&fields=items(volumeInfo(title,authors,imageLinks,description))";
+    return fetch(url).then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
+      var gezien = {}, uit = [];
+      (j.items || []).forEach(function (it) {
+        var v = it.volumeInfo || {}, l = v.imageLinks || {}, img = l.thumbnail || l.smallThumbnail || "";
+        if (!v.title) return;
+        var a = (v.authors || []).slice(0, 2).join(", "), sl = sleutelVan(v.title) + "|" + sleutelVan(a);
+        if (gezien[sl]) return; gezien[sl] = 1;
+        if (img) { img = img.replace(/^http:/, "https:").replace(/&edge=curl/, ""); if (!/&fife=/.test(img)) img += "&fife=w400-h600"; }
+        uit.push({ t: String(v.title).slice(0, 80), a: a, img: img, desc: schoonTekst(v.description).slice(0, 1200) });
+      });
+      return uit;
+    });
+  }
+  function sugSluit() { $("invSug").hidden = true; $("invSug").textContent = ""; $("invTitel").setAttribute("aria-expanded", "false"); }
+  function sugToon(lijst, tekst) {
+    var ul = $("invSug"); ul.textContent = "";
+    if (!lijst.length) { ul.appendChild(el("li", "sug-leeg", "Geen boek gevonden. Typ gewoon de hele titel.")); }
+    lijst.slice(0, 6).forEach(function (s) {
+      var li = el("li"), b = el("button");
+      b.type = "button"; b.setAttribute("role", "option");
+      b.appendChild(maakKaft(s.t, invRij || "a", 0, s.img || (state.kaften[sleutelVan(s.t)] || "-")));
+      var tk = el("span", "sug-tekst");
+      tk.appendChild(el("b", null, s.t));
+      if (s.a) tk.appendChild(el("span", null, s.a));
+      if (s.eigen) tk.appendChild(el("em", null, "Al op de plank"));
+      b.appendChild(tk);
+      /* pointerdown: kiezen voordat het invoerveld zijn focus verliest */
+      b.addEventListener("pointerdown", function (e) { e.preventDefault(); sugKies(s); });
+      b.addEventListener("click", function () { sugKies(s); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    ul.hidden = false; $("invTitel").setAttribute("aria-expanded", "true");
+  }
+  function sugZoek(tekst) {
+    var nr = ++sugNr, k = sleutelVan(tekst);
+    /* Eerst de boeken die al op de plank van de klas staan */
+    var eigen = [], gezien = {};
+    state.boeken.slice().reverse().forEach(function (b) {
+      var bk = sleutelVan(b.t);
+      if (!gezien[bk] && bk.indexOf(k) >= 0) { gezien[bk] = 1; eigen.push({ t: b.t, a: "", img: state.kaften[bk] && state.kaften[bk] !== "-" ? state.kaften[bk] : "", eigen: true, g: b.g }); }
+    });
+    eigen = eigen.slice(0, 3);
+    if (eigen.length) sugToon(eigen, tekst);
+    zoekBoeken(tekst, true).then(function (a) { return a.length ? a : zoekBoeken(tekst, false); }).catch(function () { return []; }).then(function (a) {
+      if (nr !== sugNr || $("invTitel").value.trim() !== tekst || document.activeElement !== $("invTitel")) return;
+      var rest = a.filter(function (s) { return !gezien[sleutelVan(s.t)]; });
+      sugToon(eigen.concat(rest), tekst);
+    });
+  }
+  function sugKies(s) {
+    var k = sleutelVan(s.t);
+    $("invTitel").value = s.t;
+    if (s.eigen && s.g && !invRij) {
+      invRij = s.g;
+      Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === invRij)); });
+    }
+    if (s.img) {
+      invFoto[k] = s.img; sugGekozen[k] = s.img;
+      invLijst[k] = [s.img].concat((invLijst[k] || []).filter(function (u) { return u !== s.img; }));
+      if (isJuf()) invKeuze[k] = s.img;
+    }
+    if (s.a || s.desc) infoZoek[k] = Promise.resolve({ auteur: s.a || "", tekst: s.desc || "" });
+    sugSluit(); invVast = null; clearTimeout(invZoekKlok);
+    invTeken();
+    $("invTitel").blur();
+    zoekKaften(s.t).then(function (a) {
+      invLijst[k] = (s.img ? [s.img] : []).concat(a.filter(function (u) { return u !== s.img; }));
+      if (!s.img && !invFoto[k]) invFoto[k] = a[0] || "-";
+      if ($("invTitel").value.trim() === s.t) invTeken();
+    }, function () {});
+  }
+  $("invTitel").addEventListener("blur", function () { setTimeout(sugSluit, 150); });
+  $("invTitel").addEventListener("keydown", function (e) { if (e.key === "Escape") sugSluit(); });
+
   $("invTitel").addEventListener("input", function () {
     invVast = null;
     invTeken();
+    clearTimeout(sugKlok);
+    var zoek = $("invTitel").value.trim();
+    if (zoek.length < 3) sugSluit();
+    else sugKlok = setTimeout(function () { sugZoek(zoek); }, 350);
     clearTimeout(invZoekKlok);
     var titel = $("invTitel").value.trim();
     if (titel.length < 3) return;
@@ -2135,6 +2241,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var titel = $("invTitel").value.trim();
     if (!titel || !invRij || !kanSchrijven || $("invKlaar").disabled) return;
     var getoond = invVast ? invVast.v : vragenVoor(titel, invRij), kk = sleutelVan(titel);
+    if (state.kaften[kk] === undefined && sugGekozen[kk]) state.kaften[kk] = sugGekozen[kk];
     invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: getoond, a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
     duimErbij(invRij, titel);
     if (invVast && invVast.bron === "ai" && !state.aiVragen[kk] && !state.vragen[kk]) wijzig(function (s) { s.aiVragen[kk] = getoond; }, false);
