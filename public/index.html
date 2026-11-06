@@ -155,6 +155,9 @@ h2{font-family:var(--display); font-weight:400; font-size:1.9em; letter-spacing:
 .chip{display:inline-flex; align-items:center; gap:.5em; height:2.1em; max-width:17em; min-width:0; background:var(--surface); border-radius:6px; padding:0 .75em 0 .5em; font-weight:700; white-space:nowrap}
 .chip::before{content:""; width:.36em; height:1.25em; border-radius:.1em; background:var(--c); flex:none}
 .chip span{overflow:hidden; text-overflow:ellipsis}
+/* Net binnengekomen van een iPad: zacht oplichten in de kleur van de rij */
+.chip.vers{animation:vers 6s ease-out}
+@keyframes vers{0%,40%{background:color-mix(in oklab, var(--c) 35%, var(--surface))}}
 .g-s{--c:var(--g-s)} .g-f{--c:var(--g-f)} .g-l{--c:var(--g-l)} .g-w{--c:var(--g-w)} .g-t{--c:var(--g-t)} .g-a{--c:var(--g-a)}
 
 /* Duim erbij: één tik op de rij van het boek */
@@ -406,7 +409,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 }
 @media (prefers-reduced-motion:reduce){
   .tik-kaft{transition:none}
-  .teller.tik,.feest,.feest-naam,.rug.nieuw,.wand-ruggen .rug,.start-tekst > *{animation:none}
+  .teller.tik,.feest,.feest-naam,.rug.nieuw,.wand-ruggen .rug,.start-tekst > *,.chip.vers{animation:none}
   .snippers{display:none}
 }
 </style>
@@ -459,18 +462,6 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:760px){
   .koppel-blok{--qr:min(78vw,22em); grid-template-columns:var(--qr)}
 }
-/* Nieuw op de plank: een boek van een iPad verschijnt even groot op het digibord */
-.nieuw{position:fixed; left:50%; bottom:6vh; z-index:22; display:grid; grid-template-columns:auto minmax(0,22em); gap:1.4em; align-items:center;
-  background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:1.1em 1.6em 1.1em 1.1em; box-shadow:0 1.2em 3em rgb(0 0 0 / .6);
-  transform:translateX(-50%); animation:nieuw-in .5s cubic-bezier(.2,1.3,.4,1)}
-.nieuw.weg{animation:nieuw-uit .4s ease forwards}
-.nieuw-kaft{width:8em}
-.nieuw-titel{font-family:var(--display); font-size:2.6em; line-height:.95; letter-spacing:.02em; overflow-wrap:anywhere}
-.nieuw-rij{display:inline-flex; align-items:center; gap:.5em; margin-top:.4em; font-weight:800; color:var(--muted)}
-.nieuw-rij::before{content:""; width:.5em; height:1.2em; border-radius:.1em; background:var(--c)}
-@keyframes nieuw-in{from{transform:translate(-50%,140%)}}
-@keyframes nieuw-uit{to{transform:translate(-50%,160%); opacity:0}}
-@media (prefers-reduced-motion:reduce){ .nieuw, .nieuw.weg{animation:none} }
 /* Controle van de koppelingen in Instellen */
 .controle{display:grid; gap:.35em; margin:0; padding:0; list-style:none}
 .controle li{display:grid; grid-template-columns:1.6em minmax(0,1fr); gap:.5em; align-items:start; font-weight:600}
@@ -874,15 +865,6 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="koppel-plank" aria-hidden="true"><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span><span class="g-t"></span><span class="g-a"></span><span class="g-s"></span><span class="g-l"></span><span class="g-f"></span><span class="g-w"></span><span class="g-a"></span><span class="g-t"></span><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span></div>
     </div>
     <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
-  </div>
-</div>
-
-<div class="nieuw" id="nieuwPlank" role="status" aria-live="polite" hidden>
-  <div class="nieuw-kaft" id="nieuwKaft"></div>
-  <div class="nieuw-tekst">
-    <p class="eyebrow">Nieuw op de plank</p>
-    <p class="nieuw-titel" id="nieuwTitel"></p>
-    <p class="nieuw-rij" id="nieuwRij"></p>
   </div>
 </div>
 
@@ -1663,7 +1645,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       recent.appendChild(el("span", "recent-leeg", "Vul bij een duim de titel in, dan komt het boek hier te staan."));
     }
     for (var i = state.boeken.length - 1; i >= 0 && i >= state.boeken.length - 8; i--) {
-      var chip = el("span", "chip g-" + state.boeken[i].g);
+      var chip = el("span", "chip g-" + state.boeken[i].g + (vers[sleutelVan(state.boeken[i].t)] ? " vers" : ""));
       chip.appendChild(el("span", null, state.boeken[i].t));
       recent.appendChild(chip);
     }
@@ -2659,22 +2641,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   if (kopie) state = kopie;
   toon();
 
-  /* Nieuw op de plank tonen, één boek tegelijk */
-  var eersteSnap = true, nieuwRij = [], nieuwBezig = false;
-  function toonNieuw() {
-    if (nieuwBezig || !nieuwRij.length) return;
-    var b = nieuwRij.shift(), doos = $("nieuwPlank");
-    nieuwBezig = true;
-    $("nieuwKaft").textContent = ""; $("nieuwKaft").appendChild(maakKaft(b.t, b.g, 0));
-    $("nieuwTitel").textContent = b.t;
-    $("nieuwRij").className = "nieuw-rij g-" + b.g; $("nieuwRij").textContent = rijNaam(b.g);
-    doos.classList.remove("weg"); doos.hidden = false;
-    setTimeout(function () {
-      doos.classList.add("weg");
-      setTimeout(function () { doos.hidden = true; nieuwBezig = false; toonNieuw(); }, 420);
-    }, 5000);
-  }
-
+  /* Boeken die net van een iPad binnenkwamen: rustig even oplichten bij 'Net op de plank' */
+  var eersteSnap = true, vers = {};
   var start = (async function () {
     var o = null;
     try { o = await window.bookflixOpslag; } catch (e) { o = null; }
@@ -2711,9 +2679,14 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         toon();
         meldBewaard();
         if (!document.body.classList.contains("lid")) {
-          nieuweBoeken.forEach(function (b) { nieuwRij.push(b); });
-          toonNieuw();
-          if (vrij(state) > voorVrij) setTimeout(function () { vier(vrij(state) - 1); }, nieuweBoeken.length ? 5500 : 0);
+          if (nieuweBoeken.length) {
+            var laatste = nieuweBoeken[nieuweBoeken.length - 1];
+            nieuweBoeken.forEach(function (b) { vers[sleutelVan(b.t)] = true; });
+            nieuw = plek(state, laatste.g);
+            boekenStempel = null; toon();
+            setTimeout(function () { vers = {}; boekenStempel = null; toon(); }, 6000);
+          }
+          if (vrij(state) > voorVrij) vier(vrij(state) - 1);
         }
       }, function (e) {
         naarLokaal();
