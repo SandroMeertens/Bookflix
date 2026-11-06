@@ -410,11 +410,22 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 /* Twee even grote vierkanten naast elkaar: de QR-code en de klascode */
 .koppel-blok{--qr:min(66vh,42vw); display:grid; grid-template-columns:var(--qr) var(--qr); gap:clamp(20px,3vw,56px); justify-items:center}
 .koppel-qr{width:var(--qr); aspect-ratio:1; padding:.8em; border-radius:16px}
-.koppel-vak{width:var(--qr); aspect-ratio:1; display:grid; grid-template-rows:1fr auto 1fr; justify-items:center; align-items:center; text-align:center;
-  background:var(--surface); border-radius:16px; padding:1.5em}
-.koppel-vak .eyebrow{align-self:end; margin-bottom:.4em}
-.koppel-code{font-family:var(--display); font-size:calc(var(--qr) * .21); letter-spacing:.06em; line-height:.9; max-width:100%; overflow-wrap:anywhere}
-.koppel-tel{align-self:start; margin-top:1em; font-weight:700; color:var(--muted); min-height:1.4em}
+.koppel-vak{width:var(--qr); aspect-ratio:1; display:grid; grid-template-rows:auto 1fr auto; overflow:hidden; position:relative;
+  background:radial-gradient(120% 80% at 0% 0%, rgb(229 50 45 / .22), transparent 60%), linear-gradient(160deg, var(--raised), var(--surface));
+  border:1px solid var(--line); border-radius:16px; padding:calc(var(--qr) * .07) calc(var(--qr) * .07) 0}
+.koppel-merk{font-family:var(--display); font-size:calc(var(--qr) * .085); letter-spacing:.04em; line-height:1; color:var(--accent)}
+.koppel-midden{display:grid; align-content:center; justify-items:center; gap:calc(var(--qr) * .03); text-align:center}
+.koppel-midden .eyebrow{font-size:calc(var(--qr) * .028)}
+/* De klascode als vijf losse tegels: goed leesbaar vanaf elke plek in de klas */
+.koppel-code{display:flex; gap:calc(var(--qr) * .022); margin:0}
+.koppel-code span{display:grid; place-items:center; width:calc(var(--qr) * .15); height:calc(var(--qr) * .2); border-radius:calc(var(--qr) * .022);
+  background:var(--bg); box-shadow:inset 0 0 0 1px var(--line), 0 .3em .8em rgb(0 0 0 / .35);
+  font-family:var(--display); font-size:calc(var(--qr) * .15); line-height:1; color:var(--fg)}
+.koppel-tel{font-weight:700; font-size:calc(var(--qr) * .03); color:var(--ok); min-height:1.3em}
+/* Een plankje met boeken onderin, in de kleuren van de rijen */
+.koppel-plank{display:flex; align-items:flex-end; gap:calc(var(--qr) * .008); height:calc(var(--qr) * .13); margin-inline:calc(var(--qr) * -.07); padding-inline:calc(var(--qr) * .07); border-bottom:calc(var(--qr) * .018) solid var(--line)}
+.koppel-plank span{flex:1 1 0; background:var(--c); border-radius:.15em .15em 0 0; height:70%; opacity:.9}
+.koppel-plank span:nth-child(3n){height:92%} .koppel-plank span:nth-child(4n+1){height:58%} .koppel-plank span:nth-child(5n+2){height:82%}
 #koppelDicht{grid-column:1 / -1}
 @media (max-width:760px){
   .koppel-blok{--qr:min(78vw,22em); grid-template-columns:var(--qr)}
@@ -745,9 +756,13 @@ body:not(.lid) .alleen-lid{display:none!important}
   <div class="koppel-blok">
     <div class="qr koppel-qr" id="koppelQR" aria-label="QR-code om een iPad te koppelen"></div>
     <div class="koppel-vak">
-      <p class="eyebrow">Klascode</p>
-      <p class="koppel-code" id="koppelCode">-----</p>
-      <p class="koppel-tel" id="koppelTel"></p>
+      <p class="koppel-merk">BOOKFLIX</p>
+      <div class="koppel-midden">
+        <p class="eyebrow">Klascode</p>
+        <p class="koppel-code" id="koppelCode" aria-label="Klascode"></p>
+        <p class="koppel-tel" id="koppelTel"></p>
+      </div>
+      <div class="koppel-plank" aria-hidden="true"><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span><span class="g-t"></span><span class="g-a"></span><span class="g-s"></span><span class="g-l"></span><span class="g-f"></span><span class="g-w"></span><span class="g-a"></span><span class="g-t"></span><span class="g-s"></span><span class="g-f"></span><span class="g-l"></span><span class="g-w"></span></div>
     </div>
     <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
   </div>

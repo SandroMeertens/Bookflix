@@ -207,7 +207,8 @@ async function begin() {
   function vulKlasBlok() {
     $("klasBlok").hidden = false;
     $("koppelKnop").hidden = false; $("startKoppel").hidden = false;
-    $("koppelCode").textContent = klasData.code;
+    const vak = $("koppelCode"); vak.textContent = ""; vak.setAttribute("aria-label", "Klascode " + klasData.code.split("").join(" "));
+    klasData.code.split("").forEach((ch) => { const s = document.createElement("span"); s.textContent = ch; s.setAttribute("aria-hidden", "true"); vak.appendChild(s); });
     /* Hoeveel iPads zijn er gekoppeld? */
     if (!ledenStop) ledenStop = F.onSnapshot(F.collection(db, "klassen", klasId, "leden"), (s) => {
       const n = s.size;
