@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Bookflix</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bookflix">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0F0E11">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap">
 <style>body{margin:0}[hidden]{display:none!important}</style>
@@ -389,6 +395,15 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .poort-code{display:flex; gap:.6em}
 .poort-code input{flex:1 1 auto; font-size:max(1.3em,16px); letter-spacing:.2em; text-transform:uppercase; font-family:var(--display)}
 .poort-meld{min-height:1.5em; font-weight:700; color:var(--warn)}
+/* Op een iPad of telefoon: alleen de klascode, groot. De leerkracht tikt op 'Ik ben de leerkracht'. */
+.poort.kind .juf-kaart{display:none}
+.poort.kind .poort-kaarten{grid-template-columns:minmax(0,1fr); max-width:32em}
+.poort.kind .kind-kaart{padding:1.6em 1.8em 1.8em; gap:1em}
+.poort.kind .kind-kaart h3{font-size:2.4em}
+.poort.kind .poort-code input{font-size:max(2em,16px); padding:.35em .6em}
+.poort.kind .poort-code .knop{font-size:1.3em; padding:.4em 1em}
+.poort:not(.kind) #poortIkJuf{display:none}
+#poortIkJuf{justify-self:start}
 /* Klas en iPads in Instellen */
 .klas-rij{display:grid; grid-template-columns:9em minmax(0,1fr); gap:1em; align-items:center}
 .qr{background:#fff; border-radius:8px; padding:.3em; aspect-ratio:1}
@@ -623,6 +638,7 @@ body:not(.lid) .alleen-lid{display:none!important}
           <p class="eyebrow">Klascode</p>
           <p class="klascode" id="klasCode">-----</p>
           <p class="uitleg">Scan de QR-code met de camera van de iPad, of open <b id="klasAdres"></b> en vul de code in.</p>
+          <p class="uitleg">Tip: zet Bookflix als app op de iPad. Open de site in Safari, tik op de deelknop en kies <b>Zet op beginscherm</b>. Vul daarna in de app de klascode in.</p>
           <div class="opnieuw">
             <button class="tekstknop" id="nieuweCode" type="button">Nieuwe code</button>
             <button class="tekstknop" id="uitloggen" type="button">Uitloggen</button>
@@ -651,21 +667,22 @@ body:not(.lid) .alleen-lid{display:none!important}
     <h1 class="start-merk">BOOKFLIX</h1>
     <p class="poort-sub">Het leesscorebord van de klas.</p>
     <div class="poort-kaarten">
-      <section class="poort-kaart">
+      <section class="poort-kaart kind-kaart">
+        <h3>Doe mee met je klas</h3>
+        <p>Vul de klascode in. Die staat op het digibord bij Instellen.</p>
+        <form class="poort-code" id="poortForm">
+          <input type="text" id="poortCode" maxlength="5" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="Code" aria-label="Klascode" inputmode="text" enterkeyhint="go">
+          <button class="knop wit" type="submit">Meedoen</button>
+        </form>
+      </section>
+      <section class="poort-kaart juf-kaart">
         <h3>Leerkracht</h3>
         <p>Log in met je Google-account. De stand wordt bij jouw account bewaard, zodat je op elk digibord verder kunt.</p>
         <button class="knop wit groot" id="poortJuf" type="button">Inloggen met Google</button>
       </section>
-      <section class="poort-kaart">
-        <h3>iPad van de klas</h3>
-        <p>Vul de klascode in die bij Instellen op het digibord staat.</p>
-        <form class="poort-code" id="poortForm">
-          <input type="text" id="poortCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code" aria-label="Klascode">
-          <button class="knop" type="submit">Meedoen</button>
-        </form>
-      </section>
     </div>
     <p class="poort-meld" id="poortMeld" role="status"></p>
+    <button class="tekstknop" id="poortIkJuf" type="button">Ik ben de leerkracht</button>
   </div>
 </div>
 <dialog id="vragenDlg" aria-labelledby="vragenKop">

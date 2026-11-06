@@ -57,7 +57,13 @@ async function begin() {
 
   /* ---------- Poort: inloggen of klascode ---------- */
   function poortMeld(t) { $("poortMeld").textContent = t || ""; }
+  /* iPad, telefoon of als app op het beginscherm: eerst de klascode voor de kinderen */
+  const isTablet = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const alsApp = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  let ikJuf = false;
+  try { ikJuf = localStorage.getItem("bookflix.leerkracht") === "1"; } catch (e) {}
   function toonPoort(t) {
+    $("poort").classList.toggle("kind", (isTablet || alsApp) && !ikJuf);
     $("poort").hidden = false;
     if (t !== undefined) poortMeld(t);
     const c = schoon(new URLSearchParams(location.search).get("code"));
@@ -65,6 +71,12 @@ async function begin() {
   }
   function verbergPoort() { $("poort").hidden = true; }
 
+  $("poortIkJuf").addEventListener("click", () => { $("poort").classList.remove("kind"); poortMeld(""); });
+  /* Vijf tekens ingetikt? Dan meteen koppelen */
+  $("poortCode").addEventListener("input", () => {
+    const c = schoon($("poortCode").value);
+    if (c.length === 5 && !bezig) $("poortForm").requestSubmit ? $("poortForm").requestSubmit() : $("poortForm").dispatchEvent(new Event("submit", { cancelable: true }));
+  });
   $("poortJuf").addEventListener("click", async () => {
     if (bezig) return; bezig = true; poortMeld("Bezig met inloggen…");
     const pr = new F.GoogleAuthProvider();
@@ -93,6 +105,7 @@ async function begin() {
   /* ---------- Leerkracht: eigen klas met een klascode ---------- */
   async function alsLeerkracht(u) {
     const kid = u.uid;
+    bewaar("bookflix.leerkracht", "1");
     let k = await haal(d("klassen", kid));
     if (!k) {
       k = { owner: kid, code: "", t: Date.now() };
