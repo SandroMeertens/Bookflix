@@ -525,6 +525,11 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .invoer.stap2 .inv-kaft{width:min(100%,11em,28vh)}
 @media (max-width:699px){ .invoer.stap3 .inv-kant{grid-template-columns:minmax(0,1fr); justify-items:center} }
 @media (min-width:700px){ .invoer{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)} }
+/* Ruim en in het midden van het scherm, niet tegen de bovenkant gedrukt */
+.invoer{align-self:center; justify-self:center; width:min(100%,68em); align-items:center; column-gap:clamp(24px,5vw,96px); padding-block:1em}
+.inv-kant{justify-items:center}
+.inv-deel{gap:.9em}
+.inv-deel1 h2, .inv-deel2 .inv-label:first-child{margin-bottom:.3em}
 body:not(.lid) .alleen-lid{display:none!important}
 @media (max-width:600px){ .klas-rij{grid-template-columns:7em minmax(0,1fr)} }
 </style>
