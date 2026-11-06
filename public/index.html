@@ -332,7 +332,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (min-width:600px) and (min-height:560px){
   html,body{height:100%}
   .merk{font-size:1.45em}
-  .wrap{max-width:none; min-height:100%; padding-inline:2.4em; padding-block:1em; gap:1em; grid-template-rows:auto minmax(0,1fr)}
+  .wrap{max-width:none; min-height:100%; padding-inline:2.4em; padding-block:2em 1.2em; gap:1.4em; grid-template-rows:auto minmax(0,1fr)}
   .wrap.intro{height:100%; grid-template-rows:minmax(0,1fr); padding-block:1.6em}
   .start{align-items:stretch; min-height:0}
   .wand{grid-template-rows:repeat(4,minmax(0,1fr)); min-height:0}
@@ -486,6 +486,9 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-bedankt{display:grid; gap:.5em; justify-items:center; text-align:center}
 .inv-hoera{font-family:var(--display); font-size:2.6em; line-height:1; letter-spacing:.03em; color:var(--gold)}
 .inv-bedankt .opnieuw{justify-content:center}
+.inv-vrgn{display:grid; gap:.5em; justify-items:start; text-align:left; background:var(--surface); border-radius:10px; padding:.9em 1.1em; width:100%}
+.inv-vrgn ol{margin:0; padding-left:1.3em; display:grid; gap:.35em; font-weight:600; list-style:decimal}
+.inv-vrgn li.laden{list-style:none; margin-left:-1.3em; color:var(--muted)}
 /* Drie stappen, elk passend op één iPad-scherm: 1 boek kiezen, 2 vragen, 3 op de plank */
 .inv-deel{display:grid; gap:.75em; min-width:0}
 .invoer .inv-deel2, .invoer .inv-bedankt{display:none}
@@ -494,7 +497,8 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .invoer.stap3 .inv-vorm{display:none}
 .invoer.stap3 .inv-bedankt{display:grid}
 .invoer.stap3{grid-template-columns:minmax(0,1fr)!important; justify-items:center}
-.invoer.stap3 .inv-kant{grid-template-columns:auto minmax(0,24em); align-items:center; gap:2em}
+.invoer.stap3 .inv-kant{grid-template-columns:auto minmax(0,26em); align-items:center; gap:2.5em}
+.invoer.stap3 .inv-kaft{width:min(15em,40vh)}
 .inv-voet{display:flex; flex-wrap:wrap; align-items:center; gap:.4em 1.2em}
 .inv-voet .uitleg{flex-basis:100%}
 #invVerder, #invPlank{justify-self:start}
@@ -660,6 +664,11 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="inv-keuze alleen-juf" id="invKeuze" aria-label="Kies de goede kaft"></div>
       <div class="inv-bedankt" id="invBedankt" role="status">
         <p class="inv-hoera">Je boek staat op de plank!</p>
+        <div class="inv-vrgn alleen-juf" id="invVrgn" hidden>
+          <p class="eyebrow">Deze vragen krijgen leerlingen bij dit boek</p>
+          <ol id="invVrgnLijst"></ol>
+          <button class="tekstknop" id="invVrgnAan" type="button">Vragen aanpassen</button>
+        </div>
         <p class="uitleg" id="invStand"></p>
         <div class="opnieuw">
           <button class="knop" id="invNog" type="button">Volgende boek</button>
@@ -1948,6 +1957,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       (info.tekst ? "Achterflaptekst: \u201c" + info.tekst + "\u201d\n" : "Er is geen achterflaptekst gevonden.\n") +
       "De vragen moeten controleren of een kind het boek echt gelezen heeft. Ze mogen dus niet te beantwoorden zijn met alleen de achterflap.\n" +
       niveaus + "\n" +
+      "Ken je dit boek goed, stel dan inhoudelijke vragen over concrete gebeurtenissen en personages uit het midden en het einde van het verhaal, zodat je de vraag alleen kunt beantwoorden als je het hele boek gelezen hebt. " +
       "Regels: gebruik namen en gebeurtenissen alleen als je zeker weet dat ze in dit boek voorkomen (uit de achterflap of omdat je het boek goed kent). Verzin niets: weet je het niet zeker, stel dan een open vraag over de hoofdpersoon of het verhaal. Eenvoudig Nederlands, korte zinnen, hoogstens 140 tekens per vraag, elke vraag eindigt met een vraagteken.\n" +
       "Geef alleen JSON terug, precies zo: {\"vragen\": [\"...\", \"...\", \"...\"]}";
   }
@@ -2136,6 +2146,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       return uit;
     });
   }
+  /* Reserve: Open Library zoekt ook op titel en schrijver */
+  function zoekOpenLibrary(tekst) {
+    return fetch("https://openlibrary.org/search.json?limit=8&fields=title,author_name,cover_i&q=" + encodeURIComponent(tekst))
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (j) {
+        return (j.docs || []).filter(function (d) { return d.title; }).map(function (d) {
+          return { t: String(d.title).slice(0, 80), a: (d.author_name || []).slice(0, 2).join(", "), img: d.cover_i ? "https://covers.openlibrary.org/b/id/" + d.cover_i + "-L.jpg" : "", desc: "" };
+        });
+      });
+  }
   function sugSluit() { $("invSug").hidden = true; $("invSug").textContent = ""; $("invTitel").setAttribute("aria-expanded", "false"); }
   function sugToon(lijst, tekst) {
     var ul = $("invSug"); ul.textContent = "";
@@ -2166,7 +2186,9 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     eigen = eigen.slice(0, 3);
     if (eigen.length) sugToon(eigen, tekst);
-    zoekBoeken(tekst, true).then(function (a) { return a.length ? a : zoekBoeken(tekst, false); }).catch(function () { return []; }).then(function (a) {
+    else { var ul = $("invSug"); ul.textContent = ""; ul.appendChild(el("li", "sug-leeg", "Boeken zoeken\u2026")); ul.hidden = false; }
+    zoekBoeken(tekst, true).then(function (a) { return a.length ? a : zoekBoeken(tekst, false); }).catch(function () { return []; })
+      .then(function (a) { return a.length ? a : zoekOpenLibrary(tekst).catch(function () { return []; }); }).then(function (a) {
       if (nr !== sugNr || $("invTitel").value.trim() !== tekst || document.activeElement !== $("invTitel")) return;
       var rest = a.filter(function (s) { return !gezien[sleutelVan(s.t)]; });
       sugToon(eigen.concat(rest), tekst);
@@ -2235,7 +2257,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function invOpnieuw() {
     invVerstuur();
     clearTimeout(invKlok);
-    invStap(1);
+    invStap(1); $("invVrgn").hidden = true;
     $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x"; invVast = null; invLaden = "";
     Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
@@ -2268,9 +2290,28 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invStap(3);
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
+    jufVragenToon(titel, invRij);
     clearTimeout(invKlok);
-    invKlok = setTimeout(invOpnieuw, 12000);
+    invKlok = setTimeout(invOpnieuw, 45000);
   });
+  /* Laat de leerkracht zien welke vragen leerlingen bij dit boek krijgen. Nieuw boek? Dan eerst laten maken. */
+  function jufVragenToon(titel, g) {
+    var lijst = $("invVrgnLijst"), k = sleutelVan(titel);
+    $("invVrgn").hidden = false;
+    $("invVrgnAan").onclick = function () { clearTimeout(invKlok); openVragen(titel, g); };
+    function zet(v, uitleg) {
+      lijst.textContent = "";
+      if (uitleg) lijst.appendChild(el("li", "laden", uitleg));
+      (v || []).forEach(function (x) { lijst.appendChild(el("li", null, x)); });
+    }
+    if (vragenBron(titel) !== "standaard" || !AI || aiUit) { zet(vragenVoor(titel, g)); return; }
+    zet(null, "Vragen bij dit boek worden gemaakt\u2026");
+    maakVragen(titel, g).then(function (v) {
+      if ($("invVrgnLijst") !== lijst || !$("invoer").classList.contains("stap3")) return;
+      if (v && !state.aiVragen[k] && !state.vragen[k]) wijzig(function (s) { s.aiVragen[k] = v; }, false);
+      zet(vragenVoor(titel, g), v ? "" : "Vragen maken lukte nu niet; leerlingen krijgen de standaardvragen.");
+    });
+  }
   $("invTerug").addEventListener("click", function () { invStap(1); });
   $("invOeps").addEventListener("click", function () { invWacht = null; $("terug").click(); invOpnieuw(); });
   invTeken();
