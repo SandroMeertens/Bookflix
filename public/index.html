@@ -83,6 +83,18 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 .merk span{font-family:var(--body); font-weight:700; font-size:1em; letter-spacing:0; color:var(--muted); white-space:nowrap}
 .tabs{display:flex; flex-wrap:wrap; gap:.2em 1em}
 .kop-rechts .tekstknop, .kop-rechts .knop, .tab{white-space:nowrap}
+/* Kop: rechts alleen een stip, de koppelknop en twee pictogrammen */
+.ikoon{display:inline-grid; place-items:center; width:2.4em; height:2.4em; padding:0; border:0; border-radius:8px; background:transparent; color:var(--muted)}
+.ikoon:hover{background:var(--raised); color:var(--fg)}
+.ikoon svg{width:1.35em; height:1.35em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.ikoon .vol-uit{display:none}
+.vol .ikoon .vol-aan{display:none} .vol .ikoon .vol-uit{display:block}
+.kop-rechts{gap:.4em 1em}
+.kop .bewaard:not(.let) #statusTekst{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.kop .bewaard{cursor:default}
+.ikoon.zeker{width:auto; padding:0 .8em; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
+/* iPad van de klas: alleen wat een leerling nodig heeft */
+.lid #tabFinale, .lid #volKnop{display:none!important}
 .tab{border:0; background:none; padding:.25em 0; font-weight:800; color:var(--muted); border-bottom:.18em solid transparent}
 .tab:hover{color:var(--fg)}
 .tab[aria-pressed="true"]{color:var(--fg); border-bottom-color:var(--accent)}
@@ -530,7 +542,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:699px){ .invoer.stap3 .inv-kant{grid-template-columns:minmax(0,1fr); justify-items:center} }
 @media (min-width:700px){ .invoer{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)} }
 /* Ruim en in het midden van het scherm, niet tegen de bovenkant gedrukt */
-.invoer{align-self:center; justify-self:center; width:100%; align-items:center; justify-content:center; column-gap:clamp(32px,6vw,112px); padding-block:1em}
+.invoer{align-self:center; justify-self:start; width:100%; align-items:center; justify-content:start; column-gap:clamp(32px,6vw,112px); padding-block:1em}
 @media (min-width:700px){ .invoer{grid-template-columns:minmax(0,34em) auto} }
 /* Rijknoppen allemaal even hoog, tekst netjes in het midden */
 .inv-rijen{grid-auto-rows:1fr}
@@ -567,9 +579,16 @@ body:not(.lid) .alleen-lid{display:none!important}
     <div class="kop-rechts">
       <p class="bewaard" id="status" role="status"><span class="stip"></span><span id="statusTekst">Stand wordt geladen</span></p>
       <button class="knop alleen-juf" id="koppelKnop" type="button" hidden>iPads koppelen</button>
-      <button class="tekstknop schrijf alleen-juf" id="instelKnop" type="button">Instellen</button>
-      <button class="tekstknop alleen-lid" id="ontkoppel" type="button">Ontkoppelen</button>
-      <button class="tekstknop" id="volKnop" type="button" hidden>Volledig scherm</button>
+      <button class="ikoon schrijf alleen-juf" id="instelKnop" type="button" aria-label="Instellen" title="Instellen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+      <button class="ikoon" id="volKnop" type="button" aria-label="Volledig scherm" title="Volledig scherm" hidden>
+        <svg class="vol-aan" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <svg class="vol-uit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+      </button>
+      <button class="ikoon alleen-lid" id="ontkoppel" type="button" aria-label="Ontkoppelen" title="Ontkoppelen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
     </div>
   </header>
 
@@ -2544,7 +2563,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     var volTekst = function () {
       var t = volNu() ? "Scherm verkleinen" : "Volledig scherm";
-      $("volKnop").textContent = t; $("volKnop2").textContent = t;
+      $("volKnop").setAttribute("aria-label", t); $("volKnop").title = t; $("volKnop2").textContent = t;
+      document.documentElement.classList.toggle("vol", !!volNu());
     };
     document.addEventListener("fullscreenchange", volTekst);
     document.addEventListener("webkitfullscreenchange", volTekst);

@@ -269,7 +269,15 @@ async function begin() {
     location.replace(adres());
   }
   $("uitloggen").addEventListener("click", uitloggen);
-  $("ontkoppel").addEventListener("click", uitloggen);
+  /* Ontkoppelen op de iPad: twee keer tikken, zodat een kind het niet per ongeluk doet */
+  let zekerKlok = null;
+  $("ontkoppel").addEventListener("click", () => {
+    const k = $("ontkoppel");
+    if (k.classList.contains("zeker")) { uitloggen(); return; }
+    k.classList.add("zeker"); k.dataset.svg = k.innerHTML; k.textContent = "Tik nog eens om te ontkoppelen";
+    clearTimeout(zekerKlok);
+    zekerKlok = setTimeout(() => { k.classList.remove("zeker"); k.innerHTML = k.dataset.svg; }, 4000);
+  });
 
   /* ---------- Begin: wie is er al ingelogd? ---------- */
   const eerste = await new Promise((res) => { const stop = F.onAuthStateChanged(auth, (u) => { stop(); res(u); }); });
