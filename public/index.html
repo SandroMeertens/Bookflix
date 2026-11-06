@@ -407,22 +407,17 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 /* iPads koppelen: groot op het digibord, zodat kinderen vanaf hun plek kunnen scannen */
 .koppel{position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:clamp(16px,3vw,40px); overflow:auto;
   background:radial-gradient(60em 34em at 6% 8%, var(--glow) 0%, transparent 62%) no-repeat, var(--bg)}
-.koppel-blok{--qr:min(64vh,40vw); display:grid; grid-template-columns:var(--qr) minmax(0,26em); gap:clamp(24px,3.5vw,64px); align-items:stretch;
-  background:var(--surface); border-radius:18px; padding:clamp(20px,2.6vw,44px); box-shadow:0 1em 3em rgb(0 0 0 / .45)}
-.koppel-qr{width:var(--qr); aspect-ratio:1; padding:.7em; border-radius:12px; align-self:start}
-.koppel-tekst{display:grid; grid-template-rows:auto 1fr auto auto; gap:1em; min-width:0; text-align:left}
-.koppel-tekst h2{font-size:clamp(2rem,3vw,2.8em); line-height:.95}
-.koppel-codeblok{display:grid; gap:.2em; align-content:center}
-.koppel-code{font-family:var(--display); font-size:clamp(4rem,8.5vw,8.5em); letter-spacing:.08em; line-height:.9; font-variant-numeric:tabular-nums}
-.koppel-hint{font-weight:700; font-size:1.15em; color:var(--muted)}
-.koppel-stappen{display:grid; gap:.7em; align-content:start; margin:0; padding:0; list-style:none}
-.koppel-stappen li{display:grid; grid-template-columns:1.8em minmax(0,1fr); gap:.7em; align-items:center; font-weight:600; font-size:1.05em; line-height:1.35}
-.koppel-stappen li .nr{display:grid; place-items:center; width:1.8em; height:1.8em; border-radius:50%; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
-.koppel-voet{display:flex; align-items:center; justify-content:space-between; gap:1em; padding-top:1em; border-top:1px solid var(--line)}
-.koppel-tel{font-weight:800; color:var(--ok); min-height:1.4em}
+/* Twee even grote vierkanten naast elkaar: de QR-code en de klascode */
+.koppel-blok{--qr:min(66vh,42vw); display:grid; grid-template-columns:var(--qr) var(--qr); gap:clamp(20px,3vw,56px); justify-items:center}
+.koppel-qr{width:var(--qr); aspect-ratio:1; padding:.8em; border-radius:16px}
+.koppel-vak{width:var(--qr); aspect-ratio:1; display:grid; grid-template-rows:1fr auto 1fr; justify-items:center; align-items:center; text-align:center;
+  background:var(--surface); border-radius:16px; padding:1.5em}
+.koppel-vak .eyebrow{align-self:end; margin-bottom:.4em}
+.koppel-code{font-family:var(--display); font-size:calc(var(--qr) * .21); letter-spacing:.06em; line-height:.9; max-width:100%; overflow-wrap:anywhere}
+.koppel-tel{align-self:start; margin-top:1em; font-weight:700; color:var(--muted); min-height:1.4em}
+#koppelDicht{grid-column:1 / -1}
 @media (max-width:760px){
-  .koppel-blok{--qr:min(78vw,22em); grid-template-columns:minmax(0,1fr); justify-items:center}
-  .koppel-tekst{width:100%}
+  .koppel-blok{--qr:min(78vw,22em); grid-template-columns:var(--qr)}
 }
 /* Klas en iPads in Instellen */
 .klas-rij{display:grid; grid-template-columns:9em minmax(0,1fr); gap:1em; align-items:center}
@@ -746,21 +741,15 @@ body:not(.lid) .alleen-lid{display:none!important}
   </form>
 </dialog>
 
-<div class="koppel" id="koppelScherm" role="dialog" aria-modal="true" aria-labelledby="koppelKop" hidden>
+<div class="koppel" id="koppelScherm" role="dialog" aria-modal="true" aria-label="iPads koppelen" hidden>
   <div class="koppel-blok">
     <div class="qr koppel-qr" id="koppelQR" aria-label="QR-code om een iPad te koppelen"></div>
-    <div class="koppel-tekst">
-      <h2 id="koppelKop">Doe mee met de iPad</h2>
-      <div class="koppel-codeblok">
-        <p class="eyebrow">Klascode</p>
-        <p class="koppel-code" id="koppelCode">-----</p>
-      </div>
-      <p class="koppel-hint">Scan met de camera, of typ de code in de app.</p>
-      <div class="koppel-voet">
-        <p class="koppel-tel" id="koppelTel"></p>
-        <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
-      </div>
+    <div class="koppel-vak">
+      <p class="eyebrow">Klascode</p>
+      <p class="koppel-code" id="koppelCode">-----</p>
+      <p class="koppel-tel" id="koppelTel"></p>
     </div>
+    <button class="knop wit groot" id="koppelDicht" type="button">Klaar</button>
   </div>
 </div>
 

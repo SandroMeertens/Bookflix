@@ -211,7 +211,7 @@ async function begin() {
     /* Hoeveel iPads zijn er gekoppeld? */
     if (!ledenStop) ledenStop = F.onSnapshot(F.collection(db, "klassen", klasId, "leden"), (s) => {
       const n = s.size;
-      $("koppelTel").textContent = n ? n + (n === 1 ? " iPad gekoppeld" : " iPads gekoppeld") : "Nog geen iPads gekoppeld";
+      $("koppelTel").textContent = n ? n + (n === 1 ? " iPad gekoppeld" : " iPads gekoppeld") : "";
     }, (e) => console.warn(e));
     $("klasCode").textContent = klasData.code;
     $("klasAdres").textContent = location.host;
