@@ -31,6 +31,7 @@ function foutTekst(e) {
     return "Inloggen is gelukt, maar de database weigert nog. Staan de regels er al? (GitHub Actions moet helemaal groen zijn.)";
   if (c === "not-found" || c === "failed-precondition" || c === "firestore/not-found")
     return "De database bestaat nog niet. Maak in Firebase een Firestore Database aan.";
+  if (c === "traag") return "De database reageert niet. Maak in Firebase een Firestore Database aan (Databases & Storage > Firestore) en probeer het opnieuw.";
   if (c === "unavailable") return "Geen verbinding met de database. Controleer de internetverbinding.";
   return "Dat lukte niet" + (c ? " (" + c + ")" : "") + ". Probeer het nog eens.";
 }
@@ -49,7 +50,9 @@ async function begin() {
   const auth = F.getAuth(app);
   const db = F.initializeFirestore(app, {});
   const d = (...p) => F.doc(db, ...p);
-  const haal = async (r) => { const s = await F.getDoc(r); return s.exists() ? s.data() : null; };
+  /* Antwoordt de database niet binnen 10 seconden, dan zeggen we dat (meestal bestaat hij dan nog niet) */
+  const traag = (p) => Promise.race([p, new Promise((_, nee) => setTimeout(() => nee({ code: "traag" }), 10000))]);
+  const haal = async (r) => { const s = await traag(F.getDoc(r)); return s.exists() ? s.data() : null; };
   let klaar = false, bezig = false, klasData = null, klasId = "";
 
   /* ---------- Poort: inloggen of klascode ---------- */
@@ -66,6 +69,7 @@ async function begin() {
     if (bezig) return; bezig = true; poortMeld("Bezig met inloggen…");
     const pr = new F.GoogleAuthProvider();
     pr.setCustomParameters({ prompt: "select_account" });
+    poortMeld("Kies je Google-account in het venster dat opent…");
     try {
       if (auth.currentUser && auth.currentUser.isAnonymous) await F.signOut(auth);
       const r = await F.signInWithPopup(auth, pr);

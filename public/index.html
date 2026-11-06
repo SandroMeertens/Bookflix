@@ -42,7 +42,7 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 
 /* Kop */
 .kop{display:flex; flex-wrap:wrap; align-items:center; gap:.4em 1.6em}
-.merk{display:flex; flex-wrap:wrap; align-items:baseline; gap:0 .5em; font-family:var(--display); letter-spacing:.03em; line-height:1}
+.merk{display:flex; flex-wrap:wrap; align-items:baseline; gap:0 .5em; font-family:var(--display); letter-spacing:.03em; line-height:1; font-size:1em; margin:0}
 .merk b{font-weight:400; font-size:2.6em; color:var(--accent)}
 .merk-knop{border:0; background:none; padding:0; font:inherit; letter-spacing:inherit; line-height:inherit; display:block}
 
@@ -75,7 +75,7 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 .wand-stand{margin-left:auto; font-size:.78em; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); white-space:nowrap}
 .wand-plank.vrij .wand-nr, .wand-plank.vrij .wand-stand{color:var(--fg)}
 .merk span{font-family:var(--body); font-weight:700; font-size:1em; letter-spacing:0; color:var(--muted); white-space:nowrap}
-.tabs{display:flex; gap:1.2em}
+.tabs{display:flex; flex-wrap:wrap; gap:.2em 1.2em}
 .tab{border:0; background:none; padding:.25em 0; font-weight:800; color:var(--muted); border-bottom:.18em solid transparent}
 .tab:hover{color:var(--fg)}
 .tab[aria-pressed="true"]{color:var(--fg); border-bottom-color:var(--accent)}
@@ -392,6 +392,30 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .qr svg{display:block; width:100%; height:auto}
 .klascode{font-family:var(--display); font-size:3em; letter-spacing:.12em; line-height:1}
 .lid .alleen-juf{display:none!important}
+.wrap{grid-template-columns:minmax(0,1fr)}
+.wrap > *{min-width:0}
+.lid .kop{flex-wrap:wrap!important}
+.lid .kop-rechts{flex-wrap:wrap!important}
+/* Mijn boek: een leerling zet op de iPad zelf zijn boek op de plank */
+.invoer{display:grid; gap:clamp(18px,3vw,48px); align-items:start; min-width:0}
+.inv-vorm{display:grid; gap:.8em; min-width:0; max-width:40em}
+.inv-label{display:flex; align-items:center; gap:.6em; font-weight:800; font-size:1.15em; margin-top:.4em}
+.inv-nr{display:inline-grid; place-items:center; width:1.7em; height:1.7em; border-radius:50%; background:var(--accent); color:var(--fg); font-size:.85em; flex:none}
+#invTitel{font-size:max(1.35em,16px); padding:.55em .7em}
+.inv-rijen{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6em}
+.inv-rij{border:0; border-radius:10px; background:var(--c); color:var(--ink); font-weight:800; font-size:1.15em; padding:.75em .8em; text-align:left; min-height:3.2em; opacity:.55; transition:opacity .15s, transform .15s}
+.inv-rij:hover{opacity:.8}
+.inv-rij[aria-checked="true"]{opacity:1; outline:.2em solid var(--fg); outline-offset:.15em}
+.inv-rijen.gekozen .inv-rij:not([aria-checked="true"]){opacity:.35}
+.inv-rijen:not(.gekozen) .inv-rij{opacity:1}
+#invKlaar{justify-self:start; margin-top:.2em}
+.inv-kant{display:grid; gap:1em; justify-items:center; align-content:start}
+.inv-kaft{width:min(100%,15em)}
+.inv-bedankt{display:grid; gap:.5em; justify-items:center; text-align:center}
+.inv-hoera{font-family:var(--display); font-size:2.6em; line-height:1; letter-spacing:.03em; color:var(--gold)}
+.inv-bedankt .opnieuw{justify-content:center}
+.invoer.klaar .inv-vorm{opacity:.35; pointer-events:none}
+@media (min-width:700px){ .invoer{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)} }
 body:not(.lid) .alleen-lid{display:none!important}
 @media (max-width:600px){ .klas-rij{grid-template-columns:7em minmax(0,1fr)} }
 </style>
@@ -408,6 +432,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   <header class="kop">
     <h1 class="merk"><button class="merk-knop" id="naarStart" type="button" aria-label="Bookflix, naar de startpagina"><b>BOOKFLIX</b></button></h1>
     <nav class="tabs" aria-label="Weergave">
+      <button class="tab alleen-lid" id="tabInvoer" type="button" aria-pressed="false">Mijn boek</button>
       <button class="tab" id="tabBord" type="button" aria-pressed="true">Scorebord</button>
       <button class="tab" id="tabLijst" type="button" aria-pressed="false">Boeken</button>
       <button class="tab" id="tabFinale" type="button" aria-pressed="false">Awards</button>
@@ -487,6 +512,29 @@ body:not(.lid) .alleen-lid{display:none!important}
     <p class="uitleg" id="boekenLeeg">Nog geen titels. Vul op het scorebord bij een duim de titel in.</p>
     <div class="legenda" id="legendaLijst"></div>
     <div class="groepen" id="boeken"></div>
+  </main>
+
+  <main class="invoer" id="invoer" hidden>
+    <form class="inv-vorm" id="invVorm" autocomplete="off">
+      <h2>Boek uit? Zet het op de plank!</h2>
+      <label class="inv-label" for="invTitel"><span class="inv-nr">1</span>Welk boek heb je gelezen?</label>
+      <input type="text" id="invTitel" maxlength="80" placeholder="Titel van je boek" list="titels" autocomplete="off" enterkeyhint="next">
+      <p class="inv-label" id="invRijKop"><span class="inv-nr">2</span>Wat voor boek is het?</p>
+      <div class="inv-rijen" id="invRijen" role="radiogroup" aria-labelledby="invRijKop"></div>
+      <p class="inv-label"><span class="inv-nr">3</span>Klaar? Dan krijgt je boek een duim.</p>
+      <button class="knop wit groot" id="invKlaar" type="submit" disabled>Zet op de plank</button>
+    </form>
+    <div class="inv-kant">
+      <div class="inv-kaft" id="invKaft"></div>
+      <div class="inv-bedankt" id="invBedankt" role="status" hidden>
+        <p class="inv-hoera">Je boek staat op de plank!</p>
+        <p class="uitleg" id="invStand"></p>
+        <div class="opnieuw">
+          <button class="knop" id="invNog" type="button">Volgende boek</button>
+          <button class="tekstknop" id="invOeps" type="button">Oeps, foutje: haal weg</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <main class="regels" id="regels" hidden>
@@ -1282,7 +1330,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       eigen.forEach(function (g) {
         var li = el("li"), kaft = maakKaft(g.t, g.g, g.n);
         tikbaar(kaft, g, g.t + ", " + duimen(g.n));
-        var weg = el("button", "tekstknop schrijf", "Weg");
+        var weg = el("button", "tekstknop schrijf alleen-juf", "Weg");
         weg.type = "button"; weg.setAttribute("aria-label", g.t + " uit de lijst halen");
         weg.addEventListener("click", function () {
           stapel = [];
@@ -1522,6 +1570,51 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       }
     }, false);
   });
+  /* Mijn boek: titel, rij, en dan op de plank */
+  var invRij = "", invKlok = null;
+  function invTeken() {
+    var titel = $("invTitel").value.trim();
+    var vak = $("invKaft"); vak.textContent = "";
+    vak.appendChild(maakKaft(titel || "Jouw boek", invRij || "a", 0));
+    $("invKlaar").disabled = !titel || !invRij || !kanSchrijven;
+    $("invRijen").classList.toggle("gekozen", !!invRij);
+  }
+  GENRES.forEach(function (g) {
+    var b = el("button", "inv-rij g-" + g.id, g.lang);
+    b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.dataset.g = g.id;
+    b.addEventListener("click", function () {
+      invRij = g.id;
+      Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === invRij)); });
+      invTeken();
+    });
+    $("invRijen").appendChild(b);
+  });
+  $("invTitel").addEventListener("input", invTeken);
+  $("invTitel").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); this.blur(); }
+  });
+  function invOpnieuw() {
+    clearTimeout(invKlok);
+    $("invoer").classList.remove("klaar"); $("invBedankt").hidden = true;
+    $("invTitel").value = ""; invRij = "";
+    Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
+    invTeken();
+  }
+  $("invVorm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var titel = $("invTitel").value.trim();
+    if (!titel || !invRij || !kanSchrijven) return;
+    duimErbij(invRij, titel);
+    $("invoer").classList.add("klaar"); $("invBedankt").hidden = false;
+    var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
+    $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
+    clearTimeout(invKlok);
+    invKlok = setTimeout(invOpnieuw, 12000);
+  });
+  $("invNog").addEventListener("click", function () { invOpnieuw(); $("invTitel").focus(); });
+  $("invOeps").addEventListener("click", function () { $("terug").click(); invOpnieuw(); });
+  invTeken();
+
   $("einde").addEventListener("change", function () {
     var v = this.value;
     if (!DAG.test(v)) { this.value = state.einde; return; }
@@ -1534,7 +1627,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   });
 
   /* Weergave: scorebord of Awards */
-  var TABS = { bord: "tabBord", lijst: "tabLijst", finale: "tabFinale", regels: "tabRegels" };
+  var TABS = { invoer: "tabInvoer", bord: "tabBord", lijst: "tabLijst", finale: "tabFinale", regels: "tabRegels" };
   /* Passend maken: op een liggend scherm mag het scorebord nooit scrollen.
      Past het niet (ander lettertype, lange namen, afwijkend scherm), dan krimpt het in stapjes. */
   var bordMQ = window.matchMedia("(min-width:600px) and (min-height:560px)"), pasWacht = false;
@@ -1692,6 +1785,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       if (sl !== SLEUTEL) { SLEUTEL = sl; state = leesLokaal() || norm(null); toon(); }
       try { localStorage.setItem("bookflix.laatste", o.klas); } catch (e) {}
     }
+    if (o && o.rol === "lid") kies("invoer");
     if (o && o.ref) {
       ref = o.ref;
       ref.onSnapshot(function (snap) {
