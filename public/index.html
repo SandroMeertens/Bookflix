@@ -462,6 +462,19 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:760px){
   .koppel-blok{--qr:min(78vw,22em); grid-template-columns:var(--qr)}
 }
+/* Sterren */
+.inv-sterren{display:flex; flex-wrap:wrap; align-items:center; gap:.3em 1em; font-weight:700}
+.sterren{display:inline-flex; gap:.15em}
+.sterren button{border:0; background:none; padding:0 .05em; font-size:1.9em; line-height:1; color:var(--raised-2); transition:transform .1s}
+.sterren button.aan{color:var(--gold)}
+.sterren button:active{transform:scale(.9)}
+.boek-ster{font-size:.8em; font-weight:800; color:var(--gold); white-space:nowrap}
+.nom .boek-ster{display:block; margin-top:.3em; text-align:center}
+/* Boekentips op het klaar-scherm van de leerling */
+.inv-tips{display:grid; gap:.5em; justify-items:center; margin-top:.6em}
+.inv-tips-rij{display:flex; gap:.8em; justify-content:center}
+.inv-tip{display:grid; gap:.2em; justify-items:center; width:4.6em}
+.inv-tip .kaft-n{display:none}
 /* Controle van de koppelingen in Instellen */
 .controle{display:grid; gap:.35em; margin:0; padding:0; list-style:none}
 .controle li{display:grid; grid-template-columns:1.6em minmax(0,1fr); gap:.5em; align-items:start; font-weight:600}
@@ -696,6 +709,10 @@ body:not(.lid) .alleen-lid{display:none!important}
       <div class="inv-deel inv-deel2">
         <p class="inv-label"><span class="inv-nr">3</span><span>Vragen over <b id="invBoekNaam"></b></span></p>
         <div class="inv-vragen" id="invVragen"><p class="uitleg">Kies eerst je boek en de rij, dan komen hier de vragen.</p></div>
+        <div class="inv-sterren" role="radiogroup" aria-labelledby="invSterKop">
+          <span id="invSterKop">Hoeveel sterren geef je dit boek?</span>
+          <span class="sterren" id="invSterKnoppen"></span>
+        </div>
         <div class="inv-voet">
           <button class="knop wit groot" id="invKlaar" type="submit" disabled>Zet op de plank</button>
           <button class="tekstknop" id="invTerug" type="button">Terug</button>
@@ -714,6 +731,10 @@ body:not(.lid) .alleen-lid{display:none!important}
           <button class="tekstknop" id="invVrgnAan" type="button">Vragen aanpassen</button>
         </div>
         <p class="uitleg" id="invStand"></p>
+        <div class="inv-tips alleen-lid" id="invTips" hidden>
+          <p class="eyebrow">Ook gelezen door de klas</p>
+          <div class="inv-tips-rij" id="invTipsRij"></div>
+        </div>
         <div class="opnieuw">
           <button class="knop" id="invNog" type="button">Volgende boek</button>
           <button class="tekstknop" id="invOeps" type="button">Oeps, foutje: haal weg</button>
@@ -797,6 +818,14 @@ body:not(.lid) .alleen-lid{display:none!important}
       <p class="uitleg">Controleert opslaan, boeken zoeken, kaften en de vragen van de AI.</p>
       <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button></div>
       <ul class="controle" id="controleLijst"></ul>
+    </section>
+    <section class="instel alleen-juf">
+      <h3>Downloaden</h3>
+      <p class="uitleg">Voor een back-up of een gesprek. Opent in Excel.</p>
+      <div class="opnieuw">
+        <button class="knop" id="dlBoeken" type="button">Boekenlijst</button>
+        <button class="knop" id="dlVragen" type="button">Leesvragen</button>
+      </div>
     </section>
     <h3>Stand corrigeren</h3>
     <div class="corrigeer" id="corrigeer"></div>
@@ -929,7 +958,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (Array.isArray(d.boeken)) {
       d.boeken.forEach(function (b) {
         var t = tekst(b && b.t, 80).trim();
-        if (t) boeken.push({ t: t, d: typeof b.d === "string" && DAG.test(b.d) ? b.d : "", g: /^[sflwta]$/.test(b.g) ? b.g : "a" });
+        if (t) {
+          var e = { t: t, d: typeof b.d === "string" && DAG.test(b.d) ? b.d : "", g: /^[sflwta]$/.test(b.g) ? b.g : "a" };
+          if (b.r >= 1 && b.r <= 5 && Math.floor(b.r) === b.r) e.r = b.r;
+          boeken.push(e);
+        }
       });
       boeken = boeken.slice(-600);
     }
@@ -1446,9 +1479,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       var k = sleutelVan(b.t);
       if (!groep[k]) { groep[k] = { k: k, t: b.t, n: 0, laatst: n, g: b.g }; lijst.push(groep[k]); }
       groep[k].n++; groep[k].laatst = n; groep[k].t = b.t; groep[k].g = b.g;
+      if (b.r) { groep[k].s = (groep[k].s || 0) + b.r; groep[k].sn = (groep[k].sn || 0) + 1; }
     });
-    return lijst.sort(function (a, b) { return b.n - a.n || b.laatst - a.laatst; });
+    return lijst.sort(function (a, b) { return b.n - a.n || gemiddeld(b) - gemiddeld(a) || b.laatst - a.laatst; });
   }
+  /* Sterren: gemiddelde van wat leerlingen gaven */
+  function gemiddeld(x) { return x.sn ? x.s / x.sn : 0; }
+  function sterTekst(x) { return x.sn ? "\u2605 " + gemiddeld(x).toFixed(1).replace(".", ",") + " (" + x.sn + ")" : ""; }
 
   function leesLokaal() {
     try { var o = localStorage.getItem(SLEUTEL); return o ? norm(JSON.parse(o)) : null; } catch (e) { return null; }
@@ -1458,6 +1495,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
 
   var state = norm(null), stapel = [], kanSchrijven = true, nieuw = -1;
+  /* Boeken die net van een iPad binnenkwamen: rustig even oplichten bij 'Net op de plank' */
+  var eersteSnap = true, vers = {};
   var ref = null, bezig = false, vuil = false, timer = null, lokaal = false, gezien = false;
 
   /* Vaste onderdelen één keer opbouwen */
@@ -1543,6 +1582,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         b.setAttribute("aria-pressed", String(gekozen));
         b.setAttribute("aria-label", x.t + ", " + duimen(x.n));
         b.appendChild(maakKaft(x.t, x.g, x.n));
+        if (x.sn) b.appendChild(el("span", "boek-ster", sterTekst(x)));
         b.addEventListener("click", function () { wijzig(function (s) { s.awards[a.id] = gekozen ? "" : x.t; }, false); });
         doos.appendChild(b);
       });
@@ -1655,6 +1695,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       var k = sleutelVan(b.t);
       if (!groep[k]) { groep[k] = { k: k, t: b.t, n: 0, laatst: n, g: b.g }; volgorde.push(groep[k]); }
       groep[k].n++; groep[k].laatst = n; groep[k].t = b.t; groep[k].g = b.g;
+      if (b.r) { groep[k].s = (groep[k].s || 0) + b.r; groep[k].sn = (groep[k].sn || 0) + 1; }
     });
     volgorde.sort(function (a, b) { return b.n - a.n || b.laatst - a.laatst; });
 
@@ -1679,6 +1720,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       eigen.forEach(function (g) {
         var li = el("li"), kaft = maakKaft(g.t, g.g, g.n);
         tikbaar(kaft, g, g.t + ", " + duimen(g.n));
+        if (g.sn) li.appendChild(el("span", "boek-ster", sterTekst(g)));
         var weg = el("button", "tekstknop schrijf alleen-juf", "Weg");
         weg.type = "button"; weg.setAttribute("aria-label", g.t + " uit de lijst halen");
         weg.addEventListener("click", function () {
@@ -1700,7 +1742,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         vr.type = "button"; vr.setAttribute("aria-label", "Vragen bij " + g.t);
         vr.addEventListener("click", function () { openVragen(g.t, g.g); });
         knoppen.appendChild(ander); knoppen.appendChild(vr); knoppen.appendChild(weg);
-        li.appendChild(kaft); li.appendChild(knoppen);
+        li.insertBefore(kaft, li.firstChild); li.appendChild(knoppen);
         ul.appendChild(li);
       });
       blok.appendChild(ul); lijst.appendChild(blok);
@@ -1844,10 +1886,14 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("feestDicht").addEventListener("click", feestDicht);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("feest").hidden) feestDicht(); });
 
+  /* Elke wijziging is een kleine opdracht. Online voeren we die uit op de nieuwste stand in de opslag
+     (een transactie), zodat iPads en digibord elkaars boeken nooit overschrijven. */
+  var wachtrij = [];
   function wijzig(fn, erbij) {
     if (!kanSchrijven) return;
     var voor = vrij(state);
     fn(state);
+    wachtrij.push(fn);
     state.log[dagSleutel(new Date())] = totaal(state);
     state.bijgewerkt = Date.now();
     schrijfLokaal(state);
@@ -1859,8 +1905,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       if (na > voor) vier(na - 1);
     }
     vuil = true;
+    /* Een duim gaat meteen naar de opslag; een latere kleine wijziging mag dat niet uitstellen */
+    snel = snel || !!erbij;
     clearTimeout(timer);
-    timer = setTimeout(schrijf, erbij ? 0 : 700);
+    timer = setTimeout(schrijf, snel ? 0 : 700);
     meld("", "Bezig met opslaan");
   }
 
@@ -1876,15 +1924,44 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     }
   }
 
+  /* Wordt de iPad weggelegd of de pagina gesloten: nog niet bewaarde wijzigingen meteen versturen */
+  var snel = false;
+  function nuBewaren() { if (vuil && timer) { clearTimeout(timer); schrijf(); } }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") nuBewaren(); });
+  window.addEventListener("pagehide", nuBewaren);
+  async function stuurOpdrachten(ops) {
+    var uit = await ref.transact(function (server) {
+      var s = norm(server);
+      ops.forEach(function (f) { f(s); });
+      s.log[dagSleutel(new Date())] = totaal(s);
+      s.bijgewerkt = Date.now();
+      return JSON.parse(JSON.stringify(s));
+    });
+    /* De opslag is de waarheid; wat hier intussen nog bijkwam, gaat er weer bovenop */
+    var s2 = norm(uit);
+    wachtrij.forEach(function (f) { f(s2); });
+    state = s2;
+    schrijfLokaal(state);
+    toon();
+  }
   async function schrijf() {
-    timer = null;
+    timer = null; snel = false;
     await start;
     if (bezig) return;
+    if (!ref) { wachtrij = []; vuil = false; return; }
     bezig = true;
     try {
-      while (vuil) {
+      while (vuil || wachtrij.length) {
         vuil = false;
-        await stuur(JSON.parse(JSON.stringify(state)));
+        if (wachtrij.length && ref.transact) {
+          var ops = wachtrij.splice(0);
+          try { await stuurOpdrachten(ops); }
+          catch (e) { wachtrij = ops.concat(wachtrij); throw e; }
+        } else {
+          /* Geen losse opdrachten (bijvoorbeeld een oude stand van dit apparaat die nog mee moet) */
+          wachtrij = [];
+          await stuur(JSON.parse(JSON.stringify(state)));
+        }
       }
       meldBewaard();
     } catch (e) {
@@ -1911,11 +1988,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
 
   /* Knoppen */
-  function duimErbij(g, titel) {
+  function duimErbij(g, titel, sterren, kaft) {
     var t = (titel == null ? $("boekTitel").value : titel).trim().slice(0, 80);
     wijzig(function (s) {
       s.genres[g]++;
-      if (t) { s.boeken.push({ t: t, d: dagSleutel(new Date()), g: g }); s.boeken = s.boeken.slice(-600); }
+      if (t && kaft !== undefined) { if (kaft === null) {} else s.kaften[sleutelVan(t)] = kaft; }
+      if (t) {
+        var e = { t: t, d: dagSleutel(new Date()), g: g };
+        if (sterren >= 1 && sterren <= 5) e.r = sterren;
+        s.boeken.push(e); s.boeken = s.boeken.slice(-600);
+      }
     }, g);
     stapel.push({ k: "duim", t: t, g: g });
     if (t) zoekEnBewaar(t);
@@ -2089,6 +2171,60 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invKeuzeTeken(titel, k, foto);
     invVragenTeken();
   }
+  /* Sterren geven (verplicht voor leerlingen, één tik) */
+  var invSter = 0;
+  [1, 2, 3, 4, 5].forEach(function (n) {
+    var b = el("button", null, "\u2605");
+    b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-label", n + (n === 1 ? " ster" : " sterren"));
+    b.addEventListener("click", function () { invSter = n; invSterTeken(); invKlaarZet(); });
+    $("invSterKnoppen").appendChild(b);
+  });
+  function invSterTeken() {
+    Array.prototype.forEach.call($("invSterKnoppen").children, function (b, i) {
+      b.classList.toggle("aan", i < invSter); b.setAttribute("aria-checked", String(i + 1 === invSter));
+    });
+  }
+  /* Boekentips: wat klasgenoten in dezelfde rij lazen, best beoordeeld eerst */
+  function invTipsToon(titel, g) {
+    var k = sleutelVan(titel), rij = $("invTipsRij");
+    var tips = ranglijst(state).filter(function (x) { return x.g === g && x.k !== k; })
+      .sort(function (a, b) { return gemiddeld(b) - gemiddeld(a) || b.n - a.n; }).slice(0, 3);
+    rij.textContent = "";
+    $("invTips").hidden = !tips.length || isJuf();
+    tips.forEach(function (x) {
+      var d = el("div", "inv-tip");
+      d.appendChild(maakKaft(x.t, x.g, 0));
+      if (x.sn) d.appendChild(el("span", "boek-ster", "\u2605 " + gemiddeld(x).toFixed(1).replace(".", ",")));
+      rij.appendChild(d);
+    });
+  }
+  /* Downloaden als CSV (puntkomma's, opent goed in Nederlandse Excel) */
+  function csvVeld(v) { v = String(v == null ? "" : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function download(naam, rijen) {
+    var tekst = "\ufeff" + rijen.map(function (r) { return r.map(csvVeld).join(";"); }).join("\r\n");
+    var url = URL.createObjectURL(new Blob([tekst], { type: "text/csv;charset=utf-8" }));
+    var a = document.createElement("a"); a.href = url; a.download = naam; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+  function datumNL(d) { return d ? d.split("-").reverse().join("-") : ""; }
+  $("dlBoeken").addEventListener("click", function () {
+    var rijen = [["Titel", "Rij", "Duimen", "Gemiddeld aantal sterren", "Aantal keer sterren", "Laatst gelezen"]];
+    var laatst = {};
+    state.boeken.forEach(function (b) { laatst[sleutelVan(b.t)] = b.d; });
+    ranglijst(state).forEach(function (x) { rijen.push([x.t, rijNaam(x.g), x.n, x.sn ? gemiddeld(x).toFixed(1).replace(".", ",") : "", x.sn || 0, datumNL(laatst[x.k])]); });
+    download("bookflix-boekenlijst-" + dagSleutel(new Date()) + ".csv", rijen);
+  });
+  $("dlVragen").addEventListener("click", function () {
+    var rijen = [["Datum", "Titel", "Rij", "Vraag 1", "Antwoord 1", "Vraag 2", "Antwoord 2", "Vraag 3", "Antwoord 3", "Nagekeken"]];
+    antwoorden.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (x) {
+      var r = [datumNL(x.d), x.t, rijNaam(x.g)];
+      for (var i = 0; i < 3; i++) { r.push((x.v || [])[i] || ""); r.push((x.a || [])[i] || ""); }
+      r.push(x.ok ? "ja" : "nee");
+      rijen.push(r);
+    });
+    download("bookflix-leesvragen-" + dagSleutel(new Date()) + ".csv", rijen);
+  });
+
   /* Leerkracht: kleine kaften om uit te kiezen (gevonden uitgaven en de getekende kaft) */
   function invKeuzeTeken(titel, k, gekozen) {
     var doos = $("invKeuze"); doos.textContent = "";
@@ -2161,10 +2297,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function invKlaarZet() {
     var titel = $("invTitel").value.trim(), a = invAntwoorden();
     var open = a.length !== 3 ? 3 : a.filter(function (x) { return x.length < MIN_ANTWOORD; }).length;
-    $("invKlaar").disabled = !titel || !invRij || !kanSchrijven || open > 0;
+    $("invKlaar").disabled = !titel || !invRij || !kanSchrijven || open > 0 || !invSter;
     $("invHint").textContent = !titel || !invRij ? "" :
       open === 3 ? "Beantwoord de vragen in je eigen woorden." :
-      open > 0 ? "Nog " + open + (open === 1 ? " vraag" : " vragen") + " te gaan. Schrijf per vraag minstens één hele zin." : "";
+      open > 0 ? "Nog " + open + (open === 1 ? " vraag" : " vragen") + " te gaan. Schrijf per vraag minstens één hele zin." :
+      !invSter ? "Geef het boek nog sterren." : "";
   }
   GENRES.forEach(function (g) {
     var b = el("button", "inv-rij g-" + g.id, g.lang);
@@ -2307,7 +2444,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function invOpnieuw() {
     invVerstuur();
     clearTimeout(invKlok);
-    invStap(1); $("invVrgn").hidden = true;
+    invStap(1); $("invVrgn").hidden = true; $("invTips").hidden = true;
+    invSter = 0; invSterTeken();
     $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x"; invVast = null; invLaden = "";
     Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
@@ -2318,9 +2456,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var titel = $("invTitel").value.trim();
     if (!titel || !invRij || !kanSchrijven || $("invKlaar").disabled) return;
     var getoond = invVast ? invVast.v : vragenVoor(titel, invRij), kk = sleutelVan(titel);
-    if (state.kaften[kk] === undefined && sugGekozen[kk]) state.kaften[kk] = sugGekozen[kk];
+    var kidKaft = state.kaften[kk] === undefined && sugGekozen[kk] ? sugGekozen[kk] : undefined;
     invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: getoond, a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
-    duimErbij(invRij, titel);
+    duimErbij(invRij, titel, invSter, kidKaft);
+    invTipsToon(titel, invRij);
     if (invVast && invVast.bron === "ai" && !state.aiVragen[kk] && !state.vragen[kk]) wijzig(function (s) { s.aiVragen[kk] = getoond; }, false);
     invStap(3);
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
@@ -2335,8 +2474,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var titel = $("invTitel").value.trim(), k = sleutelVan(titel);
     if (this.disabled || !titel || !invRij) return;
     var keuze = invKeuze[k] !== undefined ? invKeuze[k] : (state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k]);
-    if (keuze !== undefined) state.kaften[k] = keuze;
-    duimErbij(invRij, titel);
+    duimErbij(invRij, titel, 0, keuze);
     invStap(3);
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
@@ -2641,8 +2779,6 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   if (kopie) state = kopie;
   toon();
 
-  /* Boeken die net van een iPad binnenkwamen: rustig even oplichten bij 'Net op de plank' */
-  var eersteSnap = true, vers = {};
   var start = (async function () {
     var o = null;
     try { o = await window.bookflixOpslag; } catch (e) { o = null; }

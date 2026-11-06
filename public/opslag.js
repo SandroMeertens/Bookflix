@@ -154,6 +154,13 @@ async function begin() {
       rol,
       ref: {
         set: (body) => F.setDoc(r, body),
+        /* Lezen en schrijven in één keer: wijzigingen gaan op de nieuwste stand, niemand overschrijft een ander */
+        transact: (fn) => F.runTransaction(db, async (tx) => {
+          const s = await tx.get(r);
+          const nieuw = fn(s.exists() ? s.data() : null);
+          tx.set(r, nieuw);
+          return nieuw;
+        }),
         onSnapshot: (cb, fout) => F.onSnapshot(r,
           (s) => cb({ exists: s.exists(), data: () => s.data(), metadata: s.metadata }),
           (e) => { console.warn(e); if (fout) fout(e); })
