@@ -42,6 +42,17 @@ service cloud.firestore {
         allow read, write: if isOwner(k) || isLid(k);
       }
 
+      // Zelfgemaakte foto's van kaften (klein JPEG-plaatje als tekst)
+      match /kaftfotos/{f} {
+        allow read: if isOwner(k) || isLid(k);
+        allow create, update: if (isOwner(k) || isLid(k))
+                    && request.resource.data.keys().hasOnly(['k', 'd', 't'])
+                    && request.resource.data.k is string && request.resource.data.k.size() <= 80
+                    && request.resource.data.d is string && request.resource.data.d.size() < 200000
+                    && request.resource.data.d.matches('data:image/jpeg;base64,.*');
+        allow delete: if isOwner(k);
+      }
+
       // Antwoorden op de leesvragen: iPads en leerkracht voegen toe, alleen de leerkracht leest en kijkt na.
       match /antwoorden/{a} {
         allow create: if (isOwner(k) || isLid(k))

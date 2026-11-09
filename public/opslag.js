@@ -167,6 +167,12 @@ async function begin() {
       },
       /* Antwoorden op de leesvragen: aparte documenten. iPads mogen ze alleen toevoegen, de leerkracht leest ze. */
       ai: maakAI(),
+      /* Foto's van kaften die niet online te vinden zijn (klein, als tekst in de database) */
+      fotos: {
+        zet: (id, data) => F.setDoc(d("klassen", kid, "kaftfotos", id), data),
+        luister: (cb) => F.onSnapshot(F.collection(db, "klassen", kid, "kaftfotos"),
+          (s) => cb(s.docs.map((x) => x.data())), (e) => console.warn(e))
+      },
       antwoorden: {
         voegToe: (data) => F.addDoc(F.collection(db, "klassen", kid, "antwoorden"), data),
         luister: (cb) => F.onSnapshot(F.collection(db, "klassen", kid, "antwoorden"),

@@ -260,6 +260,8 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 .groep h3::before{content:""; width:.4em; height:1.3em; border-radius:.1em; background:var(--c)}
 .boeken{display:grid; grid-template-columns:repeat(auto-fill,minmax(6.4em,1fr)); gap:.9em .8em}
 .boek-knoppen{display:flex; flex-wrap:wrap; gap:0 .7em; font-size:.85em}
+.boek-foto{cursor:pointer; position:relative}
+.boek-foto input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
 .boeken li{display:grid; gap:.2em; justify-items:start; align-content:start; min-width:0}
 
 
@@ -565,6 +567,11 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .sug-tekst span{color:var(--muted); font-weight:600; font-size:.9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .sug-tekst em{font-style:normal; font-size:.75em; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ok)}
 .sug-leeg{padding:.5em .6em; color:var(--muted); font-weight:600}
+/* Foto van de kaft maken */
+.inv-fotoknop{display:inline-flex; align-items:center; gap:.5em; cursor:pointer; color:var(--muted); font-weight:700; font-size:.95em; text-align:center}
+.inv-fotoknop b{color:var(--fg); text-decoration:underline; text-underline-offset:.2em}
+.inv-fotoknop input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
+.invoer.stap2 .inv-fotoknop, .invoer.stap3 .inv-fotoknop{display:none}
 /* Leerkracht: kies uit de gevonden kaften de goede */
 .inv-keuze{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.45em; width:min(100%,18em)}
 .inv-keuze:empty{display:none}
@@ -729,6 +736,10 @@ body:not(.lid) .alleen-lid{display:none!important}
     <div class="inv-kant">
       <div class="inv-kaft" id="invKaft"></div>
       <div class="inv-keuze alleen-juf" id="invKeuze" aria-label="Kies de goede kaft"></div>
+      <label class="inv-fotoknop" id="invFotoKnop" hidden>
+        <input type="file" id="invFotoInput" accept="image/*" capture="environment">
+        <span>Geen goede kaft? <b>Maak een foto</b></span>
+      </label>
       <div class="inv-bedankt" id="invBedankt" role="status">
         <p class="inv-hoera">Je boek staat op de plank!</p>
         <div class="inv-vrgn alleen-juf" id="invVrgn" hidden>
@@ -1019,7 +1030,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         var k = {};
         if (d.kaften && typeof d.kaften === "object") Object.keys(d.kaften).slice(0, 800).forEach(function (x) {
           var v = d.kaften[x];
-          if (v === "-" || (typeof v === "string" && v.length < 500 && /^https:\/\/(books\.google\.com|books\.googleusercontent\.com|covers\.openlibrary\.org)\//.test(v))) k[x.slice(0, 80)] = v;
+          if (v === "-" || v === "foto" || (typeof v === "string" && v.length < 500 && /^https:\/\/(books\.google\.com|books\.googleusercontent\.com|covers\.openlibrary\.org)\//.test(v))) k[x.slice(0, 80)] = v;
         });
         return k;
       })(),
@@ -1376,6 +1387,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     kaft.appendChild(titel);
     /* Echte kaft als die gevonden is; lukt het laden niet, dan blijft de getekende kaft staan */
     var u = foto === undefined ? state.kaften[k] : foto;
+    if (u === "foto") u = kaftFotos[k] || "";
     if (u && u !== "-") {
       var img = document.createElement("img");
       img.className = "kaft-foto"; img.alt = ""; img.decoding = "async"; img.referrerPolicy = "no-referrer";
@@ -1392,44 +1404,118 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
      Alleen de titel gaat naar de zoekdienst. Per titel wordt één keer gezocht. */
   var kaftZoek = {};
   function lijkt(a, b) { a = sleutelVan(a || ""); b = sleutelVan(b || ""); return a && b && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); }
-  function googleKaften(titel, nl) {
-    var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent("intitle:" + titel) +
-      "&printType=books&maxResults=12" + (nl ? "&langRestrict=nl" : "") + "&fields=items(volumeInfo(title,imageLinks))";
+  /* ---------- Boeken herkennen ----------
+     We zoeken op meerdere manieren (Nederlands, alle talen, alleen in de titel, Open Library) en zetten de
+     resultaten op volgorde: hoe beter titel of schrijver past, hoe hoger. Kinderboeken staan niet altijd
+     goed bij Google; daarom ook Open Library, losse woorden en als laatste redmiddel een foto van de kaft. */
+  var zoekCache = {}, kaftFotos = {};
+  function normaal(s) {
+    return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function schoonTekst(s) { return String(s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(); }
+  function kaftUrl(u) {
+    if (!u) return "";
+    u = u.replace(/^http:/, "https:").replace(/&edge=curl/, "");
+    if (/books\.google/.test(u) && !/&fife=/.test(u)) u += "&fife=w400-h600";
+    return u;
+  }
+  function googleZoek(q, nl) {
+    var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(q) + "&printType=books&maxResults=15" +
+      (nl ? "&langRestrict=nl" : "") + "&fields=items(volumeInfo(title,subtitle,authors,imageLinks,description,language))";
     return fetch(url).then(function (r) { if (!r.ok) throw new Error("google " + r.status); return r.json(); }).then(function (j) {
-      var goed = [], rest = [];
-      (j.items || []).forEach(function (it) {
-        var v = it.volumeInfo || {}, l = v.imageLinks || {}, u = l.thumbnail || l.smallThumbnail;
-        if (!u) return;
-        u = u.replace(/^http:/, "https:").replace(/&edge=curl/, "");
-        if (!/&fife=/.test(u)) u += "&fife=w400-h600";
-        (lijkt(v.title, titel) ? goed : rest).push(u);
-      });
-      return goed.concat(rest);
+      return (j.items || []).map(function (it) {
+        var v = it.volumeInfo || {}, l = v.imageLinks || {};
+        return { t: String(v.title || "").slice(0, 80), a: (v.authors || []).slice(0, 2).join(", "), img: kaftUrl(l.thumbnail || l.smallThumbnail || ""),
+          desc: schoonTekst(v.description).slice(0, 1200), taal: v.language || "" };
+      }).filter(function (x) { return x.t; });
     });
   }
-  function openLibraryKaften(titel) {
-    return fetch("https://openlibrary.org/search.json?limit=8&fields=title,cover_i&title=" + encodeURIComponent(titel))
+  function olZoek(q) {
+    return fetch("https://openlibrary.org/search.json?limit=12&fields=title,author_name,cover_i,language&q=" + encodeURIComponent(q))
       .then(function (r) { if (!r.ok) throw new Error("ol " + r.status); return r.json(); })
       .then(function (j) {
-        return (j.docs || []).filter(function (x) { return x.cover_i; })
-          .map(function (x) { return "https://covers.openlibrary.org/b/id/" + x.cover_i + "-L.jpg"; });
+        return (j.docs || []).filter(function (d) { return d.title; }).map(function (d) {
+          return { t: String(d.title).slice(0, 80), a: (d.author_name || []).slice(0, 2).join(", "),
+            img: d.cover_i ? "https://covers.openlibrary.org/b/id/" + d.cover_i + "-L.jpg" : "", desc: "",
+            taal: (d.language || []).indexOf("dut") >= 0 ? "nl" : "" };
+        });
       });
   }
+  /* Hoe goed past een gevonden boek bij wat er getypt is? */
+  function past(x, tekst) {
+    var q = normaal(tekst), tt = normaal(x.t), a = normaal(x.a), s = 0;
+    if (!q) return 0;
+    if (tt === q) s += 100;
+    else if (tt.indexOf(q) === 0) s += 75;
+    else if (tt.indexOf(q) >= 0 || (q.indexOf(tt) >= 0 && tt.length > 3)) s += 55;
+    if (a && (a.indexOf(q) >= 0 || q.indexOf(a) >= 0)) s += 45;
+    /* Woorden tellen ook mee bij een kleine tikfout: dezelfde eerste vijf letters is genoeg */
+    var woorden = q.split(" ").filter(function (w) { return w.length > 2; }), alles = tt + " " + a, losse = alles.split(" ");
+    var raak = function (w) { return alles.indexOf(w) >= 0 || (w.length >= 5 && losse.some(function (x) { return x.slice(0, 5) === w.slice(0, 5); })); };
+    if (woorden.length) s += 35 * woorden.filter(raak).length / woorden.length;
+    if (x.img) s += 15;
+    if (x.taal === "nl") s += 10;
+    return s;
+  }
+  function samenvoegen(lijsten, tekst) {
+    var per = {};
+    lijsten.forEach(function (l) {
+      (l || []).forEach(function (x) {
+        var sl = normaal(x.t) + "|" + normaal(x.a).split(" ")[0];
+        var oud = per[sl];
+        if (!oud) { per[sl] = Object.assign({}, x); per[sl].imgs = x.img ? [x.img] : []; }
+        else {
+          /* Verschillende uitgaven van hetzelfde boek: alle kaften bewaren om uit te kiezen */
+          if (x.img && oud.imgs.indexOf(x.img) < 0) oud.imgs.push(x.img);
+          if (!oud.img && x.img) oud.img = x.img;
+          if (!oud.desc && x.desc) oud.desc = x.desc;
+          if (!oud.taal && x.taal) oud.taal = x.taal;
+        }
+      });
+    });
+    return Object.keys(per).map(function (k) { var x = per[k]; x.s = past(x, tekst); return x; })
+      .filter(function (x) { return x.s >= 25; })
+      .sort(function (a, b) { return b.s - a.s; });
+  }
+  /* Zoeken in stappen: eerst Google (Nederlands en alle talen), bij te weinig goede treffers ook
+     alleen-in-de-titel en Open Library, en daarna met de belangrijkste woorden (tegen tikfouten). */
+  function zoekAlles(tekst) {
+    var q = normaal(tekst);
+    if (q.length < 3) return Promise.resolve([]);
+    if (zoekCache[q]) return zoekCache[q];
+    var gelukt = false, lijsten = [];
+    function verzamel(beloftes) {
+      return Promise.all(beloftes.map(function (p) { return p.then(function (a) { gelukt = true; lijsten.push(a); }, function () {}); }));
+    }
+    function genoeg() { return samenvoegen(lijsten, tekst).filter(function (x) { return x.s >= 60 && x.img; }).length >= 3; }
+    zoekCache[q] = verzamel([googleZoek(tekst, true), googleZoek(tekst, false)])
+      .then(function () { if (!genoeg()) return verzamel([olZoek(tekst), googleZoek("intitle:" + tekst, false)]); })
+      .then(function () {
+        if (samenvoegen(lijsten, tekst).length) return;
+        /* Niets gevonden? Dan de langste losse woorden apart proberen: één tikfout gooit dan niet alles weg */
+        var woorden = q.split(" ").filter(function (w) { return w.length > 3; }).sort(function (a, b) { return b.length - a.length; }).slice(0, 2);
+        if (woorden.length && woorden[0] !== q) return verzamel(woorden.map(function (w) { return googleZoek(w, false); }).concat([olZoek(woorden.join(" "))]));
+      })
+      .then(function () {
+        if (!gelukt) throw new Error("zoeken lukt niet");
+        return samenvoegen(lijsten, tekst).slice(0, 12);
+      });
+    zoekCache[q].catch(function () { delete zoekCache[q]; });
+    return zoekCache[q];
+  }
+  var kaftZoek = {};
+  function lijkt(a, b) { a = sleutelVan(a || ""); b = sleutelVan(b || ""); return a && b && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); }
   function zoekKaften(titel) {
     var k = sleutelVan(titel);
     if (!k) return Promise.resolve([]);
     if (!kaftZoek[k]) {
-      /* Lukt het zoeken helemaal niet (geen internet, dienst geblokkeerd), dan bewaren we niets en proberen we het later opnieuw */
-      var fout = false, mis = function () { fout = true; return []; };
-      kaftZoek[k] = googleKaften(titel, true)
-        .then(function (a) { return a.length ? a : googleKaften(titel, false); })
-        .catch(mis)
-        .then(function (a) { return a.length ? a : openLibraryKaften(titel).catch(mis); })
-        .then(function (a) {
-          a = a.filter(function (u, i) { return a.indexOf(u) === i; }).slice(0, 12);
-          if (!a.length && fout) throw new Error("zoeken lukt niet");
-          return a;
-        });
+      kaftZoek[k] = zoekAlles(titel).then(function (a) {
+        /* Alleen kaften van boeken die echt op de titel lijken */
+        var u = [];
+        a.filter(function (x) { return x.s >= 55; }).forEach(function (x) { u = u.concat(x.imgs || []); });
+        return u.filter(function (x, i) { return u.indexOf(x) === i; }).slice(0, 12);
+      });
       kaftZoek[k].catch(function () { delete kaftZoek[k]; });
     }
     return kaftZoek[k];
@@ -1501,6 +1587,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
 
   var state = norm(null), stapel = [], kanSchrijven = true, nieuw = -1;
+  var fotoVersie = 0;
+  /* Demo: foto's van kaften alleen op dit apparaat */
+  function lokaleFotos() {
+    var SL = "bookflix-kaftfotos-demo", luis = [];
+    function lees() { try { return JSON.parse(localStorage.getItem(SL) || "{}"); } catch (e) { return {}; } }
+    return {
+      zet: function (id, d) { var a = lees(); a[id] = d; try { localStorage.setItem(SL, JSON.stringify(a)); } catch (e) {} luis.forEach(function (f) { f(Object.keys(a).map(function (x) { return a[x]; })); }); return Promise.resolve(); },
+      luister: function (cb) { luis.push(cb); var a = lees(); cb(Object.keys(a).map(function (x) { return a[x]; })); }
+    };
+  }
   /* Boeken die net van een iPad binnenkwamen: rustig even oplichten bij 'Net op de plank' */
   var eersteSnap = true, vers = {};
   var ref = null, bezig = false, vuil = false, timer = null, lokaal = false, gezien = false;
@@ -1682,7 +1778,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Titels: laatste op de plank, en per rij de lijst met het meest geduimde boek bovenaan */
   var boekenStempel = null;
   function toonBoeken() {
-    var stempel = JSON.stringify([state.boeken, state.kaften, state.vragen, state.aiVragen, kanSchrijven]);
+    var stempel = JSON.stringify([state.boeken, state.kaften, state.vragen, state.aiVragen, kanSchrijven, fotoVersie]);
     if (stempel === boekenStempel) return;
     boekenStempel = stempel;
 
@@ -1738,16 +1834,25 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         ander.addEventListener("click", function () {
           ander.disabled = true;
           zoekKaften(g.t).then(function (a) {
+            if (kaftFotos[g.k]) a = a.concat(["foto"]);
             var nu = state.kaften[g.k], i = a.indexOf(nu);
             var volgende = nu === "-" || nu === undefined ? (a[0] || "-") : (a[i + 1] || "-");
             wijzig(function (s) { s.kaften[g.k] = volgende; }, false);
           }, function () { ander.disabled = false; meld("let", "Kaften zoeken lukt nu niet. Is er internet?"); });
         });
+        var fotoLab = el("label", "tekstknop schrijf alleen-juf boek-foto"), fotoIn = document.createElement("input");
+        fotoIn.type = "file"; fotoIn.accept = "image/*"; fotoIn.setAttribute("capture", "environment");
+        fotoLab.appendChild(fotoIn); fotoLab.appendChild(document.createTextNode("Kaftfoto"));
+        fotoIn.addEventListener("change", function () {
+          var f = fotoIn.files && fotoIn.files[0]; fotoIn.value = "";
+          if (!f) return;
+          maakKaftFoto(f).then(function (data) { bewaarKaftFoto(g.t, data); wijzig(function (s) { s.kaften[g.k] = "foto"; }, false); });
+        });
         var knoppen = el("span", "boek-knoppen");
         var vr = el("button", "tekstknop schrijf alleen-juf", state.vragen[g.k] ? "Eigen vragen" : "Vragen");
         vr.type = "button"; vr.setAttribute("aria-label", "Vragen bij " + g.t);
         vr.addEventListener("click", function () { openVragen(g.t, g.g); });
-        knoppen.appendChild(ander); knoppen.appendChild(vr); knoppen.appendChild(weg);
+        knoppen.appendChild(ander); knoppen.appendChild(fotoLab); knoppen.appendChild(vr); knoppen.appendChild(weg);
         li.insertBefore(kaft, li.firstChild); li.appendChild(knoppen);
         ul.appendChild(li);
       });
@@ -2074,14 +2179,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function boekInfo(titel) {
     var k = sleutelVan(titel);
     if (!infoZoek[k]) {
-      var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent("intitle:" + titel) +
-        "&printType=books&maxResults=8&langRestrict=nl&fields=items(volumeInfo(title,authors,description))";
-      infoZoek[k] = fetch(url).then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
-        var items = (j.items || []).map(function (x) { return x.volumeInfo || {}; });
-        var best = items.filter(function (v) { return lijkt(v.title, titel) && v.description; })[0] ||
-                   items.filter(function (v) { return lijkt(v.title, titel); })[0] || {};
-        var tekst = String(best.description || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 1200);
-        return { auteur: (best.authors || []).slice(0, 2).join(" en "), tekst: tekst };
+      /* Dezelfde zoektocht als voor de kaft: het best passende boek met achterflaptekst */
+      infoZoek[k] = zoekAlles(titel).then(function (a) {
+        var best = a.filter(function (x) { return x.s >= 55 && x.desc; })[0] || a.filter(function (x) { return x.s >= 55; })[0] || {};
+        return { auteur: best.a || "", tekst: best.desc || "" };
       }).catch(function () { return { auteur: "", tekst: "" }; });
     }
     return infoZoek[k];
@@ -2169,7 +2270,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function invTeken() {
     var titel = $("invTitel").value.trim(), k = sleutelVan(titel);
     var vak = $("invKaft"); vak.textContent = "";
-    var foto = isJuf() && invKeuze[k] !== undefined ? invKeuze[k] : (state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k]);
+    var foto = invFotoData[k] && (!isJuf() || invKeuze[k] === "foto") ? "foto" :
+      isJuf() && invKeuze[k] !== undefined ? invKeuze[k] : (state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k]);
+    if (foto === "foto" && invFotoData[k]) kaftFotos[k] = kaftFotos[k] || invFotoData[k];
+    $("invFotoKnop").hidden = !titel || !kanSchrijven;
     vak.appendChild(maakKaft(titel || "Jouw boek", invRij || "a", 0, foto || "-"));
     $("invRijen").classList.toggle("gekozen", !!invRij);
     $("invVerder").disabled = !titel || !invRij || !kanSchrijven;
@@ -2231,19 +2335,60 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     download("bookflix-leesvragen-" + dagSleutel(new Date()) + ".csv", rijen);
   });
 
+  /* ---------- Foto van de kaft ----------
+     Wordt een boek niet gevonden, dan maakt de leerling of leerkracht een foto. Die wordt klein gemaakt
+     (320 x 480) en bij de klas bewaard, zodat elk apparaat dezelfde kaft laat zien. */
+  var FOTO = null, invFotoData = {};
+  function fotoId(k) { var h = 2166136261; for (var i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return "f" + h.toString(16); }
+  function maakKaftFoto(bestand) {
+    return new Promise(function (ok, nee) {
+      var url = URL.createObjectURL(bestand), img = new Image();
+      img.onload = function () {
+        var W = 320, H = 480, c = document.createElement("canvas"); c.width = W; c.height = H;
+        var x = c.getContext("2d"), r = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        var w = img.naturalWidth * r, h = img.naturalHeight * r;
+        x.fillStyle = "#ffffff"; x.fillRect(0, 0, W, H);
+        x.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+        URL.revokeObjectURL(url);
+        var d = c.toDataURL("image/jpeg", 0.72);
+        if (d.length > 150000) d = c.toDataURL("image/jpeg", 0.5);
+        ok(d);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); nee(new Error("foto")); };
+      img.src = url;
+    });
+  }
+  function bewaarKaftFoto(titel, data) {
+    var k = sleutelVan(titel);
+    kaftFotos[k] = data;
+    if (FOTO) FOTO.zet(fotoId(k), { k: k.slice(0, 80), d: data, t: Date.now() }).catch(function (e) { console.warn(e); meld("let", "De foto van de kaft opslaan lukte niet."); });
+  }
+  $("invFotoInput").addEventListener("change", function () {
+    var f = this.files && this.files[0], titel = $("invTitel").value.trim();
+    this.value = "";
+    if (!f || !titel) return;
+    maakKaftFoto(f).then(function (data) {
+      var k = sleutelVan(titel);
+      invFotoData[k] = data;
+      if (isJuf()) invKeuze[k] = "foto";
+      invTeken();
+    }, function () { meld("let", "Die foto kon niet worden gelezen. Probeer het nog eens."); });
+  });
+
   /* Leerkracht: kleine kaften om uit te kiezen (gevonden uitgaven en de getekende kaft) */
   function invKeuzeTeken(titel, k, gekozen) {
     var doos = $("invKeuze"); doos.textContent = "";
-    if (!isJuf() || !titel || !invLijst[k]) return;
+    if (!isJuf() || !titel || (!invLijst[k] && !invFotoData[k])) return;
+    invLijst[k] = invLijst[k] || [];
     var opties = invLijst[k].slice(0, 5);
     if (gekozen && gekozen !== "-" && opties.indexOf(gekozen) < 0) opties.unshift(gekozen);
-    opties = opties.slice(0, 5).concat(["-"]);
+    opties = opties.slice(0, 5).concat(invFotoData[k] || kaftFotos[k] ? ["foto"] : []).concat(["-"]);
     if (opties.length < 2) return;
     doos.appendChild(el("p", "eyebrow", "Kies de goede kaft"));
     opties.forEach(function (u, i) {
       var b = el("button");
       b.type = "button";
-      b.setAttribute("aria-label", u === "-" ? "Getekende kaft" : "Kaft " + (i + 1));
+      b.setAttribute("aria-label", u === "-" ? "Getekende kaft" : u === "foto" ? "Eigen foto" : "Kaft " + (i + 1));
       b.setAttribute("aria-pressed", String((gekozen || "-") === u));
       b.appendChild(maakKaft(titel, invRij || "a", 0, u));
       b.addEventListener("click", function () { invKeuze[k] = u; invTeken(); });
@@ -2322,37 +2467,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   });
   /* ---------- Zoeken op titel of schrijver ---------- */
   var sugKlok = null, sugNr = 0, sugGekozen = {};
-  function schoonTekst(s) { return String(s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(); }
-  function zoekBoeken(tekst, nl) {
-    var url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(tekst) + "&printType=books&maxResults=10" +
-      (nl ? "&langRestrict=nl" : "") + "&fields=items(volumeInfo(title,authors,imageLinks,description))";
-    return fetch(url).then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
-      var gezien = {}, uit = [];
-      (j.items || []).forEach(function (it) {
-        var v = it.volumeInfo || {}, l = v.imageLinks || {}, img = l.thumbnail || l.smallThumbnail || "";
-        if (!v.title) return;
-        var a = (v.authors || []).slice(0, 2).join(", "), sl = sleutelVan(v.title) + "|" + sleutelVan(a);
-        if (gezien[sl]) return; gezien[sl] = 1;
-        if (img) { img = img.replace(/^http:/, "https:").replace(/&edge=curl/, ""); if (!/&fife=/.test(img)) img += "&fife=w400-h600"; }
-        uit.push({ t: String(v.title).slice(0, 80), a: a, img: img, desc: schoonTekst(v.description).slice(0, 1200) });
-      });
-      return uit;
-    });
-  }
-  /* Reserve: Open Library zoekt ook op titel en schrijver */
-  function zoekOpenLibrary(tekst) {
-    return fetch("https://openlibrary.org/search.json?limit=8&fields=title,author_name,cover_i&q=" + encodeURIComponent(tekst))
-      .then(function (r) { return r.ok ? r.json() : {}; })
-      .then(function (j) {
-        return (j.docs || []).filter(function (d) { return d.title; }).map(function (d) {
-          return { t: String(d.title).slice(0, 80), a: (d.author_name || []).slice(0, 2).join(", "), img: d.cover_i ? "https://covers.openlibrary.org/b/id/" + d.cover_i + "-L.jpg" : "", desc: "" };
-        });
-      });
-  }
+  function zoekBoeken(tekst) { return zoekAlles(tekst); }
+  function zoekOpenLibrary(tekst) { return olZoek(tekst); }
   function sugSluit() { $("invSug").hidden = true; $("invSug").textContent = ""; $("invTitel").setAttribute("aria-expanded", "false"); }
   function sugToon(lijst, tekst) {
     var ul = $("invSug"); ul.textContent = "";
-    if (!lijst.length) { ul.appendChild(el("li", "sug-leeg", "Geen boek gevonden. Typ gewoon de hele titel.")); }
+    if (!lijst.length) { ul.appendChild(el("li", "sug-leeg", "Geen boek gevonden. Typ de hele titel; je kunt daarna een foto van de kaft maken.")); }
     lijst.slice(0, 6).forEach(function (s) {
       var li = el("li"), b = el("button");
       b.type = "button"; b.setAttribute("role", "option");
@@ -2380,9 +2500,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     eigen = eigen.slice(0, 3);
     if (eigen.length) sugToon(eigen, tekst);
     else { var ul = $("invSug"); ul.textContent = ""; ul.appendChild(el("li", "sug-leeg", "Boeken zoeken\u2026")); ul.hidden = false; }
-    zoekBoeken(tekst, true).then(function (a) { return a.length ? a : zoekBoeken(tekst, false); }).catch(function () { return []; })
-      .then(function (a) { return a.length ? a : zoekOpenLibrary(tekst).catch(function () { return []; }); }).then(function (a) {
-      if (nr !== sugNr || $("invTitel").value.trim() !== tekst || document.activeElement !== $("invTitel")) return;
+    zoekAlles(tekst).catch(function () { return null; }).then(function (a) {
+      if (nr !== sugNr || $("invTitel").value.trim() !== tekst) return;
+      if (a === null && !eigen.length) {
+        var ul2 = $("invSug"); ul2.textContent = ""; ul2.appendChild(el("li", "sug-leeg", "Zoeken lukt nu niet. Typ de hele titel, of maak hierna een foto van de kaft.")); ul2.hidden = false;
+        return;
+      }
+      a = a || [];
       var rest = a.filter(function (s) { return !gezien[sleutelVan(s.t)]; });
       sugToon(eigen.concat(rest), tekst);
     });
@@ -2409,7 +2533,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       if ($("invTitel").value.trim() === s.t) invTeken();
     }, function () {});
   }
-  $("invTitel").addEventListener("blur", function () { setTimeout(sugSluit, 150); });
+  /* Het lijstje blijft staan als het toetsenbord dichtgaat; het sluit bij een keuze of bij tikken ernaast */
+  document.addEventListener("pointerdown", function (e) { if (!$("invSug").hidden && !e.target.closest(".inv-zoek")) sugSluit(); });
   $("invTitel").addEventListener("keydown", function (e) { if (e.key === "Escape") sugSluit(); });
 
   $("invTitel").addEventListener("input", function () {
@@ -2451,7 +2576,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invVerstuur();
     clearTimeout(invKlok);
     invStap(1); $("invVrgn").hidden = true; $("invTips").hidden = true;
-    invSter = 0; invSterTeken();
+    invSter = 0; invSterTeken(); invFotoData = {};
     $("invTitel").value = ""; invRij = ""; invVragenSleutel = "x"; invVast = null; invLaden = "";
     Array.prototype.forEach.call($("invVragen").querySelectorAll("textarea"), function (x) { x.value = ""; });
     Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", "false"); });
@@ -2463,6 +2588,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (!titel || !invRij || !kanSchrijven || $("invKlaar").disabled) return;
     var getoond = invVast ? invVast.v : vragenVoor(titel, invRij), kk = sleutelVan(titel);
     var kidKaft = state.kaften[kk] === undefined && sugGekozen[kk] ? sugGekozen[kk] : undefined;
+    if (invFotoData[kk] && (state.kaften[kk] === undefined || state.kaften[kk] === "-")) { bewaarKaftFoto(titel, invFotoData[kk]); kidKaft = "foto"; }
     invWacht = { t: titel.slice(0, 80), g: invRij, d: dagSleutel(new Date()), ts: Date.now(), v: getoond, a: invAntwoorden().map(function (x) { return x.slice(0, 400); }), ok: false };
     duimErbij(invRij, titel, invSter, kidKaft);
     invTipsToon(titel, invRij);
@@ -2480,6 +2606,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var titel = $("invTitel").value.trim(), k = sleutelVan(titel);
     if (this.disabled || !titel || !invRij) return;
     var keuze = invKeuze[k] !== undefined ? invKeuze[k] : (state.kaften[k] !== undefined ? state.kaften[k] : invFoto[k]);
+    if (keuze === "foto" && invFotoData[k]) bewaarKaftFoto(titel, invFotoData[k]);
     duimErbij(invRij, titel, 0, keuze);
     invStap(3);
     var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
@@ -2523,7 +2650,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var r1 = rij("Opslaan"), r2 = rij("Boeken zoeken"), r3 = rij("Kaften laden"), r4 = rij("Vragen maken (AI)");
     r1(!!ref && !lokaal, ref && !lokaal ? "De stand wordt bij je account bewaard." : document.body.classList.contains("demo") ? "Demo: de stand staat alleen op dit apparaat." : "De stand staat nu alleen op dit apparaat. Ben je ingelogd?");
     var test = "Dolfje Weerwolfje";
-    var zoek = zoekBoeken(test, true).catch(function () { return []; }).then(function (a) { return a.length ? a : zoekOpenLibrary(test).catch(function () { return []; }); });
+    var zoek = zoekAlles(test).catch(function () { return []; });
     var stappen = [zoek.then(function (a) {
       r2(a.length > 0, a.length ? "Gevonden: \u201c" + a[0].t + "\u201d" + (a[0].a ? " van " + a[0].a : "") + "." : "Geen boeken gevonden. Mogelijk blokkeert het netwerk Google Boeken.");
       var u = (a.filter(function (x) { return x.img; })[0] || {}).img;
@@ -2799,6 +2926,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     else $("tabInvoer").textContent = "Invullen";
     ANTW = o && o.antwoorden ? o.antwoorden : (o ? null : lokaleAntwoorden());
     AI = o && o.ai ? o.ai : null;
+    FOTO = o && o.fotos ? o.fotos : (o ? null : lokaleFotos());
+    if (FOTO) FOTO.luister(function (lijst) {
+      lijst.forEach(function (x) { if (x && x.k && x.d) kaftFotos[x.k] = x.d; });
+      fotoVersie++; boekenStempel = null; toon();
+    });
     /* De leerkracht (en de demo) ziet de antwoorden binnenkomen */
     if (ANTW && !(o && o.rol === "lid")) ANTW.luister(function (a) { antwoorden = a; toonAntwoorden(); });
     if (o && o.ref) {
