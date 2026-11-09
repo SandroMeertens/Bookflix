@@ -567,6 +567,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .sug-tekst span{color:var(--muted); font-weight:600; font-size:.9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .sug-tekst em{font-style:normal; font-size:.75em; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ok)}
 .sug-leeg{padding:.5em .6em; color:var(--muted); font-weight:600}
+.sug-meer{font-size:.85em; font-weight:400; font-style:italic}
 /* Foto van de kaft maken */
 .inv-fotoknop{display:inline-flex; align-items:center; gap:.5em; cursor:pointer; color:var(--muted); font-weight:700; font-size:.95em; text-align:center}
 .inv-fotoknop b{color:var(--fg); text-decoration:underline; text-underline-offset:.2em}
@@ -1442,13 +1443,127 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         });
       });
   }
+  /* Nederlandse Wikipedia: veel Nederlandse en Vlaamse kinderboeken die Google mist, met een korte inhoud.
+     Alleen artikelen die zelf zeggen dat ze over een boek, strip of boekenreeks gaan. */
+  var WIKI_BOEK = /\b(?:is|was) (?:een|de|het)\s+(?:[a-zà-ÿ-]+\s+){0,4}(?:kinderboek|jeugdboek|prentenboek|boek|roman|novelle|stripverhaal|strip|stripreeks|stripserie|stripalbum|boekenreeks|boekenserie|kinderboekenreeks|kinderboekenserie|jeugdboekenreeks|jeugdboekenserie)\b/i;
+  var WIKI_NAAM = "([A-Z][A-Za-zÀ-ÿ'-]*\\.?(?:\\s?(?:[A-Z][A-Za-zÀ-ÿ'-]*\\.?|van|de|der|den|ter|ten)){0,4})";
+  var WIKI_AUTEUR = new RegExp("(?:geschreven|getekend|bedacht)?\\s*(?:door|van)\\s+(?:de\\s+(?:[A-Za-zÀ-ÿ-]+\\s+){0,2}(?:schrijver|schrijfster|auteur|kinderboekenschrijver|kinderboekenschrijfster|striptekenaar|tekenaar|stripauteur)\\s+)?" + WIKI_NAAM);
+  function wikiZoek(q) {
+    var url = "https://nl.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=8&gsrsearch=" +
+      encodeURIComponent(q) + "&prop=extracts&exintro=1&explaintext=1&exsentences=6&exlimit=max";
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error("wiki " + r.status); return r.json(); }).then(function (j) {
+      var p = (j.query && j.query.pages) || {};
+      return Object.keys(p).map(function (k) { return p[k]; })
+        .sort(function (a, b) { return (a.index || 0) - (b.index || 0); })
+        .filter(function (x) { return x.extract && WIKI_BOEK.test(x.extract.slice(0, 400)); })
+        .map(function (x) {
+          var eerste = x.extract.slice(0, 400), m = eerste.match(WIKI_AUTEUR), a = m ? m[1].trim() : "";
+          if (/^(De|Het|Een)$/.test(a)) a = "";
+          return { t: String(x.title).replace(/\s*\([^)]*\)\s*$/, "").slice(0, 80), a: a, img: "",
+            desc: schoonTekst(x.extract).slice(0, 1200), taal: "nl", wiki: true };
+        });
+    });
+  }
+  /* Bekende kinderboeken en strips: die herkennen we meteen, ook zonder internet, en de rij staat al goed.
+     Per regel: schrijver | rij | titels (gescheiden door ;) */
+  var BOEKENLIJST = (function () {
+    var bron = [
+      "Paul van Loon|s|De Griezelbus;Dolfje Weerwolfje;De Sneeuwheks;Meester Kikker",
+      "Annie M.G. Schmidt|l|Pluk van de Petteflet;Abeltje;Otje;Minoes;Floddertje;Jip en Janneke;Het fluitketeltje",
+      "Roald Dahl|l|Sjakie en de chocoladefabriek;Sjakie en de grote glazen lift;De GVR;Matilda;De heksen;De fantastische meneer Vos;De Griezels;De reuzenperzik;De Giraf, de Pel en ik;Het wonderlijke verhaal van Hendrik Meier",
+      "Jeff Kinney|l|Het leven van een Loser",
+      "Rachel Renée Russell|l|Dagboek van een muts",
+      "Liz Pichon|l|Tom Gates",
+      "Andy Griffiths|l|De waanzinnige boomhut van 13 verdiepingen;De waanzinnige boomhut van 26 verdiepingen;De waanzinnige boomhut van 39 verdiepingen;De waanzinnige boomhut van 52 verdiepingen",
+      "David Walliams|l|Gangsta Oma;De jongen in de jurk;Meneer Stank;Rattenburger;Miljonairsjongen;Het ijsmonster",
+      "Dav Pilkey|t|Dog Man;Kapitein Onderbroek",
+      "Geronimo Stilton|l|Geronimo Stilton",
+      "Tosca Menten|l|Dummie de mummie",
+      "Janneke Schotveld|l|Superjuffie",
+      "Mirjam Oldenhave|l|Mees Kees",
+      "Jacques Vriens|a|Achtste-groepers huilen niet;Tien torens diep;Meester Jaap",
+      "Carry Slee|a|Spijt!;Afblijven;Razend;Pijnstillers;Timboektoe;Kappen!",
+      "Anna Woltz|a|Gips;Honderd uur nacht;Alaska;Mijn bijzonder rare week met Tess;Haaientanden",
+      "Guus Kuijer|a|Het boek van alle dingen;Polleke;Madelief",
+      "Simon van der Geest|a|Spinder;Dissus",
+      "Pieter Koolwijk|s|Gozert",
+      "R.J. Palacio|a|Wonder",
+      "Joke van Leeuwen|l|Iep!;Kukel;Toen mijn vader een struik werd",
+      "Toon Tellegen|a|Misschien wisten zij alles",
+      "Jochem Myjer|f|De Gorgels",
+      "Annet Schaap|f|Lampje",
+      "Thea Beckman|f|Kruistocht in spijkerbroek",
+      "Tonke Dragt|f|De brief voor de koning;Geheimen van het Wilde Woud;De torens van februari",
+      "Jan Terlouw|s|Oorlogswinter;Koning van Katoren",
+      "Paul Biegel|f|De kleine kapitein;Het sleutelkruid;De tuinen van Dorr",
+      "Els Pelgrom|f|De kleine Sofie en Lange Wapper",
+      "Marc de Bel|l|Blinker",
+      "Sylvia Vanden Heede|a|Vos en Haas",
+      "Dick Laan|f|Pinkeltje",
+      "J.K. Rowling|f|Harry Potter en de Steen der Wijzen;Harry Potter en de Geheime Kamer;Harry Potter en de Gevangene van Azkaban;Harry Potter en de Vuurbeker;Harry Potter en de Orde van de Feniks;Harry Potter en de Halfbloed Prins;Harry Potter en de Relieken van de Dood",
+      "Rick Riordan|f|De bliksemdief",
+      "C.S. Lewis|f|De leeuw, de heks en de kleerkast",
+      "Cornelia Funke|f|Hart van inkt",
+      "Eoin Colfer|f|Artemis Fowl",
+      "Philip Pullman|f|Het Noorderlicht",
+      "Suzanne Collins|f|De Hongerspelen",
+      "Erin Hunter|f|Warrior Cats",
+      "Michael Ende|f|Het oneindige verhaal;Momo",
+      "Astrid Lindgren|f|Pippi Langkous;De gebroeders Leeuwenhart;Ronja de roversdochter;Emil van de Hazelhoeve",
+      "Erich Kästner|s|Emil en de detectives",
+      "Enid Blyton|s|De Vijf",
+      "Anthony Horowitz|s|Alex Rider",
+      "Robert Muchamore|s|Cherub",
+      "Lemony Snicket|s|Ellendige avonturen",
+      "H. de Roos|s|De Kameleon",
+      "Paul Nowee|s|Arendsoog",
+      "Martine Letterie|a|Kinderen met een ster",
+      "Evert Hartman|s|Oorlog zonder vrienden",
+      "Ida Vos|a|Wie niet weg is wordt gezien",
+      "Anne Frank|a|Het Achterhuis",
+      "Chris van Abkoude|a|Kruimeltje",
+      "Piet Bakker|a|Ciske de Rat",
+      "Disney|t|Donald Duck",
+      "Willy Vandersteen|t|Suske en Wiske;De Rode Ridder",
+      "Jef Nys|t|Jommeke",
+      "Merho|t|De Kiekeboes",
+      "Goscinny en Uderzo|t|Asterix",
+      "Morris|t|Lucky Luke",
+      "Hergé|t|Kuifje",
+      "Franquin|t|Guust;Robbedoes",
+      "Peyo|t|De Smurfen",
+      "Marc Sleen|t|Nero",
+      "Jan Kruis|t|Jan, Jans en de kinderen",
+      "Martin Lodewijk|t|Agent 327",
+      "Pieter Kuhn|t|Kapitein Rob",
+      "Jim Davis|t|Garfield",
+      "Bill Watterson|t|Calvin en Hobbes",
+      "Mark Retera|t|Dirk Jan",
+      "Kazu Kibuishi|t|Amulet",
+      "Luke Pearson|t|Hilda",
+      "Guinness World Records|w|Guinness World Records"
+    ], uit = [];
+    bron.forEach(function (r) {
+      var d = r.split("|");
+      d[2].split(";").forEach(function (t) { uit.push({ t: t, a: d[0] === t ? "" : d[0], g: d[1], img: "", desc: "", taal: "nl", lijst: true }); });
+    });
+    return uit;
+  })();
+  function zoekLijst(tekst) {
+    /* Langere zoektekst: een tikfout mag (dan telt alleen de woordovereenkomst) */
+    var grens = normaal(tekst).length >= 6 ? 45 : 60;
+    return BOEKENLIJST.map(function (x) { var y = Object.assign({}, x); y.s = past(y, tekst) + 10; return y; })
+      .filter(function (x) { return x.s >= grens; })
+      .sort(function (a, b) { return b.s - a.s; });
+  }
   /* Hoe goed past een gevonden boek bij wat er getypt is? */
   function past(x, tekst) {
     var q = normaal(tekst), tt = normaal(x.t), a = normaal(x.a), s = 0;
     if (!q) return 0;
     if (tt === q) s += 100;
     else if (tt.indexOf(q) === 0) s += 75;
-    else if (tt.indexOf(q) >= 0 || (q.indexOf(tt) >= 0 && tt.length > 3)) s += 55;
+    else if (tt.indexOf(q) >= 0) s += 55;
+    else if (q.indexOf(tt) >= 0 && tt.length > 3) s += 40;
     if (a && (a.indexOf(q) >= 0 || q.indexOf(a) >= 0)) s += 45;
     /* Woorden tellen ook mee bij een kleine tikfout: dezelfde eerste vijf letters is genoeg */
     var woorden = q.split(" ").filter(function (w) { return w.length > 2; }), alles = tt + " " + a, losse = alles.split(" ");
@@ -1490,12 +1605,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     }
     function genoeg() { return samenvoegen(lijsten, tekst).filter(function (x) { return x.s >= 60 && x.img; }).length >= 3; }
     zoekCache[q] = verzamel([googleZoek(tekst, true), googleZoek(tekst, false)])
-      .then(function () { if (!genoeg()) return verzamel([olZoek(tekst), googleZoek("intitle:" + tekst, false)]); })
+      .then(function () { if (!genoeg()) return verzamel([olZoek(tekst), googleZoek("intitle:" + tekst, false), wikiZoek(tekst)]); })
       .then(function () {
         if (samenvoegen(lijsten, tekst).length) return;
         /* Niets gevonden? Dan de langste losse woorden apart proberen: één tikfout gooit dan niet alles weg */
         var woorden = q.split(" ").filter(function (w) { return w.length > 3; }).sort(function (a, b) { return b.length - a.length; }).slice(0, 2);
-        if (woorden.length && woorden[0] !== q) return verzamel(woorden.map(function (w) { return googleZoek(w, false); }).concat([olZoek(woorden.join(" "))]));
+        if (woorden.length && woorden[0] !== q) return verzamel(woorden.map(function (w) { return googleZoek(w, false); }).concat([olZoek(woorden.join(" ")), wikiZoek(woorden.join(" "))]));
       })
       .then(function () {
         if (!gelukt) throw new Error("zoeken lukt niet");
@@ -2176,16 +2291,26 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
      Alleen de titel en de achterflaptekst gaan naar die diensten, nooit iets van een leerling. */
   var AI = null, aiZoek = {}, aiUit = false;
   var infoZoek = {};
-  function boekInfo(titel) {
+  function boekInfo(titel, auteur) {
     var k = sleutelVan(titel);
     if (!infoZoek[k]) {
       /* Dezelfde zoektocht als voor de kaft: het best passende boek met achterflaptekst */
-      infoZoek[k] = zoekAlles(titel).then(function (a) {
-        var best = a.filter(function (x) { return x.s >= 55 && x.desc; })[0] || a.filter(function (x) { return x.s >= 55; })[0] || {};
-        return { auteur: best.a || "", tekst: best.desc || "" };
+      infoZoek[k] = zoekAlles(titel).catch(function () { return []; }).then(function (a) {
+        var best = a.filter(function (x) { return x.s >= 55 && x.desc && !x.wiki; })[0] || a.filter(function (x) { return x.s >= 55; })[0] || {};
+        return metWiki({ auteur: auteur || best.a || "", tekst: best.desc || "" }, titel);
       }).catch(function () { return { auteur: "", tekst: "" }; });
     }
     return infoZoek[k];
+  }
+  /* Een korte achterflap aanvullen met de inhoud van Wikipedia: dan kan de AI betere vragen maken */
+  function metWiki(info, titel) {
+    if (info.tekst.length >= 400) return Promise.resolve(info);
+    return wikiZoek(titel).then(function (w) {
+      var best = w.map(function (x) { x.s = past(x, titel); return x; }).filter(function (x) { return x.s >= 75; })
+        .sort(function (a, b) { return b.s - a.s; })[0];
+      if (!best || info.tekst.indexOf(best.desc.slice(0, 60)) >= 0) return info;
+      return { auteur: info.auteur || best.a, tekst: (info.tekst ? info.tekst + " " : "") + best.desc };
+    }, function () { return info; });
   }
   function vragenPrompt(titel, g, info) {
     var niveaus = g === "w"
@@ -2470,51 +2595,70 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function zoekBoeken(tekst) { return zoekAlles(tekst); }
   function zoekOpenLibrary(tekst) { return olZoek(tekst); }
   function sugSluit() { $("invSug").hidden = true; $("invSug").textContent = ""; $("invTitel").setAttribute("aria-expanded", "false"); }
-  function sugToon(lijst, tekst) {
+  function sugToon(lijst, tekst, voorlopig) {
     var ul = $("invSug"); ul.textContent = "";
     if (!lijst.length) { ul.appendChild(el("li", "sug-leeg", "Geen boek gevonden. Typ de hele titel; je kunt daarna een foto van de kaft maken.")); }
     lijst.slice(0, 6).forEach(function (s) {
       var li = el("li"), b = el("button");
       b.type = "button"; b.setAttribute("role", "option");
-      b.appendChild(maakKaft(s.t, invRij || "a", 0, s.img || (state.kaften[sleutelVan(s.t)] || "-")));
+      b.appendChild(maakKaft(s.t, invRij || s.g || "a", 0, s.img || (state.kaften[sleutelVan(s.t)] || "-")));
       var tk = el("span", "sug-tekst");
       tk.appendChild(el("b", null, s.t));
       if (s.a) tk.appendChild(el("span", null, s.a));
-      if (s.eigen) tk.appendChild(el("em", null, "Al op de plank"));
+      if (s.eigen) tk.appendChild(el("em", null, s.vorig ? "Gelezen in seizoen " + s.vorig : "Al op de plank"));
       b.appendChild(tk);
       /* pointerdown: kiezen voordat het invoerveld zijn focus verliest */
       b.addEventListener("pointerdown", function (e) { e.preventDefault(); sugKies(s); });
       b.addEventListener("click", function () { sugKies(s); });
       li.appendChild(b); ul.appendChild(li);
     });
+    if (voorlopig) ul.appendChild(el("li", "sug-leeg sug-meer", "Meer boeken zoeken\u2026"));
     ul.hidden = false; $("invTitel").setAttribute("aria-expanded", "true");
   }
   function sugZoek(tekst) {
     var nr = ++sugNr, k = sleutelVan(tekst);
-    /* Eerst de boeken die al op de plank van de klas staan */
+    /* Eerst de boeken die al op de plank van de klas staan, en wat vorige seizoenen gelezen is */
     var eigen = [], gezien = {};
     state.boeken.slice().reverse().forEach(function (b) {
       var bk = sleutelVan(b.t);
       if (!gezien[bk] && bk.indexOf(k) >= 0) { gezien[bk] = 1; eigen.push({ t: b.t, a: "", img: state.kaften[bk] && state.kaften[bk] !== "-" ? state.kaften[bk] : "", eigen: true, g: b.g }); }
     });
+    state.archief.slice().reverse().forEach(function (x) {
+      x.top.forEach(function (b) {
+        var bk = sleutelVan(b.t);
+        if (!gezien[bk] && bk.indexOf(k) >= 0) { gezien[bk] = 1; eigen.push({ t: b.t, a: "", img: state.kaften[bk] && state.kaften[bk] !== "-" ? state.kaften[bk] : "", eigen: true, vorig: x.nr }); }
+      });
+    });
     eigen = eigen.slice(0, 3);
-    if (eigen.length) sugToon(eigen, tekst);
+    /* Dan bekende kinderboeken uit de eigen lijst: die staan er meteen, zonder te wachten op internet */
+    var lokaal = zoekLijst(tekst).filter(function (x) { return !gezien[sleutelVan(x.t)]; }).slice(0, 6);
+    if (eigen.length || lokaal.length) sugToon(eigen.concat(lokaal), tekst, true);
     else { var ul = $("invSug"); ul.textContent = ""; ul.appendChild(el("li", "sug-leeg", "Boeken zoeken\u2026")); ul.hidden = false; }
     zoekAlles(tekst).catch(function () { return null; }).then(function (a) {
       if (nr !== sugNr || $("invTitel").value.trim() !== tekst) return;
-      if (a === null && !eigen.length) {
+      if (a === null && !eigen.length && !lokaal.length) {
         var ul2 = $("invSug"); ul2.textContent = ""; ul2.appendChild(el("li", "sug-leeg", "Zoeken lukt nu niet. Typ de hele titel, of maak hierna een foto van de kaft.")); ul2.hidden = false;
         return;
       }
       a = a || [];
-      var rest = a.filter(function (s) { return !gezien[sleutelVan(s.t)]; });
-      sugToon(eigen.concat(rest), tekst);
+      /* Een boek uit de lijst dat ook online gevonden is: kaft, schrijver en achterflap van online erbij */
+      var opLijst = {};
+      lokaal.forEach(function (x) { opLijst[normaal(x.t)] = x; });
+      var rest = [];
+      a.forEach(function (s) {
+        var l = opLijst[normaal(s.t)];
+        if (gezien[sleutelVan(s.t)]) return;
+        if (l) { if (!l.img && s.img) { l.img = s.img; l.imgs = s.imgs; } if (!l.desc && s.desc && !s.wiki) l.desc = s.desc; return; }
+        rest.push(s);
+      });
+      var samen = lokaal.concat(rest).sort(function (x, y) { return y.s - x.s; });
+      sugToon(eigen.concat(samen), tekst);
     });
   }
   function sugKies(s) {
     var k = sleutelVan(s.t);
     $("invTitel").value = s.t;
-    if (s.eigen && s.g && !invRij) {
+    if ((s.eigen || s.lijst) && s.g && !invRij) {
       invRij = s.g;
       Array.prototype.forEach.call($("invRijen").children, function (x) { x.setAttribute("aria-checked", String(x.dataset.g === invRij)); });
     }
@@ -2523,7 +2667,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       invLijst[k] = [s.img].concat((invLijst[k] || []).filter(function (u) { return u !== s.img; }));
       if (isJuf()) invKeuze[k] = s.img;
     }
-    if (s.a || s.desc) infoZoek[k] = Promise.resolve({ auteur: s.a || "", tekst: s.desc || "" });
+    if (s.desc) infoZoek[k] = metWiki({ auteur: s.a || "", tekst: s.desc }, s.t);
+    else if (s.a) { delete infoZoek[k]; boekInfo(s.t, s.a); }
     sugSluit(); invVast = null; clearTimeout(invZoekKlok);
     invTeken();
     $("invTitel").blur();
