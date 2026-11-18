@@ -254,12 +254,17 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 
 /* Boeken van de klas */
 .lijst{display:grid; gap:1em; align-content:start; min-width:0}
-.groepen{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,20em),1fr)); gap:1.4em 2.6em; align-items:start; min-width:0}
+.groepen{display:grid; grid-template-columns:minmax(0,1fr); gap:1.6em; align-items:start; min-width:0}
 .groep{display:grid; gap:.4em; min-width:0}
 .groep h3{display:flex; align-items:center; gap:.6em}
 .groep h3::before{content:""; width:.4em; height:1.3em; border-radius:.1em; background:var(--c)}
-.boeken{display:grid; grid-template-columns:repeat(auto-fill,minmax(6.4em,1fr)); gap:.9em .8em}
-.boek-knoppen{display:flex; flex-wrap:wrap; gap:0 .7em; font-size:.85em}
+.boeken{display:flex; gap:.9em; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; padding:.2em .1em .8em; margin:0; list-style:none; scrollbar-width:thin}
+.boeken li{flex:0 0 7.2em; scroll-snap-align:start}
+.boek-meer{position:relative; width:100%}
+.boek-meer summary{list-style:none; cursor:pointer; display:inline-grid; place-items:center; width:2.2em; height:1.6em; border-radius:6px; color:var(--muted); font-weight:800; letter-spacing:.1em}
+.boek-meer summary::-webkit-details-marker{display:none}
+.boek-meer summary:hover, .boek-meer[open] summary{background:var(--raised); color:var(--fg)}
+.boek-knoppen{display:grid; justify-items:start; gap:.15em; margin-top:.3em; padding:.4em .6em; border-radius:8px; background:var(--raised); font-size:.85em}
 .boek-foto{cursor:pointer; position:relative}
 .boek-foto input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
 .boeken li{display:grid; gap:.2em; justify-items:start; align-content:start; min-width:0}
@@ -275,14 +280,17 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 
 
 /* Awards */
-.finale{display:grid; gap:1em; align-content:start; max-width:52em; min-width:0}
-.awards li{display:grid; grid-template-columns:auto minmax(0,.8fr) minmax(0,1.3fr); align-items:center; gap:.8em; padding-block:.55em; border-top:1px solid var(--line)}
+.finale{display:grid; gap:1em; align-content:start; min-width:0}
+.awards{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,19em),1fr)); gap:1em; padding:0; margin:0; list-style:none}
+.awards li{display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto 1fr auto; align-items:center; gap:.7em .6em; padding:1em; border-radius:12px; background:var(--surface); border:1px solid transparent}
+.awards li.goud{border-color:rgb(244 197 66 / .5); background:linear-gradient(180deg, rgb(244 197 66 / .1), var(--surface) 45%)}
 .awards label{font-weight:800}
+.awards li input{grid-column:1 / -1; font-size:.85em}
 .awards svg.duim{font-size:1.5em; color:var(--raised-2)}
 .awards li.goud svg.duim{color:var(--gold); fill:var(--gold)}
-.nominaties{grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:flex-end; gap:.6em .8em; padding-left:2.3em; min-width:0}
+.nominaties{grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:flex-end; gap:.6em .7em; min-width:0}
 .nominaties .eyebrow{flex-basis:100%}
-.nom{border:0; background:none; padding:0; width:6.2em; border-radius:.2em .45em .45em .2em}
+.nom{border:0; background:none; padding:0; width:calc((100% - 1.4em) / 3); max-width:6.4em; border-radius:.2em .45em .45em .2em}
 .nom:disabled{cursor:default}
 .nom.gekozen{outline:.22em solid var(--gold); outline-offset:.18em}
 .nom.gekozen .kaft-n{background:var(--gold); color:var(--ink)}
@@ -339,7 +347,6 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 @media (max-width:600px){
   .afleveringen{grid-template-columns:minmax(0,1fr)}
   .awards li{grid-template-columns:auto minmax(0,1fr)}
-  .awards li input{grid-column:1 / -1}
   .instel-rij{grid-template-columns:minmax(0,1fr)}
   .corrigeer{grid-template-columns:minmax(0,1fr)}
   .regel-lijst{grid-template-columns:minmax(0,1fr)}
@@ -780,7 +787,7 @@ body:not(.lid) .alleen-lid{display:none!important}
       <section class="topblok" aria-labelledby="topKop">
         <div class="rij-kop">
           <h2 id="topKop">Meest geduimd</h2>
-          <p class="uitleg">Ook gelezen? Tik op het boek voor nog een duim.</p>
+          <p class="uitleg">Ook gelezen? Vul hem in op de iPad.</p>
         </div>
         <ol class="toplijst" id="toplijst"></ol>
       </section>
@@ -790,7 +797,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   <main class="lijst" id="lijst" hidden>
     <div>
       <h2>Boeken van de klas</h2>
-      <p class="uitleg">Alle titels die bij een duim zijn ingevuld. Tik op een boek om het nog een duim te geven.</p>
+      <p class="uitleg">Alle titels per soort. Met ••• pas je de kaft of de vragen aan, of haal je een boek weg.</p>
     </div>
     <p class="uitleg" id="boekenLeeg">Nog geen titels. Vul op het scorebord bij een duim de titel in.</p>
     <div class="legenda" id="legendaLijst"></div>
@@ -878,7 +885,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   <main class="finale" id="finale" hidden>
     <div>
       <h2>Bookflix Awards</h2>
-      <p class="uitleg">De seizoensfinale. Per rij zijn de drie meest geduimde boeken genomineerd. De klas stemt, en je tikt de winnaar aan voor een Gouden Duim.</p>
+      <p class="uitleg">Per rij de drie meest geduimde boeken. De klas stemt; tik op de winnaar voor een Gouden Duim.</p>
     </div>
     <ul class="awards" id="awards"></ul>
     <section class="archief-blok" id="archiefBlok" hidden>
@@ -1546,6 +1553,21 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   };
   /* Getekende kaft: de tekening vult de hele kaft, in de kleur van de rij. Welke tekening een boek krijgt, hangt aan de titel. */
   var kaftTekening = {};
+  /* Welke tekening? Boeken uit dezelfde rij krijgen om de beurt een andere, zodat de plank afwisselend is */
+  var sceneVolgorde = null, sceneStempel = -1;
+  function sceneNr(g, k, h, n) {
+    if (sceneStempel !== state.boeken.length) {
+      sceneStempel = state.boeken.length; sceneVolgorde = {};
+      state.boeken.forEach(function (b) {
+        var rij = sceneVolgorde[b.g] || (sceneVolgorde[b.g] = { lijst: [], plek: {} }), bk = sleutelVan(b.t);
+        if (!(bk in rij.plek)) { rij.plek[bk] = rij.lijst.length; rij.lijst.push(bk); }
+      });
+    }
+    var r = sceneVolgorde[g];
+    if (r && k in r.plek) return r.plek[k] % n;
+    h ^= h >>> 16; h = Math.imul(h, 0x45d9f3b) >>> 0; h ^= h >>> 16;
+    return (h >>> 4) % n;
+  }
   function maakKaft(t, g, n, foto) {
     var k = sleutelVan(t), h = 7;
     for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
@@ -1553,13 +1575,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var langst = t.split(/\s+/).reduce(function (m, w) { return Math.max(m, w.length); }, 0);
     var maat = t.length > 30 || langst > 15 ? " lang" : t.length > 14 || langst > 9 ? " middel" : " kort";
     var kaft = el("span", "kaft g-" + g + " t" + ((h >>> 9) % 3) + " b" + ((h >>> 13) % 3) + maat);
-    var scenes = SCENES[g] || SCENES.a, wie = g + "|" + k, svg = kaftTekening[wie];
+    var scenes = SCENES[g] || SCENES.a, nr = sceneNr(g, k, h, scenes.length), wie = g + "|" + k + "|" + nr, svg = kaftTekening[wie];
     if (!svg) {
       svg = sv("svg", { viewBox: "0 0 100 150", preserveAspectRatio: "xMidYMid slice", "aria-hidden": "true" }, "kaft-art");
       var doek = svg;
       /* De helft van de boeken krijgt de tekening in spiegelbeeld; tekeningen met letters niet */
       if ((h >>> 16) & 1) doek = svg.appendChild(sv("g", { transform: "translate(100 0) scale(-1 1)" }));
-      scenes[(h >>> 4) % scenes.length](doek, toeval(h));
+      scenes[nr](doek, toeval(h));
       if (doek !== svg && svg.querySelector("text")) doek.removeAttribute("transform");
       kaftTekening[wie] = svg;
     }
@@ -1951,12 +1973,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   var awardEls = {};
   AWARDS.forEach(function (a) {
     var li = el("li"), lab = el("label", null, a.t), inp = el("input");
-    inp.type = "text"; inp.id = "award-" + a.id; inp.maxLength = 80; inp.placeholder = "Winnend boek"; inp.autocomplete = "off";
+    inp.type = "text"; inp.id = "award-" + a.id; inp.maxLength = 80; inp.placeholder = "Of typ een ander winnend boek"; inp.autocomplete = "off";
     inp.setAttribute("list", "titels");
     lab.htmlFor = inp.id;
     inp.addEventListener("input", function () { wijzig(function (s) { s.awards[a.id] = inp.value; }, false); });
     var nom = el("div", "nominaties");
-    li.appendChild(duimIcoon()); li.appendChild(lab); li.appendChild(inp); li.appendChild(nom);
+    li.appendChild(duimIcoon()); li.appendChild(lab); li.appendChild(nom); li.appendChild(inp);
     $("awards").appendChild(li);
     awardEls[a.id] = { li: li, inp: inp, nom: nom };
   });
@@ -2144,12 +2166,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
           if (!f) return;
           maakKaftFoto(f).then(function (data) { bewaarKaftFoto(g.t, data); wijzig(function (s) { s.kaften[g.k] = "foto"; }, false); });
         });
-        var knoppen = el("span", "boek-knoppen");
+        var meer = el("details", "boek-meer schrijf alleen-juf"), sam = el("summary", null, "\u2022\u2022\u2022"), knoppen = el("span", "boek-knoppen");
+        sam.setAttribute("aria-label", "Meer voor " + g.t); meer.appendChild(sam); meer.appendChild(knoppen);
+        meer.addEventListener("toggle", function () {
+          if (meer.open) Array.prototype.forEach.call(document.querySelectorAll(".boek-meer[open]"), function (d) { if (d !== meer) d.open = false; });
+        });
         var vr = el("button", "tekstknop schrijf alleen-juf", state.vragen[g.k] ? "Eigen vragen" : "Vragen");
         vr.type = "button"; vr.setAttribute("aria-label", "Vragen bij " + g.t);
         vr.addEventListener("click", function () { openVragen(g.t, g.g); });
         knoppen.appendChild(ander); knoppen.appendChild(fotoLab); knoppen.appendChild(vr); knoppen.appendChild(weg);
-        li.insertBefore(kaft, li.firstChild); li.appendChild(knoppen);
+        li.insertBefore(kaft, li.firstChild); li.appendChild(meer);
         ul.appendChild(li);
       });
       blok.appendChild(ul); lijst.appendChild(blok);
@@ -2179,7 +2205,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       $("weekVul").style.width = Math.min(100, tp.nodig ? wk / tp.nodig * 100 : 100) + "%";
       $("weekBaan").setAttribute("aria-valuemax", tp.nodig);
       $("weekBaan").setAttribute("aria-valuenow", Math.min(wk, tp.nodig));
-      $("weekTekst").textContent = wk + " van " + tp.nodig + " deze week" + (klaar ? " · weekdoel gehaald" : "");
+      $("weekTekst").textContent = klaar ? "Weekdoel gehaald! " + wk + (wk === 1 ? " duim" : " duimen") + " deze week" : wk + " van " + tp.nodig + " deze week";
     }
     toonBoeken();
     vulLegenda($("legendaLijst")); vulLegenda($("legendaRegels"));
