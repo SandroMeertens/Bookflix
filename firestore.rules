@@ -66,14 +66,20 @@ service cloud.firestore {
     // Taalwoorden (sandromeertens.github.io/Taalwoorden-): de instellingen van de leerkracht.
     // Iedere iPad mag ze lezen. Wie ze als eerste opslaat (inloggen met Google), is de eigenaar;
     // alleen die mag ze daarna veranderen.
+    // Alleen een bevestigd schoolaccount (Google) mag opslaan.
+    function twSchool() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*@kindante[.]nl$');
+    }
     match /taalwoorden/{d} {
       allow get: if d == 'instellingen';
       allow list: if false;
-      allow create: if d == 'instellingen' && isJuf() && request.resource.data.owner == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['owner', 'min', 'pin', 'uit', 'alles', 'actief', 't']);
-      allow update: if d == 'instellingen' && isJuf() && resource.data.owner == request.auth.uid
+      allow create: if d == 'instellingen' && twSchool() && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 't']);
+      allow update: if d == 'instellingen' && twSchool() && resource.data.owner == request.auth.uid
                     && request.resource.data.owner == resource.data.owner
-                    && request.resource.data.keys().hasOnly(['owner', 'min', 'pin', 'uit', 'alles', 'actief', 't']);
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 't']);
       allow delete: if false;
     }
   }
