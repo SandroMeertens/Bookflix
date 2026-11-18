@@ -178,7 +178,7 @@ h2{font-family:var(--display); font-weight:400; font-size:1.9em; letter-spacing:
 .legenda{display:flex; flex-wrap:wrap; gap:.5em}
 .legenda .chip b{font-weight:800; font-variant-numeric:tabular-nums}
 
-input[type=text], input[type=number], input[type=date]{
+input[type=text], input[type=number], input[type=date], input[type=time], select{
   font:inherit; font-weight:700; color:var(--fg); background:var(--field);
   border:1px solid var(--line); border-radius:8px; padding:.4em .6em; width:100%; min-width:0;
 }
@@ -304,6 +304,8 @@ h3{margin:0; font-size:.8em; font-weight:800; letter-spacing:.12em; text-transfo
 .corrigeer{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5em 1.4em}
 .corrigeer .instel-rij{grid-template-columns:minmax(0,1fr) 5.5em}
 .instel-rij input[type=date]{max-width:12em}
+.instel-rij input[type=time]{max-width:8em}
+.instel-rij select{max-width:12em}
 dialog::backdrop{background:rgb(0 0 0 / .65)}
 dialog label{font-weight:700}
 .instel{display:grid; gap:.9em; margin-top:.9em}
@@ -411,45 +413,92 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
   .kop-rechts{margin-left:auto}
 }
 /* Aanraakscherm: iOS zoomt in op kleine invoervelden, dus die blijven minstens 16px */
-/* Stilleesklok: rustig scherm voor het digibord */
-.stil{position:fixed; inset:0; z-index:26; display:grid; place-items:center; padding:clamp(16px,3vw,40px); padding-top:calc(clamp(16px,3vw,40px) + env(safe-area-inset-top,0px));
-  background:radial-gradient(ellipse at 50% 40%, #1a1920 0%, var(--bg) 70%); color:var(--fg); overflow:auto; text-align:center}
-.stil[hidden], .stil [hidden]{display:none!important}
-.stil-merk{font-family:var(--display); font-size:clamp(3rem,10vmin,7rem); line-height:.9; letter-spacing:.04em; color:var(--accent); margin:0}
-.stil-kies, .stil-klaar{display:grid; justify-items:center; gap:clamp(14px,3vmin,32px)}
-.stil-vraag{font-weight:800; font-size:clamp(1.2rem,3.4vmin,2rem); color:var(--muted); margin:0}
-.stil-duren{display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(8px,1.6vmin,16px)}
-.stil-duren button{min-width:2.4em; padding:.3em .45em .22em; border:2px solid var(--line); border-radius:14px; background:var(--surface); color:var(--fg);
-  font-family:var(--display); font-size:clamp(2rem,7vmin,4.2rem); line-height:1; font-variant-numeric:tabular-nums}
+/* Leestijd op het digibord: herkenbaar Bookflix, zoals een film die loopt */
+.stil{position:fixed; inset:0; z-index:26; container-type:size; background:#07060a; color:var(--fg); overflow:hidden}
+.stil[hidden], .stil [hidden], .lees[hidden], .lees [hidden]{display:none!important}
+.stil-scene, .stil-scene canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.stil-waas{position:absolute; inset:0; background:
+  linear-gradient(90deg, rgb(8 7 10 / .92) 0%, rgb(8 7 10 / .7) 30%, rgb(8 7 10 / 0) 62%),
+  linear-gradient(0deg, rgb(8 7 10 / .9) 0%, rgb(8 7 10 / 0) 34%)}
+.stil-logo{position:absolute; top:calc(5.5cqh + env(safe-area-inset-top,0px)); left:4.5cqw; font-family:var(--display); color:var(--accent); font-size:8.5cqh; letter-spacing:.03em; line-height:1; text-shadow:0 2px 20px rgb(0 0 0 / .5)}
+.stil-label{display:flex; align-items:center; gap:1.4cqh; margin:0 0 1.6cqh; font-weight:800; font-size:max(14px,2.5cqh); letter-spacing:.3em; text-transform:uppercase; color:rgb(247 245 242 / .85)}
+.stil-label .b{display:grid; place-items:center; width:3.6cqh; height:4.6cqh; background:var(--accent); color:#fff; font-family:var(--display); font-size:3.8cqh; letter-spacing:0; border-radius:.4cqh}
+/* Kiezen */
+.stil-kies{position:absolute; left:4.5cqw; bottom:10cqh; display:grid; justify-items:start; gap:3cqh; max-width:min(72cqw,120cqh)}
+.stil-vraag{font-weight:800; font-size:max(18px,4.4cqh); margin:0}
+.stil-duren, .stil-beelden{display:flex; flex-wrap:wrap; gap:1.4cqh}
+.stil-duren button{min-width:2.3em; padding:.3em .4em .2em; border:2px solid rgb(255 255 255 / .2); border-radius:12px; background:rgb(20 19 24 / .7); color:var(--fg);
+  font-family:var(--display); font-size:max(28px,7cqh); line-height:1; font-variant-numeric:tabular-nums}
 .stil-duren button small{display:block; font-family:var(--body); font-weight:700; font-size:.26em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:.2em}
-.stil-duren button[aria-checked="true"]{border-color:var(--fg); background:var(--raised)}
+.stil-beelden button{padding:.5em 1em; border:2px solid rgb(255 255 255 / .2); border-radius:99px; background:rgb(20 19 24 / .7); color:var(--fg); font-weight:800; font-size:max(14px,2.4cqh)}
+.stil-duren button[aria-checked="true"], .stil-beelden button[aria-checked="true"]{border-color:var(--fg); background:rgb(60 58 66 / .8)}
 .stil-acties{display:flex; align-items:center; gap:1.2em}
-.stil-loopt{display:grid; justify-items:center; gap:clamp(14px,3.5vmin,40px); width:100%}
-.stil-klok{position:relative; width:min(64vmin,92vw); aspect-ratio:1}
-.stil-klok svg{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg)}
-.stil-klok circle{fill:none; stroke-width:3.2}
-.stil-baan{stroke:var(--line)}
-.stil-rest{stroke:var(--fg); stroke-linecap:round; stroke-dasharray:1000; transition:stroke-dashoffset 1s linear, stroke .6s}
-.stil.laatste .stil-rest{stroke:var(--warn)}
-.stil-midden{position:absolute; inset:0; display:grid; place-content:center; gap:.2em}
-.stil-tijd{font-family:var(--display); font-size:min(21vmin,30vw); line-height:.85; font-variant-numeric:tabular-nums; letter-spacing:.02em; margin:0}
-.stil-sub{font-weight:700; font-size:clamp(1rem,2.8vmin,1.6rem); color:var(--muted); margin:0}
-.stil.pauze .stil-tijd{opacity:.45}
-.stil-onder{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:clamp(14px,3vw,48px); width:min(100%,64rem)}
-.stil-stand{flex:1 1 18rem; max-width:30rem; text-align:left}
-.stil-stand p{margin:0 0 .45em; font-weight:700; color:var(--muted); font-size:clamp(1rem,2.4vmin,1.35rem)}
-.stil-stand b{font-family:var(--display); font-weight:400; font-size:1.6em; color:var(--fg); vertical-align:-.08em}
-.stil-erbij{color:var(--ok); font-weight:800; margin-left:.4em}
-.stil-balk{height:.6em; border-radius:99px; background:var(--line); overflow:hidden}
-.stil-balk span{display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .8s ease}
-.stil-knoppen{display:flex; gap:.6em; opacity:.4; transition:opacity .3s}
+/* Loopt */
+.stil-rechts{position:absolute; top:calc(6cqh + env(safe-area-inset-top,0px)); right:4.5cqw; display:grid; justify-items:end; gap:1.6cqh}
+.stil-afl{margin:0; font-weight:800; font-size:max(12px,2.3cqh); letter-spacing:.14em; text-transform:uppercase; color:rgb(247 245 242 / .7)}
+.stil-knoppen{display:flex; gap:.5em; opacity:.18; transition:opacity .3s}
+.stil-knoppen .knop{background:rgb(20 19 24 / .75)}
 .stil-knoppen:hover, .stil-knoppen:focus-within, .stil.pauze .stil-knoppen{opacity:1}
-.stil-klaar-tekst{font-weight:800; font-size:clamp(1.5rem,5vmin,3rem); margin:0; text-wrap:balance}
-.stil-klaar-sub{font-weight:700; font-size:clamp(1.1rem,3vmin,1.8rem); color:var(--muted); margin:0; text-wrap:balance}
-.stil-klok::before{content:""; position:absolute; inset:9%; border-radius:50%; background:radial-gradient(circle, rgb(255 255 255 / .05), transparent 70%); animation:stil-adem 8s ease-in-out infinite}
-.stil.pauze .stil-klok::before{animation-play-state:paused}
-@keyframes stil-adem{0%,100%{transform:scale(.94); opacity:.5} 50%{transform:scale(1.04); opacity:1}}
-@media (prefers-reduced-motion:reduce){ .stil-klok::before{animation:none} .stil-rest{transition:none} }
+.stil-info{position:absolute; left:4.5cqw; bottom:17cqh; max-width:60cqw}
+.stil-tijd{display:flex; align-items:baseline; gap:2cqh; margin:0}
+#stilGetal{font-family:var(--display); font-size:34cqh; line-height:.78; font-variant-numeric:tabular-nums; text-shadow:0 4px 40px rgb(0 0 0 / .45)}
+#stilEenheid{font-family:var(--display); font-size:8cqh; line-height:1; color:rgb(247 245 242 / .85)}
+.stil.pauze #stilGetal{opacity:.45}
+.stil-meta{margin:2.6cqh 0 0; font-weight:700; font-size:max(14px,3cqh); color:rgb(247 245 242 / .8)}
+.stil-meta b{color:var(--ok); font-weight:800}
+.stil-onder{position:absolute; left:4.5cqw; right:4.5cqw; bottom:calc(6.5cqh + env(safe-area-inset-bottom,0px)); display:grid; grid-template-columns:1fr auto; align-items:center; gap:2.4cqw}
+.stil-balk, .lees-balk{position:relative; height:max(5px,.9cqh); border-radius:99px; background:rgb(255 255 255 / .22)}
+.stil-balk span, .lees-balk span{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:inherit; background:var(--accent)}
+.stil-balk i, .lees-balk i{position:absolute; top:50%; left:0; width:max(14px,2.6cqh); height:max(14px,2.6cqh); border-radius:50%; background:var(--accent); transform:translate(-50%,-50%); box-shadow:0 0 0 max(3px,.6cqh) rgb(229 50 45 / .25)}
+.stil-onder em{font-style:normal; font-weight:800; font-size:max(13px,2.6cqh); color:rgb(247 245 242 / .8); font-variant-numeric:tabular-nums}
+/* Klaar */
+.stil-klaar{position:absolute; inset:0; display:grid; place-content:center; justify-items:center; gap:2.4cqh; padding:6cqh 5cqw; text-align:center; background:rgb(8 7 10 / .6)}
+.stil-groot{font-family:var(--display); color:var(--accent); font-size:max(56px,16cqh); line-height:.9; letter-spacing:.04em; margin:0}
+.stil-klaar-tekst{font-weight:800; font-size:max(22px,5cqh); margin:0; text-wrap:balance}
+.stil-klaar-sub{font-weight:700; font-size:max(16px,3cqh); color:rgb(247 245 242 / .78); margin:0; text-wrap:balance}
+/* Intro */
+.stil-intro{position:absolute; inset:0; z-index:9; display:grid; place-items:center; background:#000; opacity:0; pointer-events:none}
+.stil-intro.speel{animation:intro-weg 3.6s ease forwards}
+.stil-intro .woord{font-family:var(--display); color:var(--accent); font-size:24cqh; letter-spacing:.06em; line-height:1}
+.stil-intro.speel .woord{animation:intro-woord 3.6s cubic-bezier(.2,.7,.2,1) forwards}
+.stil-intro .onder{position:absolute; bottom:24cqh; font-weight:800; letter-spacing:.4em; text-transform:uppercase; font-size:2.6cqh; color:var(--muted); opacity:0}
+.stil-intro.speel .onder{animation:intro-onder 3.6s ease forwards}
+@keyframes intro-weg{0%{opacity:1} 78%{opacity:1} 100%{opacity:0}}
+@keyframes intro-woord{0%{transform:scale(1.35); letter-spacing:.4em; opacity:0; filter:blur(8px)} 30%{opacity:1; filter:blur(0)} 70%{transform:scale(1); letter-spacing:.06em; text-shadow:0 0 60px rgb(229 50 45 / .6)} 100%{transform:scale(.96); letter-spacing:.06em}}
+@keyframes intro-onder{0%,35%{opacity:0} 55%,85%{opacity:1} 100%{opacity:0}}
+@media (max-aspect-ratio:1/1){
+  .stil-info, .stil-kies{max-width:none; right:4.5cqw}
+  #stilGetal{font-size:22cqh} .stil-rechts{top:calc(16cqh + env(safe-area-inset-top,0px)); left:4.5cqw; justify-items:start}
+}
+
+/* Leestijd op de iPad: kiezen en een leesplek */
+.lees{position:fixed; inset:0; z-index:27; container-type:size; background:#0b0a0d; color:var(--fg); overflow:hidden}
+.lees-logo{font-family:var(--display); color:var(--accent); letter-spacing:.03em; line-height:1}
+.lees-kies{position:absolute; inset:0; display:grid; grid-template-rows:auto 1fr auto; justify-items:center;
+  padding:calc(5cqmin + env(safe-area-inset-top,0px)) 6cqmin calc(6cqmin + env(safe-area-inset-bottom,0px))}
+.lees-kies .lees-logo{justify-self:start; font-size:max(30px,7cqmin)}
+.lees-midden{display:grid; align-content:center; justify-items:center; gap:6cqmin; width:min(100%, 130cqh)}
+.lees-midden h2{margin:0; font-family:var(--body); font-weight:800; font-size:max(24px,6.4cqmin); letter-spacing:0; text-align:center}
+.lees-plekken{display:grid; grid-template-columns:1fr 1fr; gap:6cqmin; width:min(100%, 92cqmin)}
+.lees-plek{display:grid; justify-items:center; gap:2.6cqmin; padding:0; border:0; background:none; color:var(--muted); font:inherit}
+.lees-vak{position:relative; width:100%; aspect-ratio:1; border-radius:3cqmin; overflow:hidden; outline:max(3px,.6cqmin) solid transparent; outline-offset:max(4px,.8cqmin); transition:outline-color .15s}
+.lees-vak canvas{display:block; width:100%; height:100%}
+.lees-plek b{font-weight:700; font-size:max(17px,4.2cqmin)}
+.lees-plek.vorige .lees-vak, .lees-plek:focus-visible .lees-vak, .lees-plek:hover .lees-vak{outline-color:var(--fg)}
+.lees-plek.vorige b{color:var(--fg)}
+.lees-voet{display:grid; justify-items:center; gap:2.4cqmin; font-weight:700; font-size:max(15px,3.4cqmin); color:var(--muted)}
+.lees-rand{padding:.5em 1.2em; border:2px solid #4a4852; border-radius:6px; background:none; font-weight:800; letter-spacing:.12em; text-transform:uppercase; font-size:max(13px,2.8cqmin); color:var(--muted)}
+.lees-scene{position:absolute; inset:0}
+.lees-scene canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.lees-scene .lees-logo{position:absolute; top:calc(4.5cqmin + env(safe-area-inset-top,0px)); left:5cqmin; font-size:max(26px,6cqmin); text-shadow:0 2px 12px rgb(0 0 0 / .6)}
+.lees-pil{padding:.55em 1.1em; border:0; border-radius:99px; background:rgb(0 0 0 / .42); color:rgb(247 245 242 / .85); font-weight:800; font-size:max(14px,3cqmin);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
+.lees-wissel{position:absolute; top:calc(4.2cqmin + env(safe-area-inset-top,0px)); right:4.5cqmin}
+.lees-speler{position:absolute; left:5cqmin; right:5cqmin; bottom:calc(5cqmin + env(safe-area-inset-bottom,0px)); display:grid; gap:2.6cqmin}
+.lees-rij{display:flex; justify-content:space-between; align-items:center; gap:1em; font-weight:700; font-size:max(15px,3.2cqmin); color:rgb(247 245 242 / .75)}
+.lees-terug{position:fixed; z-index:24; right:calc(16px + env(safe-area-inset-right,0px)); bottom:calc(16px + env(safe-area-inset-bottom,0px)); padding:.7em 1.2em; border:0; border-radius:99px;
+  background:var(--accent); color:#fff; font-weight:800; box-shadow:0 8px 24px rgb(0 0 0 / .4)}
+@media (prefers-reduced-motion:reduce){ .stil-intro.speel, .stil-intro.speel *{animation:none} }
 @media (pointer:coarse){
   input[type=text], input[type=number], input[type=date], .acties input{font-size:max(1em,16px)}
   .knop{min-height:40px}
@@ -856,6 +905,17 @@ body:not(.lid) .alleen-lid{display:none!important}
     </div>
     <label class="vink" for="belWissel"><input type="checkbox" id="belWissel"> <span>Bij een nieuw seizoen vanzelf andere beloningen</span></label>
     <p class="uitleg" id="belMeld" role="status" hidden></p>
+    <section class="instel alleen-juf" id="leesBlok">
+      <h3>Leestijd</h3>
+      <label class="vink" for="leesAan"><input type="checkbox" id="leesAan"> <span>Elke werkdag samen stil lezen</span></label>
+      <div class="instel-rij"><label for="leesVan">Van</label><input type="time" id="leesVan" step="300"></div>
+      <div class="instel-rij"><label for="leesTot2">Tot</label><input type="time" id="leesTot2" step="300"></div>
+      <div class="instel-rij"><label for="leesBeeld">Beeld op het digibord</label>
+        <select id="leesBeeld"><option value="wissel">Om en om</option><option value="vuur">Kampvuur</option><option value="lamp">Leeslamp</option></select></div>
+      <div class="instel-rij"><label for="leesKids">Aantal leerlingen</label><input type="number" id="leesKids" min="0" max="40" step="1" inputmode="numeric"></div>
+      <p class="uitleg">Om de begintijd start de leestijd op het digibord vanzelf (als Bookflix daar openstaat) en kiezen de kinderen op hun iPad een leesplek. Met het aantal leerlingen telt Bookflix de leesminuten van de klas.</p>
+      <div class="opnieuw"><button class="knop" id="leesSkip" type="button">Vandaag geen leestijd</button></div>
+    </section>
     <section class="instel" id="klasBlok" hidden>
       <h3>iPads koppelen</h3>
       <div class="klas-rij">
@@ -957,43 +1017,69 @@ body:not(.lid) .alleen-lid{display:none!important}
   </div>
 </div>
 
-<div class="stil" id="stilScherm" role="dialog" aria-modal="true" aria-label="Stilleesklok" hidden>
+<div class="stil" id="stilScherm" role="dialog" aria-modal="true" aria-label="Leestijd" hidden>
+  <div class="stil-scene"><canvas id="stilDoek" aria-hidden="true"></canvas></div>
+  <div class="stil-waas"></div>
+  <span class="stil-logo" aria-hidden="true">BOOKFLIX</span>
   <div class="stil-kies" id="stilKies">
-    <p class="stil-merk">STILLEZEN</p>
+    <p class="stil-label"><span class="b" aria-hidden="true">B</span>Leestijd</p>
     <p class="stil-vraag" id="stilVraagTekst">Hoe lang lezen we?</p>
     <div class="stil-duren" id="stilDuren" role="radiogroup" aria-labelledby="stilVraagTekst"></div>
+    <div class="stil-beelden" id="stilBeelden" role="radiogroup" aria-label="Beeld"></div>
     <div class="stil-acties">
       <button class="knop wit groot" id="stilStart" type="button">Start</button>
       <button class="tekstknop" id="stilTerug" type="button">Terug</button>
     </div>
   </div>
   <div class="stil-loopt" id="stilLoopt" hidden>
-    <div class="stil-klok">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="stil-baan" cx="50" cy="50" r="46"/><circle class="stil-rest" id="stilRing" cx="50" cy="50" r="46" pathLength="1000"/></svg>
-      <div class="stil-midden">
-        <p class="stil-tijd" id="stilTijd" role="timer" aria-live="off">15:00</p>
-        <p class="stil-sub" id="stilSub">Lees in je eigen boek</p>
-      </div>
-    </div>
-    <div class="stil-onder">
-      <div class="stil-stand">
-        <p><b id="stilStand">0</b> van de <span id="stilDoel">0</span> duimen <span class="stil-erbij" id="stilErbij" hidden></span></p>
-        <div class="stil-balk"><span id="stilBalk"></span></div>
-      </div>
+    <div class="stil-rechts">
+      <p class="stil-afl" id="stilAfl"></p>
       <div class="stil-knoppen">
+        <button class="knop" id="stilBeeld" type="button">Ander beeld</button>
         <button class="knop" id="stilPauze" type="button">Pauze</button>
         <button class="knop" id="stilMeer" type="button">+5 min</button>
         <button class="knop" id="stilStop" type="button">Stoppen</button>
       </div>
     </div>
+    <div class="stil-info">
+      <p class="stil-label"><span class="b" aria-hidden="true">B</span>Leestijd</p>
+      <p class="stil-tijd" role="timer"><span id="stilGetal">15</span><span id="stilEenheid">minuten</span></p>
+      <p class="stil-meta" id="stilMeta"></p>
+    </div>
+    <div class="stil-onder"><div class="stil-balk"><span id="stilBalk"></span><i id="stilStip"></i></div><em id="stilEind"></em></div>
   </div>
   <div class="stil-klaar" id="stilKlaar" hidden>
-    <p class="stil-merk">TIJD!</p>
+    <p class="stil-groot">TIJD!</p>
     <p class="stil-klaar-tekst">Leg een bladwijzer in je boek.</p>
     <p class="stil-klaar-sub" id="stilKlaarSub">Boek uit? Zet hem op de plank met de iPad.</p>
     <button class="knop wit groot" id="stilDicht" type="button">Naar het scorebord</button>
   </div>
+  <div class="stil-intro" id="stilIntro" aria-hidden="true"><span class="woord">BOOKFLIX</span><span class="onder">Leestijd</span></div>
 </div>
+
+<div class="lees" id="leesScherm" role="dialog" aria-modal="true" aria-label="Leestijd" hidden>
+  <div class="lees-kies" id="leesKies">
+    <span class="lees-logo" aria-hidden="true">BOOKFLIX</span>
+    <div class="lees-midden">
+      <h2>Waar lees jij vandaag?</h2>
+      <div class="lees-plekken">
+        <button class="lees-plek" type="button" data-plek="lamp"><span class="lees-vak"><canvas aria-hidden="true"></canvas></span><b>Leeslamp</b></button>
+        <button class="lees-plek" type="button" data-plek="vuur"><span class="lees-vak"><canvas aria-hidden="true"></canvas></span><b>Kampvuur</b></button>
+      </div>
+    </div>
+    <div class="lees-voet"><span id="leesTot"></span><button class="lees-rand" id="leesUit1" type="button">Boek uit?</button></div>
+  </div>
+  <div class="lees-scene" id="leesScene" hidden>
+    <canvas id="leesDoek" aria-hidden="true"></canvas>
+    <span class="lees-logo" aria-hidden="true">BOOKFLIX</span>
+    <button class="lees-pil lees-wissel" id="leesWissel" type="button">Wissel</button>
+    <div class="lees-speler">
+      <div class="lees-rij"><span id="leesNog"></span><button class="lees-pil" id="leesUit2" type="button">Boek uit? Zet hem op de plank</button></div>
+      <div class="lees-balk"><span id="leesBalk"></span><i id="leesStip"></i></div>
+    </div>
+  </div>
+</div>
+<button class="lees-terug" id="leesTerug" type="button" hidden>Terug naar je leesplek</button>
 
 <datalist id="titels"></datalist>
 
@@ -1007,6 +1093,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   </div>
 </div>
 
+<script src="sfeer.js"></script>
 <script>
 /* De opslag (opslag.js) vult deze belofte in zodra duidelijk is wie er inlogt */
 window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
@@ -1116,6 +1203,20 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         return k;
       })(),
       log: log,
+      /* Vaste leestijd, de lopende leestijd (voor de iPads) en de leesmomenten van dit seizoen */
+      leestijd: (function () {
+        var l = d.leestijd && typeof d.leestijd === "object" ? d.leestijd : {}, uur = /^([01]\d|2[0-3]):[0-5]\d$/;
+        return { aan: l.aan === true, van: uur.test(l.van) ? l.van : "10:00", tot: uur.test(l.tot) ? l.tot : "10:15",
+          beeld: l.beeld === "vuur" || l.beeld === "lamp" ? l.beeld : "wissel", kinderen: Math.min(40, heel(l.kinderen)),
+          overslaan: typeof l.overslaan === "string" && DAG.test(l.overslaan) ? l.overslaan : "" };
+      })(),
+      leesNu: d.leesNu && typeof d.leesNu === "object" && heel(d.leesNu.start) && heel(d.leesNu.tot) ? { start: heel(d.leesNu.start), tot: heel(d.leesNu.tot) } : null,
+      lezen: (function () {
+        var z = {};
+        if (d.lezen && typeof d.lezen === "object") Object.keys(d.lezen).filter(function (k) { return DAG.test(k); }).sort().slice(-200)
+          .forEach(function (k) { z[k] = Math.min(180, heel(d.lezen[k])); });
+        return z;
+      })(),
       bijgewerkt: heel(d.bijgewerkt)
     };
   }
@@ -2140,6 +2241,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     toonArchief();
     if (document.activeElement !== $("belWissel")) $("belWissel").checked = state.belWissel;
     zet($("doel"), String(state.doel));
+    if (document.activeElement !== $("leesAan")) $("leesAan").checked = state.leestijd.aan;
+    zet($("leesVan"), state.leestijd.van); zet($("leesTot2"), state.leestijd.tot);
+    if (document.activeElement !== $("leesBeeld")) $("leesBeeld").value = state.leestijd.beeld;
+    zet($("leesKids"), state.leestijd.kinderen ? String(state.leestijd.kinderen) : "");
+    var vandaagGeen = state.leestijd.overslaan === dagSleutel(new Date());
+    $("leesSkip").textContent = vandaagGeen ? "Toch leestijd vandaag" : "Vandaag geen leestijd";
     zet($("einde"), state.einde);
     corrEls.forEach(function (c) { zet(c.inp, String(c.lees(state))); });
     beloningEls.forEach(function (b, i) {
@@ -3068,6 +3175,19 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("belMeld").textContent = n ? "Gewisseld. Beloningen die al zijn vrijgespeeld, blijven staan." : "Alle beloningen zijn al vrijgespeeld.";
     $("belMeld").hidden = false;
   });
+  $("leesAan").addEventListener("change", function () { var aan = this.checked; wijzig(function (s) { s.leestijd.aan = aan; }, false); });
+  ["leesVan", "leesTot2"].forEach(function (id) {
+    $(id).addEventListener("change", function () {
+      var v = this.value; if (!/^\d\d:\d\d$/.test(v)) return;
+      wijzig(function (s) { s.leestijd[id === "leesVan" ? "van" : "tot"] = v; }, false);
+    });
+  });
+  $("leesBeeld").addEventListener("change", function () { var v = this.value; wijzig(function (s) { s.leestijd.beeld = v; }, false); });
+  $("leesKids").addEventListener("change", function () { var v = Math.min(40, heel(+this.value)); wijzig(function (s) { s.leestijd.kinderen = v; }, false); });
+  $("leesSkip").addEventListener("click", function () {
+    var k = dagSleutel(new Date());
+    wijzig(function (s) { s.leestijd.overslaan = s.leestijd.overslaan === k ? "" : k; }, false);
+  });
   $("belWissel").addEventListener("change", function () {
     var aan = this.checked;
     wijzig(function (s) { s.belWissel = aan; }, false);
@@ -3093,7 +3213,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         s.einde = dagSleutel(eind);
       }
       GENRES.forEach(function (g) { s.genres[g.id] = 0; });
-      s.log = {}; s.boeken = [];
+      s.log = {}; s.boeken = []; s.lezen = {};
       if (s.belWissel) kiesBeloningen(s, true);
       AWARDS.forEach(function (a) { s.awards[a.id] = ""; });
     }, false);
@@ -3134,43 +3254,96 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   document.addEventListener("visibilitychange", wakker);
   document.addEventListener("pointerdown", wakker, { once: true });
 
-  /* ---------- Stilleesklok ----------
-     Een rustige klok voor het digibord. De klok loopt op dit apparaat (ook na verversen), de stand
-     van de klas eronder loopt live mee: boeken die tijdens het lezen worden ingevuld, tellen meteen. */
-  var STIL_DUREN = [10, 15, 20, 30, 45], stil = null, stilKlok = null, stilGeluid = null, stilVol = false;
+  /* ---------- Leestijd ----------
+     Digibord: een herkenbaar Bookflix-scherm met een sfeerbeeld, een groot aftelgetal en een rode balk,
+     zoals een film die loopt. Start om de vaste leestijd vanzelf (als Bookflix openstaat), of met het klokje.
+     iPads: tijdens de leestijd kiezen de kinderen een leesplek (leeslamp of kampvuur).
+     Het digibord zet de lopende leestijd in de gedeelde stand (leesNu), zodat de iPads meedoen. */
+  var STIL_DUREN = [10, 15, 20, 30, 45], stil = null, stilKlok = null, stilGeluid = null, stilVol = false, stilStopScene = null, stilSceneSoort = "";
   var stilKeuze = (function () { try { return +localStorage.getItem("bookflix.stilduur") || 15; } catch (e) { return 15; } })();
+  var stilBeeldKeuze = "";
+  function tijdTekst(ms) { var d = new Date(ms); return d.getHours() + "." + ("0" + d.getMinutes()).slice(-2); }
+  function vandaagOm(hhmm, nu) { var d = new Date(nu), p = String(hhmm || "").split(":"); d.setHours(+p[0] || 0, +p[1] || 0, 0, 0); return d.getTime(); }
+  /* Het vaste leesmoment van vandaag, of null */
+  function leesVenster(nu) {
+    var l = state.leestijd, d = new Date(nu);
+    if (!l.aan || d.getDay() === 0 || d.getDay() === 6 || l.overslaan === dagSleutel(d)) return null;
+    var van = vandaagOm(l.van, nu), tot = vandaagOm(l.tot, nu);
+    return tot > van ? { van: van, tot: tot } : null;
+  }
+  /* Is het nu leestijd? Een lopende leestijd van het digibord gaat voor; anders het vaste moment,
+     tenzij de leerkracht die al heeft gestopt. */
+  function leesStatus(nu) {
+    var n = state.leesNu, w = leesVenster(nu);
+    if (n && n.start <= nu + 60000 && n.tot > nu) return { start: n.start, tot: n.tot };
+    if (w && nu >= w.van && nu < w.tot) {
+      if (n && n.start >= w.van - 300000 && n.start < w.tot) return null;
+      return { start: w.van, tot: w.tot };
+    }
+    return null;
+  }
+  function standaardBeeld() {
+    var b = state.leestijd.beeld;
+    if (b === "vuur" || b === "lamp") return b;
+    var d = new Date(), dag = Math.floor((d - new Date(d.getFullYear(), 0, 1)) / 864e5);
+    return dag % 2 ? "lamp" : "vuur";
+  }
+  function weekMinuten() {
+    var ma = dagSleutel(maandagVan(new Date())), m = 0, keer = 0;
+    Object.keys(state.lezen).forEach(function (k) { if (k >= ma) { m += state.lezen[k]; keer++; } });
+    return { min: m, keer: keer };
+  }
+  function urenTekst(min) {
+    var u = Math.floor(min / 60), r = min % 60;
+    return u ? u + " uur" + (r ? " " + r + " min" : "") : r + " min";
+  }
   function stilBewaar() { try { if (stil) localStorage.setItem("bookflix.stil", JSON.stringify(stil)); else localStorage.removeItem("bookflix.stil"); } catch (e) {} }
   function stilRest() { return !stil ? 0 : stil.pauze != null ? stil.pauze : stil.eind - Date.now(); }
   function stilFase(f) {
     $("stilKies").hidden = f !== "kies"; $("stilLoopt").hidden = f !== "loopt"; $("stilKlaar").hidden = f !== "klaar";
   }
-  function stilDuren() {
+  function stilScene(soort) {
+    if (stilSceneSoort === soort && stilStopScene) return;
+    if (stilStopScene) stilStopScene();
+    stilStopScene = null; stilSceneSoort = soort;
+    if (window.Sfeer) stilStopScene = window.Sfeer.start($("stilDoek"), soort, [soort === "vuur" ? 0.7 : 0.66, 0.5], soort === "vuur" ? 900 : 760);
+  }
+  function stilKiesKnoppen() {
     var doos = $("stilDuren"); doos.textContent = "";
     STIL_DUREN.forEach(function (m) {
       var b = el("button"); b.type = "button"; b.setAttribute("role", "radio");
       b.setAttribute("aria-checked", String(m === stilKeuze));
       b.appendChild(document.createTextNode(m)); b.appendChild(el("small", null, "minuten"));
-      b.addEventListener("click", function () { stilKeuze = m; try { localStorage.setItem("bookflix.stilduur", m); } catch (e) {} stilDuren(); });
+      b.addEventListener("click", function () { stilKeuze = m; try { localStorage.setItem("bookflix.stilduur", m); } catch (e) {} stilKiesKnoppen(); });
       doos.appendChild(b);
     });
+    var bd = $("stilBeelden"); bd.textContent = "";
+    [["vuur", "Kampvuur"], ["lamp", "Leeslamp"]].forEach(function (x) {
+      var b = el("button", null, x[1]); b.type = "button"; b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", String(x[0] === stilBeeldKeuze));
+      b.addEventListener("click", function () { stilBeeldKeuze = x[0]; stilScene(x[0]); stilKiesKnoppen(); });
+      bd.appendChild(b);
+    });
   }
-  function stilOpen() {
+  function stilToon() {
     $("stilScherm").hidden = false;
     document.documentElement.classList.add("vast");
-    if (stil) { stilFase(stilRest() > 0 ? "loopt" : "klaar"); stilTik(); stilLoop(); }
-    else { stilDuren(); stilFase("kies"); setTimeout(function () { $("stilStart").focus(); }, 30); }
+  }
+  function stilOpen() {
+    stilToon();
+    if (stil) { stilScene(stil.beeld || standaardBeeld()); stilFase(stilRest() > 0 ? "loopt" : "klaar"); stilTik(); stilLoop(); }
+    else { stilBeeldKeuze = standaardBeeld(); stilScene(stilBeeldKeuze); stilKiesKnoppen(); stilFase("kies"); setTimeout(function () { $("stilStart").focus(); }, 30); }
   }
   function stilSluit() {
     clearInterval(stilKlok); stilKlok = null;
+    if (stilStopScene) stilStopScene(); stilStopScene = null; stilSceneSoort = "";
     $("stilScherm").hidden = true;
     if (stilVol && volNu()) { try { var p = volUit.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
     stilVol = false;
-    /* Terug naar het scherm waar je was (met of zonder scrollen) */
     var nu = !$("start").hidden ? "start" : Object.keys(TABS).filter(function (k) { return !$(k).hidden; })[0] || "bord";
     kies(stil === null && !$("stilKlaar").hidden ? "bord" : nu);
   }
   function stilLoop() { clearInterval(stilKlok); stilKlok = setInterval(stilTik, 250); }
-  /* Een zachte gong van drie tonen, zonder geluidsbestand */
   function stilGong() {
     try {
       var ac = stilGeluid; if (!ac) return;
@@ -3183,12 +3356,18 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       });
     } catch (e) {}
   }
-  function stilStand() {
+  function stilIntro() {
+    var i = $("stilIntro"); i.classList.remove("speel"); void i.offsetWidth; i.classList.add("speel");
+  }
+  function stilTekst() {
     if ($("stilScherm").hidden || !stil) return;
-    var t = totaal(state), erbij = Math.max(0, t - (stil.begin || 0));
-    $("stilStand").textContent = t; $("stilDoel").textContent = state.doel;
-    $("stilBalk").style.width = Math.min(100, state.doel ? t / state.doel * 100 : 0) + "%";
-    $("stilErbij").hidden = !erbij; $("stilErbij").textContent = "+" + erbij + " tijdens het lezen";
+    var erbij = Math.max(0, totaal(state) - (stil.begin || 0)), w = weekMinuten(), kids = state.leestijd.kinderen;
+    var delen = ["Stil lezen tot " + tijdTekst(stil.pauze != null ? Date.now() + stil.pauze : stil.eind)];
+    if (w.keer) delen.push(kids ? "deze week samen " + urenTekst(w.min * kids) : "deze week " + w.keer + "× samen gelezen");
+    var m = $("stilMeta"); m.textContent = delen.join(" · ");
+    if (erbij) { m.appendChild(document.createTextNode(" · ")); m.appendChild(el("b", null, "+" + erbij + (erbij === 1 ? " duim" : " duimen"))); }
+    var afl = Object.keys(state.lezen).length;
+    $("stilAfl").textContent = "Seizoen " + state.seizoen + (afl ? " · Aflevering " + afl : "");
     $("stilKlaarSub").textContent = erbij
       ? "Tijdens het lezen kwamen er " + erbij + (erbij === 1 ? " duim" : " duimen") + " bij. Boek uit? Zet hem op de plank met de iPad."
       : "Boek uit? Zet hem op de plank met de iPad.";
@@ -3197,58 +3376,74 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (!stil) return;
     var rest = stilRest();
     if (rest <= 0) {
-      if (!stil.klaar) { stil.klaar = true; stilBewaar(); stilGong(); }
+      if (!stil.klaar) {
+        stil.klaar = true; stilBewaar(); stilGong();
+        /* Na twee minuten vanzelf terug naar het scorebord */
+        setTimeout(function () { if (stil && stil.klaar && !$("stilScherm").hidden) { stil = null; stilBewaar(); stilSluit(); } }, 120000);
+      }
       clearInterval(stilKlok); stilKlok = null;
-      stilFase("klaar"); stilStand(); setTimeout(function () { $("stilDicht").focus(); }, 30);
+      stilFase("klaar"); stilTekst(); setTimeout(function () { $("stilDicht").focus(); }, 30);
       return;
     }
-    var sec = Math.ceil(rest / 1000), m = Math.floor(sec / 60), ss = sec % 60;
-    var tijd = m + ":" + (ss < 10 ? "0" : "") + ss;
-    if ($("stilTijd").textContent !== tijd) $("stilTijd").textContent = tijd;
-    $("stilRing").style.strokeDashoffset = String(Math.round(1000 * (1 - rest / stil.duur)));
-    $("stilScherm").classList.toggle("laatste", rest <= 60000);
+    var laatste = rest <= 60000, getal = laatste ? String(Math.ceil(rest / 1000)) : String(Math.ceil(rest / 60000));
+    if ($("stilGetal").textContent !== getal) $("stilGetal").textContent = getal;
+    $("stilEenheid").textContent = stil.pauze != null ? "pauze" : laatste ? "seconden" : getal === "1" ? "minuut" : "minuten";
+    var deel = Math.max(0, Math.min(100, (1 - rest / stil.duur) * 100)) + "%";
+    $("stilBalk").style.width = deel; $("stilStip").style.left = deel;
+    $("stilEind").textContent = tijdTekst(stil.pauze != null ? Date.now() + stil.pauze : stil.eind);
     $("stilScherm").classList.toggle("pauze", stil.pauze != null);
     $("stilPauze").textContent = stil.pauze != null ? "Verder" : "Pauze";
-    $("stilSub").textContent = stil.pauze != null ? "Pauze" : rest <= 60000 ? "Nog even: lees je bladzijde uit" : "Lees in je eigen boek";
-    stilStand();
+    stilTekst();
   }
-  $("stilKnop").addEventListener("click", stilOpen);
-  $("stilTerug").addEventListener("click", stilSluit);
-  $("stilStart").addEventListener("click", function () {
-    var duur = stilKeuze * 60000;
-    stil = { eind: Date.now() + duur, duur: duur, pauze: null, begin: totaal(state) };
+  /* Een leestijd starten: op dit digibord en in de gedeelde stand, zodat de iPads meedoen */
+  function stilBegin(eind, duur, beeld, metIntro) {
+    stil = { eind: eind, duur: duur, pauze: null, begin: totaal(state), beeld: beeld };
     stilBewaar();
-    /* Geluid mag pas na een tik; hier maken we het alvast klaar */
     try { var AC = window.AudioContext || window.webkitAudioContext; if (AC && !stilGeluid) stilGeluid = new AC(); if (stilGeluid && stilGeluid.state === "suspended") stilGeluid.resume(); } catch (e) {}
+    stilToon(); stilScene(beeld); stilFase("loopt"); stilTik(); stilLoop();
+    if (metIntro) stilIntro();
+    var nu = Date.now(), min = Math.round(duur / 60000);
+    if (kanSchrijven) wijzig(function (s) {
+      s.leesNu = { start: nu, tot: eind };
+      var k = dagSleutel(new Date());
+      s.lezen[k] = Math.max(s.lezen[k] || 0, min);
+    }, false);
+  }
+  function stilDeelEind(eind) { if (kanSchrijven) wijzig(function (s) { if (s.leesNu) s.leesNu.tot = eind; }, false); }
+  $("stilKnop").addEventListener("click", stilOpen);
+  $("stilTerug").addEventListener("click", function () { stil = null; stilSluit(); });
+  $("stilStart").addEventListener("click", function () {
     if (!volNu() && typeof volVraag === "function") {
       try { var p = volVraag.call(root); stilVol = true; if (p && p.catch) p.catch(function () { stilVol = false; }); } catch (e) { stilVol = false; }
     }
-    $("stilRing").style.transition = "none"; $("stilRing").style.strokeDashoffset = "0";
-    void $("stilRing").getBoundingClientRect(); $("stilRing").style.transition = "";
-    stilFase("loopt"); stilTik(); stilLoop();
+    var duur = stilKeuze * 60000;
+    stilBegin(Date.now() + duur, duur, stilBeeldKeuze || standaardBeeld(), true);
+  });
+  $("stilBeeld").addEventListener("click", function () {
+    if (!stil) return;
+    stil.beeld = stil.beeld === "vuur" ? "lamp" : "vuur"; stilBewaar(); stilScene(stil.beeld);
   });
   $("stilPauze").addEventListener("click", function () {
     if (!stil) return;
-    if (stil.pauze != null) { stil.eind = Date.now() + stil.pauze; stil.pauze = null; }
+    if (stil.pauze != null) { stil.eind = Date.now() + stil.pauze; stil.pauze = null; stilDeelEind(stil.eind); }
     else stil.pauze = Math.max(0, stil.eind - Date.now());
     stilBewaar(); stilTik();
   });
   $("stilMeer").addEventListener("click", function () {
     if (!stil) return;
-    if (stil.pauze != null) stil.pauze += 300000; else stil.eind += 300000;
-    stil.duur = Math.max(stil.duur, stilRest());
+    if (stil.pauze != null) stil.pauze += 300000; else { stil.eind += 300000; stilDeelEind(stil.eind); }
+    stil.duur += 300000;
     stilBewaar(); stilTik();
   });
   $("stilStop").addEventListener("click", function () {
     var k = $("stilStop");
-    /* Twee keer tikken, zodat de klok niet per ongeluk stopt */
     if (!k.classList.contains("zeker")) {
       k.classList.add("zeker"); k.textContent = "Echt stoppen?";
       setTimeout(function () { k.classList.remove("zeker"); k.textContent = "Stoppen"; }, 3000);
       return;
     }
     k.classList.remove("zeker"); k.textContent = "Stoppen";
-    stil = null; stilBewaar(); stilSluit();
+    stil = null; stilBewaar(); stilDeelEind(Date.now()); stilSluit();
   });
   $("stilDicht").addEventListener("click", function () { stil = null; stilBewaar(); stilSluit(); });
   document.addEventListener("keydown", function (e) {
@@ -3256,6 +3451,72 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (e.key === "Escape" && !stil) stilSluit();
     if (e.key === " " && stil && !$("stilLoopt").hidden && e.target === document.body) { e.preventDefault(); $("stilPauze").click(); }
   });
+  /* Om de vaste tijd start het digibord vanzelf (alleen op het apparaat van de leerkracht) */
+  function stilAutomatisch() {
+    if (!kanSchrijven || !isJuf()) return;
+    var nu = Date.now(), w = leesVenster(nu);
+    if (!w || nu < w.van || nu >= w.tot - 30000) return;
+    if (stil && !stil.klaar && stilRest() > 0) return;
+    var sleutel = dagSleutel(new Date()) + " " + state.leestijd.van, gedaan = "";
+    try { gedaan = localStorage.getItem("bookflix.stilauto") || ""; } catch (e) {}
+    if (gedaan === sleutel) return;
+    var n = state.leesNu;
+    if (n && n.start >= w.van - 300000 && n.start < w.tot) return; /* deze leestijd liep al (of is gestopt) */
+    try { localStorage.setItem("bookflix.stilauto", sleutel); } catch (e) {}
+    stilBegin(w.tot, w.tot - w.van, standaardBeeld(), true);
+  }
+
+  /* ---------- iPad: leesplek ---------- */
+  var lees = { sessie: "", weg: "", plek: "", stops: [], scene: null, sceneSoort: "" };
+  try { lees.plek = localStorage.getItem("bookflix.leesplek") || ""; } catch (e) {}
+  function leesStopAlles() { lees.stops.forEach(function (f) { f(); }); lees.stops = []; if (lees.scene) lees.scene(); lees.scene = null; lees.sceneSoort = ""; }
+  function leesKies() {
+    leesStopAlles();
+    $("leesKies").hidden = false; $("leesScene").hidden = true;
+    Array.prototype.forEach.call(document.querySelectorAll(".lees-plek"), function (b) {
+      b.classList.toggle("vorige", b.dataset.plek === lees.plek);
+      if (window.Sfeer) lees.stops.push(window.Sfeer.start(b.querySelector("canvas"), b.dataset.plek));
+    });
+  }
+  function leesNaarPlek(soort) {
+    lees.plek = soort; try { localStorage.setItem("bookflix.leesplek", soort); } catch (e) {}
+    leesStopAlles();
+    $("leesKies").hidden = true; $("leesScene").hidden = false;
+    if (window.Sfeer) { lees.scene = window.Sfeer.start($("leesDoek"), soort); lees.sceneSoort = soort; }
+  }
+  function leesDicht() { leesStopAlles(); $("leesScherm").hidden = true; document.documentElement.classList.remove("vast"); }
+  function leesTik() {
+    if (isJuf() || eersteSnap) { if (!$("leesScherm").hidden) leesDicht(); $("leesTerug").hidden = true; return; }
+    var nu = Date.now(), st = leesStatus(nu), id = st ? String(st.start) : "";
+    if (!st) {
+      if (!$("leesScherm").hidden) { leesDicht(); kies("invoer"); }
+      $("leesTerug").hidden = true; lees.sessie = ""; return;
+    }
+    if (lees.sessie !== id) { lees.sessie = id; lees.weg = ""; }
+    var open = lees.weg !== id;
+    $("leesTerug").hidden = open;
+    if (open && $("leesScherm").hidden) {
+      $("leesScherm").hidden = false; document.documentElement.classList.add("vast");
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      leesKies();
+    }
+    var rest = st.tot - nu, min = Math.max(1, Math.ceil(rest / 60000));
+    $("leesTot").textContent = "Leestijd tot " + tijdTekst(st.tot);
+    $("leesNog").textContent = rest <= 60000 ? "nog even" : "nog " + min + " min";
+    var deel = Math.max(0, Math.min(100, (nu - st.start) / Math.max(1, st.tot - st.start) * 100)) + "%";
+    $("leesBalk").style.width = deel; $("leesStip").style.left = deel;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".lees-plek"), function (b) {
+    b.addEventListener("click", function () { leesNaarPlek(b.dataset.plek); });
+  });
+  $("leesWissel").addEventListener("click", function () { leesKies(); });
+  function leesBoekUit() { lees.weg = lees.sessie; leesDicht(); kies("invoer"); $("leesTerug").hidden = false; }
+  $("leesUit1").addEventListener("click", leesBoekUit);
+  $("leesUit2").addEventListener("click", leesBoekUit);
+  $("leesTerug").addEventListener("click", function () { lees.weg = ""; leesTik(); });
+  setInterval(function () { stilAutomatisch(); leesTik(); }, 5000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { stilAutomatisch(); leesTik(); } });
+
   /* Liep de klok nog toen de pagina werd ververst? Dan gaat hij gewoon verder */
   try { var stilOud = JSON.parse(localStorage.getItem("bookflix.stil") || "null"); if (stilOud && stilOud.duur && Date.now() - stilOud.eind < 3600000) stil = stilOud; } catch (e) {}
   if (stil && !stil.klaar) stilOpen();
@@ -3305,6 +3566,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         if (kanSchrijven) schrijfLokaal(state);
         toon();
         meldBewaard();
+        leesTik();
         if (!document.body.classList.contains("lid")) {
           if (nieuweBoeken.length) {
             var laatste = nieuweBoeken[nieuweBoeken.length - 1];

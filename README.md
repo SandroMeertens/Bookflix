@@ -37,3 +37,7 @@ Zie [STAPPENPLAN.md](STAPPENPLAN.md). Kort: Firebase-project (Spark, gratis) →
 Vul geen achternamen of foto's van leerlingen in: de site bewaart alleen boektitels, aantallen duimen en beloningen.
 
 Bekende kinderboeken en strips (ruim 130 titels) herkent Bookflix meteen uit een eigen lijst, inclusief de juiste rij. Verder zoekt het bij Google Boeken, Open Library en de Nederlandse Wikipedia; Wikipedia levert ook een korte inhoud waarmee de AI betere vragen maakt. Echte kaften komen van Google Boeken of Open Library. Daarbij gaat alleen de zoektekst (titel of schrijver) naar die diensten. Wordt er geen kaft gevonden, dan krijgt het boek een getekende kaft. Bij **Boeken** kan de leerkracht met **Andere kaft** een andere uitgave kiezen of terug naar de getekende kaft. Houd deze GitHub-map **privé**.
+
+## Leestijd
+
+Bij **Instellen → Leestijd** zet je een vaste leestijd aan, bijvoorbeeld elke werkdag van 10.00 tot 10.15. Staat Bookflix op het digibord open, dan start om 10.00 vanzelf het leesscherm: een korte Bookflix-intro, een kampvuur of leeslamp, een groot aftelgetal en een rode balk. Met het klokje rechtsboven start je ook zelf een leestijd. De iPads doen automatisch mee: kinderen kiezen een leesplek (leeslamp of kampvuur). Met *Boek uit?* gaan ze naar **Mijn boek**. Met het aantal leerlingen telt Bookflix de leesminuten van de klas. Het kampvuur en de leeslamp worden door de website zelf getekend (`sfeer.js`): geen video's, geen downloads.
