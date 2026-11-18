@@ -63,5 +63,18 @@ service cloud.firestore {
         allow read, update, delete: if isOwner(k);
       }
     }
+    // Taalwoorden (sandromeertens.github.io/Taalwoorden-): de instellingen van de leerkracht.
+    // Iedere iPad mag ze lezen. Wie ze als eerste opslaat (inloggen met Google), is de eigenaar;
+    // alleen die mag ze daarna veranderen.
+    match /taalwoorden/{d} {
+      allow get: if d == 'instellingen';
+      allow list: if false;
+      allow create: if d == 'instellingen' && isJuf() && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'pin', 'uit', 'alles', 'actief', 't']);
+      allow update: if d == 'instellingen' && isJuf() && resource.data.owner == request.auth.uid
+                    && request.resource.data.owner == resource.data.owner
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'pin', 'uit', 'alles', 'actief', 't']);
+      allow delete: if false;
+    }
   }
 }
