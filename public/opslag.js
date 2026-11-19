@@ -334,6 +334,7 @@ async function begin() {
   function koppelOpen() { if (!klasData) return; $("koppelScherm").hidden = false; tekenQR(); setTimeout(() => $("koppelDicht").focus(), 30); }
   function koppelDicht() { $("koppelScherm").hidden = true; }
   $("koppelKnop").addEventListener("click", koppelOpen);
+  $("koppelGroot").addEventListener("click", () => { const d = $("instellen"); if (d && d.open) d.close(); koppelOpen(); });
   $("koppelDicht").addEventListener("click", koppelDicht);
   $("koppelScherm").addEventListener("click", (e) => { if (e.target === $("koppelScherm")) koppelDicht(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("koppelScherm").hidden) koppelDicht(); });
