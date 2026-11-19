@@ -300,6 +300,17 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .bord-volgende b{font-weight:800}
 .bord-meta{margin:0; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .bord-meta[hidden]{display:none}
+/* Leestijd centraal: een grote witte afspeelknop, zoals bij een film */
+.bord-acties{display:flex; flex-wrap:wrap; align-items:center; gap:.7em; margin-top:.3em}
+.knop.speel{display:inline-flex; align-items:center; gap:.55em; padding:.62em 1.5em .62em 1.15em; border-radius:10px; background:#fff; color:#121115; font-size:1.3em; font-weight:800; box-shadow:0 10px 24px -10px rgb(0 0 0 / .6)}
+.knop.speel:hover{background:#e9e6e0}
+.knop.speel svg{width:1.15em; height:1.15em; fill:currentColor}
+.knop.speel.loopt{background:var(--accent); color:#fff}
+#bonusKnop{font-size:1.05em; padding:.7em 1.1em}
+.lees-wanneer{margin:0; color:var(--muted); font-weight:600}
+.lees-wanneer[hidden]{display:none}
+/* De leestijd staat nu op het scorebord; niet ook nog in de bovenbalk */
+#stilKnop{display:none!important}
 .afl{display:grid; grid-template-rows:auto 1fr; min-width:0}
 .plank{display:flex; align-items:flex-end; gap:.12em; height:3.4em; padding-inline:.5em; border-bottom:.28em solid var(--line)}
 .plank.dicht{gap:0}
@@ -1001,7 +1012,14 @@ body:not(.lid) .alleen-lid{display:none!important}
         <p class="opbouw" id="opbouw" hidden></p>
         <p class="bord-volgende" id="bordVolgende"></p>
         <p class="bord-meta" id="bordKaart" hidden></p>
-        <button class="knop wit alleen-juf schrijf" id="bonusKnop" type="button" style="justify-self:start" hidden>Verder lezen: bonusronde</button>
+        <div class="bord-acties">
+          <button class="knop speel alleen-juf" id="leesStart" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+            <span id="leesStartTekst">Start leestijd</span>
+          </button>
+          <button class="knop alleen-juf schrijf prive" id="bonusKnop" type="button" hidden>Verder lezen: bonusronde</button>
+        </div>
+        <p class="lees-wanneer" id="leesWanneer" hidden></p>
         <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
              De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
         <div class="bord-invoer" hidden>
@@ -2654,7 +2672,18 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("boekZoek").addEventListener("input", boekFilter);
   /* Kaartje op het scorebord: wanneer er vandaag gelezen wordt, en welk boek deze week het vaakst is uitgelezen */
   var vorigeVg = -1;
+  function leesKnopTekst() {
+    var loopt = typeof stil !== "undefined" && stil && !stil.klaar && stilRest() > 0;
+    $("leesStartTekst").textContent = loopt ? "Terug naar de leestijd" : "Start leestijd";
+    $("leesStart").classList.toggle("loopt", !!loopt);
+    var w = $("leesWanneer");
+    if (state.leestijd.aan && !loopt) {
+      w.textContent = "Vaste leestijd: elke werkdag om " + state.leestijd.van.replace(":", ".") + " uur";
+      w.hidden = false;
+    } else w.hidden = true;
+  }
   function bordKaart() {
+    leesKnopTekst();
     var doos = $("bordKaart"), delen = [];
     if (state.leestijd.aan) {
       var nu = new Date(), dag = nu.getDay(), w = leesVenster(Date.now()), van = state.leestijd.van.replace(":", ".");
@@ -3773,8 +3802,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       tekst: function () { return "Alles wat alleen voor jou is, zit onder het tandwieltje. Kies daar iPads koppelen: op het digibord verschijnen de klascode en een QR-code. De kinderen scannen die of tikken de code in op hun iPad."; } },
     { titel: "Kinderen vullen hun boek in", doel: function () { return "menuKnop"; },
       tekst: function () { return "Boek uit? Op de iPad kiezen ze bij Mijn boek de titel, beantwoorden ze drie vragen over het boek en geven ze sterren. Onder het tandwieltje kijk jij bij Vragen nakijken de antwoorden na; het rode getal laat zien hoeveel er klaarstaan."; } },
-    { titel: "Samen lezen", doel: function () { return "stilKnop"; },
-      tekst: function () { return "Met Leestijd start je de klok met een kampvuur of leeslamp, en de iPads doen mee. Bij Instellen zet je een vaste tijd, bijvoorbeeld elke werkdag om 10.00."; } }
+    { titel: "Samen lezen", doel: function () { return "leesStart"; },
+      tekst: function () { return "Met Start leestijd start je de klok met een kampvuur of leeslamp, en de iPads doen mee. Ook een kind mag op de knop drukken. Bij Instellen zet je een vaste tijd, bijvoorbeeld elke werkdag om 10.00."; } }
   ], rondNr = 0;
   function rondToon() {
     var st = ROND[rondNr];
@@ -4108,6 +4137,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     else { stilBeeldKeuze = standaardBeeld(); stilScene(stilBeeldKeuze); stilKiesKnoppen(); stilFase("kies"); setTimeout(function () { $("stilStart").focus(); }, 30); }
   }
   function stilSluit() {
+    setTimeout(leesKnopTekst, 0);
     clearInterval(stilKlok); stilKlok = null;
     if (stilStopScene) stilStopScene(); stilStopScene = null; stilSceneSoort = "";
     $("stilScherm").hidden = true;
@@ -4247,6 +4277,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
   function stilDeelEind(eind) { if (kanSchrijven) wijzig(function (s) { if (s.leesNu) s.leesNu.tot = eind; }, false); }
   $("stilKnop").addEventListener("click", stilOpen);
+  $("leesStart").addEventListener("click", stilOpen);
   /* Digibord met aanraakscherm: een tik ergens op het scherm laat de knoppen even goed zien */
   var knoppenTimer = 0;
   $("stilScherm").addEventListener("pointerdown", function () {
