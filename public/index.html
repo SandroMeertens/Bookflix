@@ -39,6 +39,20 @@
   color-scheme:dark;
 }
 
+/* Lichte weergave voor een beamer in een lichte klas (per apparaat in te stellen) */
+html.licht{
+  --bg:#F5F3EF; --glow:#F6D8D3; --surface:#FFFFFF; --raised:#E9E6E0; --raised-2:#DDD9D2; --line:#D6D1C9; --field:#FFFFFF;
+  --fg:#17161A; --muted:#5C5864; --ink:#F7F5F2; --accent:#D42A25;
+  --gold:#B07D00; --ok:#1E9A55; --warn:#B86E00; --slot:#E4E0D9; --sluier:rgb(245 243 239 / .97);
+  color-scheme:light;
+}
+/* Kaften, leestijd en intro blijven zoals ze zijn */
+html.licht .kaft, html.licht .stil, html.licht .lees, html.licht .bfintro, html.licht .lees-terug{
+  --bg:#0F0E11; --surface:#1C1B20; --raised:#2B2A31; --line:#37353E; --fg:#F7F5F2; --muted:#A9A6B0; --ink:#121115; --accent:#E5322D; --ok:#58D08B;
+}
+html.licht .afl.vrij .afl-lijf{background:#17161A; color:#F7F5F2}
+html.licht .afl.vrij .afl-nr, html.licht .afl.vrij .afl-kop{color:#F7F5F2}
+html.licht .rug:not(.vol){background:#D9D4CC}
 *{box-sizing:border-box}
 html{touch-action:manipulation; -webkit-text-size-adjust:100%; text-size-adjust:100%}
 body{
@@ -107,6 +121,27 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 .ikoon.zeker{width:auto; padding:0 .8em; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
 /* iPad van de klas: alleen wat een leerling nodig heeft */
 .lid #tabFinale, .lid #volKnop{display:none!important}
+/* Leerkracht: invullen gaat via '+ Boek' rechts; de tab 'Mijn boek' is er voor de iPads */
+body:not(.lid) #tabInvoer{display:none}
+.kop-juf{display:flex; align-items:center; gap:.4em 1.1em}
+.kop-streep{width:1px; height:1.6em; background:var(--line)}
+.knop.plus{padding-inline:.85em; font-weight:800}
+.knop.plus span{font-size:1.25em; line-height:0; margin-right:.1em}
+.knop.plus[aria-pressed="true"]{background:var(--fg); color:var(--bg)}
+#koppelKnop{display:inline-flex; align-items:center; gap:.45em}
+#koppelKnop svg{width:1.2em; height:1.2em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round}
+#koppelKnop[hidden]{display:none}
+/* Na het koppelen is het geen hoofdknop meer: alleen het pictogram */
+#koppelKnop.klein{padding:0; width:2.4em; height:2.4em; justify-content:center; background:transparent; color:var(--muted)}
+#koppelKnop.klein:hover{background:var(--raised); color:var(--fg)}
+#koppelKnop.klein span{display:none}
+#presKnop .pres-uit{display:none}
+.presentatie #presKnop .pres-aan{display:none} .presentatie #presKnop .pres-uit{display:block}
+.presentatie #presKnop{background:var(--raised); color:var(--fg)}
+/* Klasweergave: wat alleen voor de leerkracht is, verdwijnt van het digibord */
+.presentatie .prive, .presentatie #bonusKnop, .presentatie .boek-meer{display:none!important}
+/* De opslagstatus alleen laten zien als er iets is */
+.kop .bewaard.ok{display:none}
 .tab{border:0; background:none; padding:.25em 0; font-weight:800; color:var(--muted); border-bottom:.18em solid transparent}
 .tab:hover{color:var(--fg)}
 .tab[aria-pressed="true"]{color:var(--fg); border-bottom-color:var(--accent)}
@@ -199,7 +234,15 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 @keyframes val{from{transform:translateY(-130%)}}
 .afl-lijf{display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:.1em .8em; background:var(--surface); border-radius:0 0 10px 10px; padding:.55em .9em .65em}
 .afl-nr{grid-row:1 / span 2; font-family:var(--display); font-size:2.8em; line-height:1; color:var(--muted); font-variant-numeric:tabular-nums}
-.afl-kop{display:flex; flex-wrap:wrap; justify-content:space-between; gap:0 .8em; font-size:.78em; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+/* Kaartje op het scorebord: de leestijd van vandaag en het boek van de week */
+.bord-kaart{display:flex; flex-wrap:wrap; gap:.6em}
+.bord-kaart[hidden]{display:none}
+.bord-kaart > div{display:flex; align-items:center; gap:.6em; padding:.5em .85em; border-radius:10px; background:var(--surface); min-width:0}
+.bord-kaart .eyebrow{margin:0}
+.bord-kaart b{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bord-kaart svg{width:1.15em; height:1.15em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; flex:none; color:var(--muted)}
+.afl-vink{display:inline-grid; place-items:center; width:1.7em; height:1.7em; margin-block:-.3em; border-radius:50%; background:var(--ok); color:#fff; font-size:1.05em; letter-spacing:0; flex:none}
+.afl-kop{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 .8em; font-size:.78em; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
 .afl-naam{font-weight:800; font-size:1.1em; line-height:1.25; overflow-wrap:anywhere}
 .afl-naam.leeg{color:var(--muted); font-weight:600}
 .afl.vrij .afl-lijf{background:var(--fg); color:var(--ink)}
@@ -258,6 +301,9 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 
 /* Boeken van de klas */
 .lijst{display:grid; gap:1em; align-content:start; min-width:0}
+.boek-zoek{font:inherit; width:min(100%,22em); padding:.55em .8em; border-radius:10px; border:1px solid var(--line); background:var(--field); color:var(--fg)}
+.boek-geen{color:var(--muted); font-weight:600}
+.groep[hidden], .boeken li[hidden]{display:none}
 .groepen{display:grid; grid-template-columns:minmax(0,1fr); gap:1.6em; align-items:start; min-width:0}
 .groep{display:grid; gap:.4em; min-width:0}
 .groep h3{display:flex; align-items:center; gap:.6em}
@@ -321,6 +367,31 @@ h3{margin:0; font-size:.8em; font-weight:800; letter-spacing:.12em; text-transfo
 dialog::backdrop{background:rgb(0 0 0 / .65)}
 dialog label{font-weight:700}
 .instel{display:grid; gap:.9em; margin-top:.9em}
+.voorbeeld-balk{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:25; display:flex; align-items:center; gap:1em; flex-wrap:wrap; justify-content:center;
+  width:max-content; max-width:calc(100vw - 32px); padding:.6em .7em .6em 1.1em; border-radius:14px; background:var(--accent); color:#fff; font-weight:600; box-shadow:0 12px 30px rgb(0 0 0 / .4)}
+.voorbeeld-balk[hidden]{display:none}
+.voorbeeld-balk .knop{text-decoration:none}
+.wiz{width:min(34rem, calc(100vw - 32px))}
+.wiz-stap{display:grid; gap:.8em; margin-top:.4em}
+.wiz-stap[hidden]{display:none}
+.wiz-bel{display:grid; gap:.5em}
+.wiz-voet{display:flex; align-items:center; gap:1em}
+.wiz-voet #wizVerder{margin-left:auto}
+.regels-kop{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.4em 1.2em}
+.hand{max-width:min(46rem, calc(100vw - 32px))}
+.hand-delen{display:grid; gap:1.1em; margin-top:1em}
+.hand-delen h3{margin:0 0 .35em}
+.hand-delen ul{display:grid; gap:.35em; padding-left:1.2em; list-style:disc}
+.hand-delen li{color:var(--muted); font-weight:600; line-height:1.45}
+.instel-tabs{display:flex; gap:.3em; margin-top:.8em; padding:.25em; border-radius:12px; background:var(--field); border:1px solid var(--line); overflow-x:auto}
+.instel-tabs button{flex:1 0 auto; padding:.45em .9em; border:0; border-radius:9px; background:none; color:var(--muted); font:inherit; font-weight:800}
+.instel-tabs button[aria-selected="true"]{background:var(--raised); color:var(--fg)}
+.paneel{display:grid; gap:.9em; align-content:start}
+.paneel[hidden]{display:none}
+.duo-rij{display:flex; flex-wrap:wrap; gap:.5em}
+.duo-rij input{flex:1 1 14em; font:inherit; padding:.5em .7em; border-radius:8px; border:1px solid var(--line); background:var(--field); color:var(--fg)}
+.duo-lijst{display:grid; gap:.3em}
+.duo-lijst li{display:flex; align-items:center; justify-content:space-between; gap:1em; padding:.4em .7em; border-radius:8px; background:var(--raised)}
 input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--accent)}
 .vink{display:flex; align-items:flex-start; gap:.6em; font-weight:700; line-height:1.3}
 .vink input{margin-top:.1em}
@@ -763,17 +834,27 @@ body:not(.lid) .alleen-lid{display:none!important}
       <button class="tab" id="tabBord" type="button" aria-pressed="true">Scorebord</button>
       <button class="tab" id="tabLijst" type="button" aria-pressed="false">Boeken</button>
       <button class="tab" id="tabFinale" type="button" aria-pressed="false">Awards</button>
-      <button class="tab alleen-juf" id="tabAntw" type="button" aria-pressed="false">Vragen<span class="tel" id="antwTel" hidden></span></button>
       <button class="tab" id="tabRegels" type="button" aria-pressed="false">Spelregels</button>
     </nav>
     <div class="kop-rechts">
       <p class="bewaard" id="status" role="status"><span class="stip"></span><span id="statusTekst">Stand wordt geladen</span></p>
-      <button class="knop alleen-juf" id="koppelKnop" type="button" hidden>iPads koppelen</button>
-      <button class="ikoon schrijf alleen-juf" id="instelKnop" type="button" aria-label="Instellen" title="Instellen">
+      <div class="kop-juf alleen-juf prive">
+        <button class="knop plus schrijf" id="plusBoek" type="button" aria-pressed="false" title="Een boek op de plank zetten"><span aria-hidden="true">+</span> Boek</button>
+        <button class="tab" id="tabAntw" type="button" aria-pressed="false">Vragen<span class="tel" id="antwTel" hidden></span></button>
+      </div>
+      <span class="kop-streep alleen-juf prive" aria-hidden="true"></span>
+      <button class="knop alleen-juf" id="koppelKnop" type="button" hidden title="iPads koppelen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.2"/><path d="M10.5 18.5h3"/></svg><span>iPads koppelen</span>
+      </button>
+      <button class="ikoon schrijf alleen-juf prive" id="instelKnop" type="button" aria-label="Instellen" title="Instellen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
       <button class="ikoon met-tekst alleen-juf" id="stilKnop" type="button" title="Leestijd starten">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5M19 5.5l-1.5 1.5"/></svg><span>Leestijd</span>
+      </button>
+      <button class="ikoon alleen-juf" id="presKnop" type="button" aria-pressed="false" title="Klasweergave: verbergt wat alleen voor de leerkracht is">
+        <svg class="pres-aan" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
+        <svg class="pres-uit" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
       <button class="ikoon" id="volKnop" type="button" aria-label="Volledig scherm" title="Volledig scherm" hidden>
         <svg class="vol-aan" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -812,6 +893,7 @@ body:not(.lid) .alleen-lid{display:none!important}
           <span class="week-tekst" id="weekTekst"></span>
         </div>
         <p class="opbouw" id="opbouw" hidden></p>
+        <div class="bord-kaart" id="bordKaart" hidden></div>
         <button class="knop wit alleen-juf schrijf" id="bonusKnop" type="button" style="justify-self:start" hidden>Verder lezen: bonusronde</button>
         <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
              De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
@@ -851,7 +933,8 @@ body:not(.lid) .alleen-lid{display:none!important}
       <h2>Boeken van de klas</h2>
       <p class="uitleg">Alle titels per soort. Met ••• pas je de kaft of de vragen aan, of haal je een boek weg.</p>
     </div>
-    <p class="uitleg" id="boekenLeeg">Nog geen titels. Vul op het scorebord bij een duim de titel in.</p>
+    <p class="uitleg" id="boekenLeeg">Nog geen titels. Kinderen zetten hun boek op de plank met de iPad, of jij met + Boek.</p>
+    <input type="search" id="boekZoek" class="boek-zoek" placeholder="Zoek een boek" aria-label="Zoek een boek" autocomplete="off">
     <div class="legenda" id="legendaLijst"></div>
     <div class="groepen" id="boeken"></div>
   </main>
@@ -922,7 +1005,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   </main>
 
   <main class="regels" id="regels" hidden>
-    <h2>Zo werkt het</h2>
+    <div class="regels-kop"><h2>Zo werkt het</h2><button class="tekstknop alleen-juf prive" id="handRegels" type="button">Handleiding voor de leerkracht</button></div>
     <ul class="regel-lijst">
       <li><h3>Duim</h3><p>Boek uit? Pak een iPad, kies bij Mijn boek je boek en beantwoord drie vragen. Dan krijgt je boek een duim en komt het op de plank.</p></li>
       <li><h3>Beloning</h3><p id="regelBeloning">Bij een volle plank speelt de klas een beloning vrij.</p></li>
@@ -947,35 +1030,104 @@ body:not(.lid) .alleen-lid{display:none!important}
   </main>
 </div>
 
-<dialog id="instellen" aria-labelledby="instelKop">
-  <h2 id="instelKop">Seizoen instellen</h2>
-  <div class="instel">
-    <div class="instel-rij">
-      <label for="doel">Doel van de klas</label>
-      <input type="number" id="doel" min="4" max="1000" step="1" inputmode="numeric">
-    </div>
-    <div class="instel-rij">
-      <label for="einde">Laatste dag</label>
-      <input type="date" id="einde">
-    </div>
-    <div id="beloningVelden" style="display:grid;gap:.5em"></div>
-    <div class="opnieuw">
-      <button class="knop" id="belNu" type="button">Andere beloningen kiezen</button>
-      <button class="knop" id="bonusAan" type="button">Bonusronde toevoegen</button>
-    </div>
-    <label class="vink" for="belWissel"><input type="checkbox" id="belWissel"> <span>Bij een nieuw seizoen vanzelf andere beloningen</span></label>
-    <p class="uitleg" id="belMeld" role="status" hidden></p>
-    <section class="instel alleen-juf" id="leesBlok">
-      <h3>Leestijd</h3>
-      <label class="vink" for="leesAan"><input type="checkbox" id="leesAan"> <span>Elke werkdag samen stil lezen</span></label>
-      <div class="instel-rij"><label for="leesVan">Van</label><input type="time" id="leesVan" step="300"></div>
-      <div class="instel-rij"><label for="leesTot2">Tot</label><input type="time" id="leesTot2" step="300"></div>
-      <div class="instel-rij"><label for="leesBeeld">Beeld op het digibord</label>
-        <select id="leesBeeld"><option value="wissel">Om en om</option><option value="vuur">Kampvuur</option><option value="lamp">Leeslamp</option></select></div>
-      <div class="instel-rij"><label for="leesKids">Aantal leerlingen</label><input type="number" id="leesKids" min="0" max="40" step="1" inputmode="numeric"></div>
-      <p class="uitleg">Om de begintijd start de leestijd op het digibord vanzelf (als Bookflix daar openstaat) en kiezen de kinderen op hun iPad een leesplek. Met het aantal leerlingen telt Bookflix de leesminuten van de klas.</p>
-      <div class="opnieuw"><button class="knop" id="leesSkip" type="button">Vandaag geen leestijd</button></div>
+<dialog id="wizard" class="wiz" aria-labelledby="wizKop">
+  <p class="eyebrow" id="wizStap">Stap 1 van 4</p>
+  <div class="wiz-stap" data-stap="1">
+    <h2 id="wizKop">Welkom bij Bookflix</h2>
+    <p class="uitleg">We zetten je klas in vier stappen klaar. Hoeveel kinderen zitten er in je klas?</p>
+    <div class="instel-rij"><label for="wizKids">Aantal kinderen</label><input type="number" id="wizKids" min="1" max="40" step="1" inputmode="numeric" value="26"></div>
+    <div class="instel-rij"><label for="wizDoel">Doel van de klas (duimen)</label><input type="number" id="wizDoel" min="4" max="1000" step="1" inputmode="numeric"></div>
+    <p class="uitleg">Een goed doel is ongeveer 4 boeken per kind per seizoen. Elk uitgelezen boek is één duim.</p>
+  </div>
+  <div class="wiz-stap" data-stap="2" hidden>
+    <h2>Tot wanneer loopt het seizoen?</h2>
+    <p class="uitleg">Een seizoen duurt meestal tot een vakantie. Daarna zijn de Bookflix Awards.</p>
+    <div class="instel-rij"><label for="wizEinde">Laatste dag</label><input type="date" id="wizEinde"></div>
+  </div>
+  <div class="wiz-stap" data-stap="3" hidden>
+    <h2>Waar speelt de klas voor?</h2>
+    <p class="uitleg">Bij elke volle plank een beloning. Pas ze gerust aan, of kies ze samen met de klas.</p>
+    <div class="wiz-bel" id="wizBel"></div>
+    <div class="opnieuw"><button class="tekstknop" id="wizAnder" type="button">Andere voorstellen</button></div>
+  </div>
+  <div class="wiz-stap" data-stap="4" hidden>
+    <h2>Koppel de iPads</h2>
+    <p class="uitleg" id="wizKoppelTekst">Op de iPad open je Bookflix en vul je de klascode in. Of scan de QR-code met de camera.</p>
+    <p class="klascode" id="wizCode"></p>
+    <p class="uitleg">Tip: zet Bookflix als app op het beginscherm van de iPad (Safari, deelknop, Zet op beginscherm). De code en QR-code vind je later altijd bij iPads koppelen.</p>
+  </div>
+  <div class="dialoog-voet wiz-voet">
+    <button class="tekstknop" id="wizTerug" type="button">Terug</button>
+    <button class="tekstknop" id="wizLater" type="button">Later</button>
+    <button class="knop wit" id="wizVerder" type="button">Volgende</button>
+  </div>
+</dialog>
+
+<dialog id="handleiding" class="hand" aria-labelledby="handKop">
+  <h2 id="handKop">Handleiding voor de leerkracht</h2>
+  <p class="uitleg">Bookflix in vijf minuten. De kinderen lezen de Spelregels; dit is voor jou.</p>
+  <div class="hand-delen">
+    <section>
+      <h3>1. Klaarzetten</h3>
+      <ul>
+        <li>Kies bij Instellen → Seizoen het doel en de laatste dag. Reken op ongeveer 4 boeken per kind per seizoen.</li>
+        <li>Kies vier beloningen, samen met de klas als dat kan. Dan willen ze er ook echt voor lezen.</li>
+        <li>Koppel de iPads met de klascode of de QR-code (knop iPads koppelen).</li>
+      </ul>
     </section>
+    <section>
+      <h3>2. De eerste les (15 minuten)</h3>
+      <ul>
+        <li>Laat het startscherm zien: "Dit is onze eigen leesserie. Elk boek dat je uitleest, zet een boek op de plank."</li>
+        <li>Lees samen de Spelregels. Laat zien hoe je op de iPad bij Mijn boek een boek kiest en drie vragen beantwoordt.</li>
+        <li>Doe het één keer voor met een boek dat je zelf hebt gelezen, met + Boek.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>3. Elke week</h3>
+      <ul>
+        <li>Maandag: bekijk samen het scorebord. Hoeveel duimen nog tot de volgende aflevering?</li>
+        <li>Tussendoor: kijk bij Vragen de antwoorden na. Goed gelezen? Tik op Goed gelezen. Twijfel? Vraag het kind even naar het boek.</li>
+        <li>Vrijdag: bespreek het Boek van de week en de top van Meest geduimd. Laat een kind vertellen waarom het boek de moeite waard is.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>4. Samen lezen</h3>
+      <ul>
+        <li>Zet bij Instellen → Leestijd een vaste tijd, bijvoorbeeld elke werkdag om 10.00. Het digibord start dan vanzelf; de iPads doen mee.</li>
+        <li>Lees zelf ook. Dat werkt beter dan elke uitleg.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>5. De Awards en een nieuw seizoen</h3>
+      <ul>
+        <li>Is het doel gehaald? Ga naar Awards. Per rij staan de drie meest geduimde boeken klaar. De klas stemt, jij tikt de winnaar aan.</li>
+        <li>Nog niet klaar met lezen? Zet de bonusronde aan voor vier extra afleveringen.</li>
+        <li>Start daarna bij Instellen → Seizoen een nieuw seizoen. Het oude seizoen blijft bewaard bij Awards.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Handig om te weten</h3>
+      <ul>
+        <li>Op het digibord: tik op het schermpje rechtsboven voor de klasweergave. Dan ziet de klas Vragen en Instellen niet. In volledig scherm gaat dat vanzelf.</li>
+        <li>Er staan geen namen van kinderen in Bookflix. Alleen boektitels en antwoorden zonder naam.</li>
+        <li>Werkt iets niet? Instellen → Overig → Werkt alles? controleert de koppelingen.</li>
+      </ul>
+    </section>
+  </div>
+  <div class="dialoog-voet"><button class="knop wit" id="handDicht" type="button">Sluiten</button></div>
+</dialog>
+
+<dialog id="instellen" aria-labelledby="instelKop">
+  <h2 id="instelKop">Instellen</h2>
+  <div class="instel-tabs" role="tablist" aria-label="Onderdelen">
+    <button type="button" role="tab" data-paneel="pKlas" aria-selected="true">Klas</button>
+    <button type="button" role="tab" data-paneel="pSeizoen" aria-selected="false">Seizoen</button>
+    <button type="button" role="tab" data-paneel="pLees" aria-selected="false">Leestijd</button>
+    <button type="button" role="tab" data-paneel="pOverig" aria-selected="false">Overig</button>
+  </div>
+  <div class="instel">
+    <div class="paneel" id="pKlas" role="tabpanel">
     <section class="instel" id="klasBlok" hidden>
       <h3>iPads koppelen</h3>
       <div class="klas-rij">
@@ -993,10 +1145,77 @@ body:not(.lid) .alleen-lid{display:none!important}
         </div>
       </div>
     </section>
+    <section class="instel alleen-juf" id="duoBlok" hidden>
+      <h3>Duo-collega</h3>
+      <p class="uitleg">Werk je in een duobaan? Vul het Google-adres van je collega in. Die logt in met een eigen account en beheert dezelfde klas.</p>
+      <form class="duo-rij" id="duoForm">
+        <input type="email" id="duoMail" placeholder="naam@school.nl" aria-label="Google-adres van je collega" autocomplete="off">
+        <button class="knop" type="submit">Toevoegen</button>
+      </form>
+      <ul class="duo-lijst" id="duoLijst"></ul>
+      <p class="uitleg" id="duoMeld" role="status"></p>
+    </section>
+    <section class="instel">
+      <h3>Hulp</h3>
+      <div class="opnieuw">
+        <button class="knop" id="handOpen" type="button">Handleiding voor de leerkracht</button>
+        <button class="tekstknop" id="rondOpnieuw" type="button">Rondleiding bekijken</button>
+        <button class="tekstknop alleen-juf" id="wizOpnieuw" type="button">Startwizard</button>
+      </div>
+    </section>
+    <div class="instel-rij">
+      <label for="weergave">Weergave op dit apparaat</label>
+      <select id="weergave"><option value="donker">Donker</option><option value="licht">Licht (beamer)</option></select>
+    </div>
+    </div>
+    <div class="paneel" id="pSeizoen" role="tabpanel" hidden>
+    <div class="instel-rij">
+      <label for="doel">Doel van de klas</label>
+      <input type="number" id="doel" min="4" max="1000" step="1" inputmode="numeric">
+    </div>
+    <div class="instel-rij">
+      <label for="einde">Laatste dag</label>
+      <input type="date" id="einde">
+    </div>
+    <div id="beloningVelden" style="display:grid;gap:.5em"></div>
+    <div class="opnieuw">
+      <button class="knop" id="belNu" type="button">Andere beloningen kiezen</button>
+      <button class="knop" id="bonusAan" type="button">Bonusronde toevoegen</button>
+    </div>
+    <label class="vink" for="belWissel"><input type="checkbox" id="belWissel"> <span>Bij een nieuw seizoen vanzelf andere beloningen</span></label>
+    <p class="uitleg" id="belMeld" role="status" hidden></p>
+      <section class="instel alleen-juf" id="voorbeeldBlok">
+        <h3>Voorbeeldklas</h3>
+        <p class="uitleg">Bekijk hoe Bookflix eruitziet als het loopt, met voorbeeldboeken. Je eigen stand blijft bewaard.</p>
+        <div class="opnieuw"><button class="knop" id="voorbeeldKnop" type="button">Voorbeeldboeken laten zien</button></div>
+      </section>
+      <h3>Nieuw seizoen</h3>
+    <div class="opnieuw">
+      <button class="tekstknop" id="opnieuw" type="button">Nieuw seizoen starten</button>
+      <span id="opnieuwVraag" hidden>
+        <span id="opnieuwTekst">Dit seizoen gaat naar het archief en het nieuwe begint op nul.</span>
+        <button class="knop" id="opnieuwJa" type="button">Ja, begin opnieuw</button>
+        <button class="tekstknop" id="opnieuwNee" type="button">Annuleer</button>
+      </span>
+    </div>
+    </div>
+    <div class="paneel" id="pLees" role="tabpanel" hidden>
+    <section class="instel alleen-juf" id="leesBlok">
+      <label class="vink" for="leesAan"><input type="checkbox" id="leesAan"> <span>Elke werkdag samen stil lezen</span></label>
+      <div class="instel-rij"><label for="leesVan">Van</label><input type="time" id="leesVan" step="300"></div>
+      <div class="instel-rij"><label for="leesTot2">Tot</label><input type="time" id="leesTot2" step="300"></div>
+      <div class="instel-rij"><label for="leesBeeld">Beeld op het digibord</label>
+        <select id="leesBeeld"><option value="wissel">Om en om</option><option value="vuur">Kampvuur</option><option value="lamp">Leeslamp</option></select></div>
+      <div class="instel-rij"><label for="leesKids">Aantal leerlingen</label><input type="number" id="leesKids" min="0" max="40" step="1" inputmode="numeric"></div>
+      <p class="uitleg">Om de begintijd start de leestijd op het digibord vanzelf (als Bookflix daar openstaat) en kiezen de kinderen op hun iPad een leesplek. Met het aantal leerlingen telt Bookflix de leesminuten van de klas.</p>
+      <div class="opnieuw"><button class="knop" id="leesSkip" type="button">Vandaag geen leestijd</button></div>
+    </section>
+    </div>
+    <div class="paneel" id="pOverig" role="tabpanel" hidden>
     <section class="instel alleen-juf" id="controleBlok">
       <h3>Werkt alles?</h3>
       <p class="uitleg">Controleert opslaan, boeken zoeken, kaften en de vragen van de AI.</p>
-      <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button> <button class="tekstknop" id="rondOpnieuw" type="button">Rondleiding bekijken</button></div>
+      <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button></div>
       <ul class="controle" id="controleLijst"></ul>
     </section>
     <section class="instel alleen-juf">
@@ -1009,13 +1228,6 @@ body:not(.lid) .alleen-lid{display:none!important}
     </section>
     <h3>Stand corrigeren</h3>
     <div class="corrigeer" id="corrigeer"></div>
-    <div class="opnieuw">
-      <button class="tekstknop" id="opnieuw" type="button">Nieuw seizoen starten</button>
-      <span id="opnieuwVraag" hidden>
-        <span id="opnieuwTekst">Dit seizoen gaat naar het archief en het nieuwe begint op nul.</span>
-        <button class="knop" id="opnieuwJa" type="button">Ja, begin opnieuw</button>
-        <button class="tekstknop" id="opnieuwNee" type="button">Annuleer</button>
-      </span>
     </div>
     <div class="dialoog-voet"><button class="knop wit" id="instelDicht" type="button">Klaar</button></div>
   </div>
@@ -1114,6 +1326,11 @@ body:not(.lid) .alleen-lid{display:none!important}
     <p class="stil-klaar-sub" id="stilKlaarSub">Boek uit? Zet hem op de plank met de iPad.</p>
     <button class="knop wit groot" id="stilDicht" type="button">Naar het scorebord</button>
   </div>
+</div>
+
+<div class="voorbeeld-balk" id="voorbeeldBalk" hidden>
+  <span><b>Voorbeeldklas.</b> Dit is niet de stand van jullie klas; wat je hier doet, wordt niet bewaard.</span>
+  <a class="knop wit" id="voorbeeldTerug" href="./#bord">Terug naar onze klas</a>
 </div>
 
 <div class="bfintro" id="intro" aria-hidden="true">
@@ -2234,6 +2451,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       blok.appendChild(el("h3", null, gen.lang));
       eigen.forEach(function (g) {
         var li = el("li"), kaft = maakKaft(g.t, g.g, g.n);
+        li.dataset.zoek = normaal(g.t);
         tikbaar(kaft, g, g.t + ", " + duimen(g.n));
         if (g.sn) li.appendChild(el("span", "boek-ster", sterTekst(g)));
         var weg = el("button", "tekstknop schrijf alleen-juf", "Weg");
@@ -2275,6 +2493,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       });
       blok.appendChild(ul); lijst.appendChild(blok);
     });
+    boekFilter();
     setTimeout(vulKaften, 0);
     setTimeout(vulVragen, 1500);
     volgorde.forEach(function (g) {
@@ -2282,6 +2501,58 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
   }
 
+  /* Weergave: donker of licht, per apparaat */
+  function weergaveZet(v) {
+    document.documentElement.classList.toggle("licht", v === "licht");
+    $("weergave").value = v === "licht" ? "licht" : "donker";
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", v === "licht" ? "#F5F3EF" : "#0F0E11");
+  }
+  (function () { var v = "donker"; try { v = localStorage.getItem("bookflix.weergave") || "donker"; } catch (e) {} weergaveZet(v); })();
+  $("weergave").addEventListener("change", function () {
+    try { localStorage.setItem("bookflix.weergave", this.value); } catch (e) {}
+    weergaveZet(this.value);
+  });
+  /* Zoeken bij Boeken: alleen de boeken waarvan de titel past */
+  function boekFilter() {
+    var q = normaal($("boekZoek").value).trim(), lijst = $("boeken"), iets = false;
+    Array.prototype.forEach.call(lijst.querySelectorAll(".groep"), function (blok) {
+      var zicht = 0;
+      Array.prototype.forEach.call(blok.querySelectorAll("li"), function (li) {
+        var ja = !q || li.dataset.zoek.indexOf(q) >= 0; li.hidden = !ja; if (ja) zicht++;
+      });
+      blok.hidden = !zicht; if (zicht) iets = true;
+    });
+    var geen = lijst.querySelector(".boek-geen");
+    if (!iets && q) { if (!geen) { geen = el("p", "boek-geen"); lijst.appendChild(geen); } geen.textContent = "Geen boek gevonden met \u2018" + $("boekZoek").value.trim() + "\u2019."; }
+    else if (geen) geen.remove();
+  }
+  $("boekZoek").addEventListener("input", boekFilter);
+  /* Kaartje op het scorebord: wanneer er vandaag gelezen wordt, en welk boek deze week het vaakst is uitgelezen */
+  function bordKaart() {
+    var doos = $("bordKaart"), delen = [];
+    doos.textContent = "";
+    if (state.leestijd.aan) {
+      var nu = new Date(), dag = nu.getDay(), w = leesVenster(Date.now());
+      var t = state.leestijd.van.replace(":", ".") + " - " + state.leestijd.tot.replace(":", ".");
+      var tekst = w ? (Date.now() < w.tot ? "Vandaag " + t : "Morgen " + t) : (dag === 0 || dag === 6 ? "Maandag " + t : "Vandaag geen leestijd");
+      if (w && Date.now() >= w.tot && dag === 5) tekst = "Maandag " + t;
+      delen.push(["Leestijd", tekst, '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/>']);
+    }
+    var ma = dagSleutel(maandagVan(new Date())), tel = {}, beste = null;
+    state.boeken.forEach(function (b) {
+      if (!b.t || b.d < ma) return;
+      var k = sleutelVan(b.t); tel[k] = tel[k] || { t: b.t, n: 0 }; tel[k].n++;
+      if (!beste || tel[k].n > beste.n) beste = tel[k];
+    });
+    if (beste) delen.push(["Boek van de week", beste.t + (beste.n > 1 ? " (" + beste.n + "\u00d7)" : ""), '<path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/>']);
+    delen.forEach(function (d) {
+      var vak = el("div"), sv = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      sv.setAttribute("viewBox", "0 0 24 24"); sv.setAttribute("aria-hidden", "true"); sv.innerHTML = d[2];
+      vak.appendChild(sv); vak.appendChild(el("span", "eyebrow", d[0])); vak.appendChild(el("b", null, d[1]));
+      doos.appendChild(vak);
+    });
+    doos.hidden = !delen.length;
+  }
   function zet(inp, v) { if (document.activeElement !== inp && inp.value !== v) inp.value = v; }
 
   function toon() {
@@ -2305,6 +2576,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       $("weekTekst").textContent = klaar ? "Weekdoel gehaald! " + wk + (wk === 1 ? " duim" : " duimen") + " deze week" : wk + " van " + tp.nodig + " deze week";
     }
     toonBoeken();
+    bordKaart();
     vulLegenda($("legendaLijst")); vulLegenda($("legendaRegels"));
     var alle = alleMijlpalen(state);
     $("regelBeloning").textContent = "Bij " + alle.slice(0, -1).join(", ") + " en " + alle[alle.length - 1] +
@@ -2360,7 +2632,9 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       a.li.classList.toggle("vrij", open);
       a.nr.textContent = ms[i];
       a.kopT.textContent = (blok ? "Bonus " : "Aflevering ") + (blok * 4 + i + 1);
-      a.stand.textContent = open ? "Vrijgespeeld" : "Nog " + duimen(ms[i] - t);
+      a.stand.textContent = open ? "\u2713" : "Nog " + duimen(ms[i] - t);
+      a.stand.className = open ? "afl-vink" : "";
+      if (open) a.stand.setAttribute("aria-label", "Vrijgespeeld"); else a.stand.removeAttribute("aria-label");
       a.naam.textContent = naam || "Beloning nog kiezen";
       a.naam.classList.toggle("leeg", !naam);
     });
@@ -3291,12 +3565,38 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (welke === "bord" || welke === "start") window.scrollTo(0, 0);
     $("start").hidden = welke !== "start";
     $("wrap").classList.toggle("intro", welke === "start");
+    /* In de klasweergave blijven de leerkrachtonderdelen dicht */
+    if (document.documentElement.classList.contains("presentatie") && isJuf() && (welke === "antw" || welke === "invoer")) welke = "bord";
     Object.keys(TABS).forEach(function (k) {
       $(k).hidden = k !== welke;
       $(TABS[k]).setAttribute("aria-pressed", String(k === welke));
     });
+    $("plusBoek").setAttribute("aria-pressed", String(welke === "invoer"));
     pasAan();
   }
+  $("plusBoek").addEventListener("click", function () { kies("invoer"); setTimeout(function () { $("invTitel").focus(); }, 50); });
+  /* Klasweergave (presentatiemodus): met de knop, en vanzelf in volledig scherm */
+  var presHand = false;
+  try { presHand = localStorage.getItem("bookflix.klasweergave") === "1"; } catch (e) {}
+  function presZet() {
+    var aan = presHand || !!(document.fullscreenElement || document.webkitFullscreenElement);
+    document.documentElement.classList.toggle("presentatie", aan && isJuf());
+    $("presKnop").setAttribute("aria-pressed", String(aan));
+    $("presKnop").title = aan ? "Leerkrachtweergave: alles weer zichtbaar" : "Klasweergave: verbergt wat alleen voor de leerkracht is";
+    $("presKnop").setAttribute("aria-label", $("presKnop").title);
+    if (aan && isJuf() && (!$("antw").hidden || !$("invoer").hidden)) kies("bord");
+    pasAan();
+  }
+  $("presKnop").addEventListener("click", function () {
+    var aan = document.documentElement.classList.contains("presentatie");
+    presHand = !aan;
+    /* In volledig scherm de klasweergave uitzetten = ook uit volledig scherm */
+    if (aan && (document.fullscreenElement || document.webkitFullscreenElement)) { try { var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+    try { localStorage.setItem("bookflix.klasweergave", presHand ? "1" : "0"); } catch (e) {}
+    presZet();
+  });
+  document.addEventListener("fullscreenchange", presZet);
+  document.addEventListener("webkitfullscreenchange", presZet);
   /* ---------- Rondleiding: de eerste keer voor een leerkracht ---------- */
   var ROND = [
     { titel: "Koppel de iPads", doel: function () { return !$("koppelKnop").hidden ? "koppelKnop" : "instelKnop"; },
@@ -3327,10 +3627,75 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     try { localStorage.setItem("bookflix.rondleiding", "1"); } catch (e) {}
   }
   function rondMisschien() {
+    if (VOORBEELD) return;
+    if (wizNodig() && !$("wizard").open && !$("instellen").open && $("start").hidden) { if (!$("poort") || $("poort").hidden) wizStart(); return; }
     var gezien = "1"; try { gezien = localStorage.getItem("bookflix.rondleiding"); } catch (e) {}
     if (gezien || !isJuf() || !kanSchrijven || !$("start").hidden || !$("stilScherm").hidden || $("instellen").open || !$("rond").hidden) return;
     if (!$("poort") || $("poort").hidden) rondStart();
   }
+  /* ---------- Startwizard: de eerste keer voor een nieuwe klas ---------- */
+  var wizNr = 1, wizBelWaarden = [];
+  function wizNodig() {
+    var gezien = "1"; try { gezien = localStorage.getItem("bookflix.wizard"); } catch (e) {}
+    /* Pas beslissen als de echte stand binnen is (anders lijkt elke klas op een nieuw apparaat leeg) */
+    var geladen = document.body.classList.contains("demo") || !eersteSnap;
+    return !gezien && geladen && !VOORBEELD && isJuf() && kanSchrijven && totaal(state) === 0 && !state.boeken.length;
+  }
+  function wizMs() { var d = Math.max(4, heel(+$("wizDoel").value) || state.doel); return [1, 2, 3, 4].map(function (i) { return Math.round(d * i / 4); }); }
+  function wizBelTeken() {
+    var doos = $("wizBel"), ms = wizMs(); doos.textContent = "";
+    wizBelWaarden.forEach(function (v, i) {
+      var rij = el("div", "instel-rij"), lab = el("label", null, "Bij " + ms[i] + " duimen"), inp = el("input");
+      inp.type = "text"; inp.maxLength = 60; inp.value = v; inp.id = "wizBel" + i; lab.htmlFor = inp.id;
+      inp.addEventListener("input", function () { wizBelWaarden[i] = inp.value; });
+      rij.appendChild(lab); rij.appendChild(inp); doos.appendChild(rij);
+    });
+  }
+  function wizToon() {
+    Array.prototype.forEach.call(document.querySelectorAll(".wiz-stap"), function (d) { d.hidden = +d.dataset.stap !== wizNr; });
+    $("wizStap").textContent = "Stap " + wizNr + " van 4";
+    $("wizTerug").hidden = wizNr === 1;
+    $("wizVerder").textContent = wizNr === 4 ? "Klaar" : "Volgende";
+    if (wizNr === 3) wizBelTeken();
+    if (wizNr === 4) {
+      var code = ($("klasCode").textContent || "").trim();
+      $("wizCode").textContent = /^[A-Z0-9]{5}$/.test(code) ? code : "";
+      $("wizCode").hidden = !$("wizCode").textContent;
+      $("wizKoppelTekst").textContent = $("wizCode").textContent
+        ? "Op de iPad open je Bookflix en vul je deze klascode in. Of scan de QR-code bij iPads koppelen."
+        : "Zodra je met je Google-account bent ingelogd, krijgt je klas een klascode. Die vind je bij iPads koppelen.";
+    }
+  }
+  function wizStart() {
+    wizNr = 1;
+    var kids = state.leestijd.kinderen || 26;
+    $("wizKids").value = kids; $("wizDoel").value = state.doel !== 100 ? state.doel : Math.max(20, Math.round(kids * 4 / 4) * 4);
+    $("wizEinde").value = state.einde;
+    wizBelWaarden = state.beloningen.slice();
+    wizToon();
+    var d = $("wizard"); if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
+  }
+  function wizKlaar(bewaar) {
+    try { localStorage.setItem("bookflix.wizard", "1"); } catch (e) {}
+    if (bewaar) {
+      var kids = Math.min(40, heel(+$("wizKids").value)), doel = Math.min(1000, Math.max(4, heel(+$("wizDoel").value) || state.doel));
+      var einde = /^\d{4}-\d{2}-\d{2}$/.test($("wizEinde").value) ? $("wizEinde").value : state.einde, bel = wizBelWaarden.slice();
+      wijzig(function (s) { s.doel = doel; s.einde = einde; s.leestijd.kinderen = kids; bel.forEach(function (v, i) { s.beloningen[i] = String(v || "").slice(0, 60); }); }, false);
+    }
+    $("wizard").close();
+    setTimeout(rondMisschien, 400);
+  }
+  $("wizKids").addEventListener("input", function () { var k = heel(+this.value); if (k) $("wizDoel").value = Math.max(20, k * 4); });
+  $("wizVerder").addEventListener("click", function () { if (wizNr < 4) { wizNr++; wizToon(); } else wizKlaar(true); });
+  $("wizTerug").addEventListener("click", function () { if (wizNr > 1) { wizNr--; wizToon(); } });
+  $("wizLater").addEventListener("click", function () { wizKlaar(false); });
+  $("wizard").addEventListener("cancel", function (e) { e.preventDefault(); wizKlaar(false); });
+  $("wizAnder").addEventListener("click", function () {
+    wizBelWaarden = wizBelWaarden.map(function (v, i) { var kan = BELONINGEN[i].filter(function (x) { return x !== v; }); return kan[Math.floor(Math.random() * kan.length)]; });
+    wizBelTeken();
+  });
+  $("wizOpnieuw").addEventListener("click", function () { $("instellen").close(); wizStart(); });
+
   $("rondVerder").addEventListener("click", function () { if (rondNr < ROND.length - 1) { rondNr++; rondToon(); } else rondKlaar(); });
   $("rondOver").addEventListener("click", rondKlaar);
   $("rond").addEventListener("keydown", function (e) { if (e.key === "Escape") rondKlaar(); });
@@ -3345,11 +3710,34 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
 
   /* Instellen */
   function vraagDicht() { $("opnieuwVraag").hidden = true; $("opnieuw").hidden = false; }
-  $("instelKnop").addEventListener("click", function () {
+  /* Instellen: vier onderdelen */
+  function instelPaneel(id) {
+    Array.prototype.forEach.call(document.querySelectorAll(".instel-tabs button"), function (b) {
+      var ja = b.dataset.paneel === id; b.setAttribute("aria-selected", String(ja)); $(b.dataset.paneel).hidden = !ja;
+    });
+    try { localStorage.setItem("bookflix.instelpaneel", id); } catch (e) {}
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".instel-tabs button"), function (b) {
+    b.addEventListener("click", function () { instelPaneel(b.dataset.paneel); });
+  });
+  function instelOpen(paneel) {
     vraagDicht(); $("belMeld").hidden = true;
+    var p = paneel; if (!p) { try { p = localStorage.getItem("bookflix.instelpaneel"); } catch (e) {} }
+    instelPaneel($(p || "") ? p : "pKlas");
     var d = $("instellen");
     if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
-  });
+  }
+  $("instelKnop").addEventListener("click", function () { instelOpen(); });
+  /* Handleiding voor de leerkracht */
+  function handOpen() {
+    if ($("instellen").open) $("instellen").close();
+    var d = $("handleiding");
+    if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
+  }
+  $("handOpen").addEventListener("click", handOpen);
+  $("voorbeeldKnop").addEventListener("click", function () { location.href = location.pathname + "?voorbeeld=1#bord"; });
+  $("handRegels").addEventListener("click", handOpen);
+  $("handDicht").addEventListener("click", function () { $("handleiding").close(); });
   $("instelDicht").addEventListener("click", function () {
     var d = $("instellen");
     if (typeof d.close === "function") d.close(); else d.removeAttribute("open");
@@ -3739,7 +4127,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   });
   /* Om de vaste tijd start het digibord vanzelf (alleen op het apparaat van de leerkracht) */
   function stilAutomatisch() {
-    if (!kanSchrijven || !isJuf()) return;
+    if (!kanSchrijven || !isJuf() || VOORBEELD) return;
     var nu = Date.now(), w = leesVenster(nu);
     if (!w || nu < w.van || nu >= w.tot - 30000) return;
     if (stil && !stil.klaar && stilRest() > 0) return;
@@ -3809,7 +4197,32 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Intro bij het openen van de app: één keer per keer dat Bookflix opent */
   else {
     var introGezien = "1"; try { introGezien = sessionStorage.getItem("bookflix.intro"); sessionStorage.setItem("bookflix.intro", "1"); } catch (e) {}
+    if (/[?&]voorbeeld/.test(location.search)) introGezien = "1";
     if (!introGezien) speelIntro("Elk boek telt");
+  }
+
+  /* Voorbeeldklas: los van de echte klas, met voorbeeldboeken */
+  var VOORBEELD = /[?&]voorbeeld/.test(location.search);
+  if (VOORBEELD) {
+    SLEUTEL = "bookflix-voorbeeld";
+    document.body.classList.add("voorbeeld");
+    try { localStorage.setItem(SLEUTEL, JSON.stringify(voorbeeldStand())); } catch (e) {}
+    $("voorbeeldBalk").hidden = false;
+  }
+  function voorbeeldStand() {
+    var titels = BOEKENLIJST.filter(function (x) { return x.g !== "w"; }).slice(0, 60), boeken = [], z = 7, lezen = {};
+    function r() { z = (z * 9301 + 49297) % 233280; return z / 233280; }
+    var nu = new Date();
+    for (var i = 0; i < 68; i++) {
+      var x = titels[Math.floor(Math.pow(r(), 1.8) * titels.length)], d = new Date(nu); d.setDate(d.getDate() - Math.floor(r() * 26));
+      boeken.push({ t: x.t, g: x.g, d: dagSleutel(d), r: 3 + Math.floor(r() * 3) });
+    }
+    boeken.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+    var g = {}; boeken.forEach(function (b) { g[b.g] = (g[b.g] || 0) + 1; });
+    for (var k = 1; k < 18; k++) { var dd = new Date(nu); dd.setDate(dd.getDate() - k); if (dd.getDay() % 6) lezen[dagSleutel(dd)] = 15; }
+    var eind = new Date(nu); eind.setDate(eind.getDate() + 28);
+    return { genres: g, boeken: boeken, doel: 100, einde: dagSleutel(eind), seizoen: 1, lezen: lezen,
+      leestijd: { aan: true, van: "10:00", tot: "10:15", beeld: "wissel", kinderen: 26, overslaan: "" } };
   }
 
   /* Eerste beeld: de laatste stand die dit apparaat kent, daarna de gedeelde opslag */
@@ -3827,6 +4240,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     }
     if (o && o.rol === "lid") kies("invoer");
     else $("tabInvoer").textContent = "Invullen";
+    presZet();
     ANTW = o && o.antwoorden ? o.antwoorden : (o ? null : lokaleAntwoorden());
     AI = o && o.ai ? o.ai : null;
     FOTO = o && o.fotos ? o.fotos : (o ? null : lokaleFotos());
