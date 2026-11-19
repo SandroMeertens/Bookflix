@@ -2564,8 +2564,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     /* Scorebord: de zes meest geduimde boeken (negen als er ruimte is voor drie rijen) */
     var top = $("toplijst"); top.textContent = "";
     if (!volgorde.length) top.appendChild(el("li", "top-leeg", "Vul bij een duim de titel in. Dan komt het boek hier te staan."));
-    /* Nummer 1 groot uitgelicht, daarna nummer 2 tot en met 5 */
-    top.classList.toggle("uitgelicht", volgorde.length >= 3);
+    /* De zes meest geduimde boeken, allemaal even groot, met hun plek */
+    top.classList.remove("uitgelicht"); /* alle kaften even groot */
     volgorde.slice(0, 6).forEach(function (g, i) {
       var li = el("li"), kaft = maakKaft(g.t, g.g, g.n);
       tikbaar(kaft, g, g.t + ", " + duimen(g.n) + ", " + rijNaam(g.g));
