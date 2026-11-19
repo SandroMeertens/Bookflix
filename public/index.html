@@ -290,8 +290,9 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .voortgang{display:none}
 .bord .voortgang{display:block; padding-top:1em}
 .bord .plank{display:none}
-.vg-balk{position:relative; height:.9em; border-radius:99px; background:var(--slot)}
-.vg-vol{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:inherit; background:linear-gradient(90deg, #B02320, var(--accent)); transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+.vg-balk{position:relative; height:.9em; border-radius:99px; background:rgb(255 255 255 / .08); box-shadow:inset 0 1px 2px rgb(0 0 0 / .5)}
+.vg-vol{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:inherit; background:linear-gradient(180deg, rgb(255 255 255 / .22), transparent 55%), linear-gradient(90deg, #9E1F1C, var(--accent));
+  box-shadow:0 0 1.2em rgb(229 50 45 / .45); transition:width 1.2s cubic-bezier(.22,1,.36,1)}
 .vg-streep{position:absolute; top:-.35em; bottom:-.35em; width:3px; margin-left:-1.5px; border-radius:2px; background:var(--bg)}
 .vg-stip{position:absolute; top:50%; left:0; width:1.7em; height:1.7em; border-radius:50%; background:var(--accent); transform:translate(-50%,-50%);
   box-shadow:0 0 0 .35em rgb(229 50 45 / .25); transition:left 1.2s cubic-bezier(.22,1,.36,1)}
@@ -406,6 +407,14 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .toplijst:not(.uitgelicht) .rang-lang, .toplijst.smal .rang-lang{display:none}
 .toplijst:not(.uitgelicht) .rang-kort, .toplijst.smal .rang-kort{display:inline}
 .toplijst:not(.uitgelicht) .rang.een, .toplijst.smal .rang.een{font-family:var(--display); font-size:.9em; height:1.55em; padding:0 .35em; letter-spacing:.02em}
+/* Op het scorebord: rustiger duimtellers en een lichte 'til' bij aanwijzen */
+.toplijst .kaft-n{font-size:10.5cqw; padding:2.4cqw 4.4cqw; background:rgb(10 9 12 / .72); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px)}
+.toplijst .kaft{transition:transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s}
+@media (hover:hover){ .toplijst .kaft:hover{transform:translateY(-4px) scale(1.03); box-shadow:0 1.4em 2.4em -.8em rgb(0 0 0 / .8), 0 0 0 2px rgb(255 255 255 / .85)} }
+#topKop{display:flex; align-items:center; gap:.38em}
+.top-badge{display:inline-grid; align-content:center; justify-items:center; width:1.05em; height:1.12em; border-radius:.1em; background:var(--accent); color:#fff;
+  font-family:var(--display); font-size:1em; line-height:.78; letter-spacing:0; flex:none}
+.top-badge b{display:block; font-weight:400; font-size:.34em; letter-spacing:.14em; margin-bottom:.12em}
 .toplijst .kaft{box-shadow:0 .8em 1.8em -.6em rgb(0 0 0 / .7)}
 /* Filmposter-achtergrond achter het scorebord */
 .bord-achter{display:none}
@@ -1092,7 +1101,7 @@ body:not(.lid) .alleen-lid{display:none!important}
     <div class="rechts">
       <section class="topblok" aria-labelledby="topKop">
         <div class="rij-kop">
-          <h2 id="topKop">Meest geduimd</h2>
+          <h2 id="topKop"><span class="top-badge" aria-hidden="true"><b>TOP</b>6</span>Meest geduimd</h2>
         </div>
         <ol class="toplijst" id="toplijst"></ol>
       </section>
