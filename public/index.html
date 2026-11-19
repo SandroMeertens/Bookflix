@@ -196,10 +196,12 @@ h2{font-family:var(--display); font-weight:400; font-size:1.9em; letter-spacing:
 @keyframes tik{40%{transform:scale(1.07)}}
 .van{font-weight:800; font-size:1.35em}
 .bord .teller-rij{flex-wrap:nowrap; align-items:flex-end; gap:0 .5em}
-.bord .van{display:grid; font-size:1.25em; line-height:1.15; padding-bottom:.35em; color:var(--muted)}
+.bord .van{display:grid; font-size:1.25em; line-height:1.15; padding-bottom:.35em; color:var(--muted); font-weight:700}
 .bord .van span:first-child{color:var(--fg)}
 .bord .stand{gap:1em}
-.bord .bord-volgende{font-size:1.5em; line-height:1.25; text-wrap:balance}
+.bord .bord-volgende{font-size:1.5em; line-height:1.25; text-wrap:balance; font-weight:700}
+.bord .lees-wanneer{font-size:1em; font-weight:600}
+.bord .eyebrow{color:var(--muted)}
 .bord #bonusKnop{margin-top:.1em}
 .opbouw{color:var(--muted); font-weight:600; text-wrap:balance}
 .acties{display:flex; flex-wrap:wrap; align-items:center; gap:.5em .8em}
@@ -272,6 +274,9 @@ html.licht .bord .afl.vrij .afl-nr, html.licht .bord .afl.vrij .afl-kop{color:va
 .bord .plank{gap:.08em}
 .bord .rug:not(.vol){background:rgb(255 255 255 / .05)}
 html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
+.afl-klaar{display:none}
+.bord .afleveringen.alles-klaar .afl{display:none}
+.bord .afleveringen.alles-klaar .afl-klaar{display:flex; align-items:center; justify-content:space-between; gap:1em; padding:.7em 0; border-block:1px solid var(--line); font-weight:700; font-size:1.12em; color:var(--muted)}
 .bord-volgende{font-size:1.4em; font-weight:700; margin:0; line-height:1.3}
 /* Scorebord: één rode voortgangsbalk met vier stukken, zoals een film die loopt */
 .voortgang{display:none}
@@ -301,12 +306,16 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .bord-meta{margin:0; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .bord-meta[hidden]{display:none}
 /* Leestijd centraal: een grote witte afspeelknop, zoals bij een film */
-.bord-acties{display:flex; flex-wrap:wrap; align-items:center; gap:.7em; margin-top:.3em}
-.knop.speel{display:inline-flex; align-items:center; gap:.55em; padding:.62em 1.5em .62em 1.15em; border-radius:10px; background:#fff; color:#121115; font-size:1.3em; font-weight:800; box-shadow:0 10px 24px -10px rgb(0 0 0 / .6)}
+.bord-midden{display:grid; gap:.7em; min-width:0}
+.bord-acties{display:flex; flex-wrap:wrap; align-items:stretch; gap:.7em}
+.bord-acties .knop{display:inline-flex; align-items:center; gap:.55em; min-height:2.9em; padding:0 1.4em; border-radius:10px; font-size:1.15em; font-weight:800}
+.knop.speel{padding-left:1.1em; background:#fff; color:#121115; box-shadow:0 10px 24px -10px rgb(0 0 0 / .6)}
 .knop.speel:hover{background:#e9e6e0}
 .knop.speel svg{width:1.15em; height:1.15em; fill:currentColor}
 .knop.speel.loopt{background:var(--accent); color:#fff}
-#bonusKnop{font-size:1.05em; padding:.7em 1.1em}
+#bonusKnop{background:rgb(109 109 110 / .55); color:#fff}
+#bonusKnop:hover{background:rgb(109 109 110 / .75)}
+#bonusKnop[hidden]{display:none}
 .lees-wanneer{margin:0; color:var(--muted); font-weight:600}
 .lees-wanneer[hidden]{display:none}
 /* De leestijd staat nu op het scorebord; niet ook nog in de bovenbalk */
@@ -382,13 +391,13 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 
 .toplijst{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9em}
 /* Rangnummers op de kaften */
-.kaft .rang{position:absolute; left:.5em; bottom:.55em; z-index:3; display:grid; place-items:center; min-width:1.9em; height:1.9em; padding:0 .45em; border-radius:99px;
-  background:rgb(10 9 12 / .82); color:#fff; font-family:var(--display); font-size:1.05em; line-height:1; letter-spacing:.02em; box-shadow:0 2px 8px rgb(0 0 0 / .35)}
+.kaft .rang{position:absolute; left:.45em; bottom:.5em; z-index:3; display:grid; place-items:center; min-width:1.55em; height:1.55em; padding:0 .35em; border-radius:99px;
+  background:rgb(10 9 12 / .6); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); color:#fff; font-family:var(--display); font-size:.9em; line-height:1; letter-spacing:.02em; box-shadow:0 2px 8px rgb(0 0 0 / .35)}
 .kaft .rang.een{background:var(--accent); font-family:var(--body); font-weight:800; font-size:.78em; letter-spacing:.08em; text-transform:uppercase; height:2.2em; padding:0 .8em}
 .rang-kort{display:none}
 .toplijst:not(.uitgelicht) .rang-lang, .toplijst.smal .rang-lang{display:none}
 .toplijst:not(.uitgelicht) .rang-kort, .toplijst.smal .rang-kort{display:inline}
-.toplijst:not(.uitgelicht) .rang.een, .toplijst.smal .rang.een{font-family:var(--display); font-size:1.05em; height:1.9em; padding:0 .45em; letter-spacing:.02em}
+.toplijst:not(.uitgelicht) .rang.een, .toplijst.smal .rang.een{font-family:var(--display); font-size:.9em; height:1.55em; padding:0 .35em; letter-spacing:.02em}
 .toplijst .kaft{box-shadow:0 .8em 1.8em -.6em rgb(0 0 0 / .7)}
 /* Filmposter-achtergrond achter het scorebord */
 .bord-achter{display:none}
@@ -405,7 +414,10 @@ html.licht .bord-achter{display:none!important}
 .toplijst.vier li:nth-child(n+9){display:none}
 
 /* Boeken van de klas */
-.lijst{display:grid; gap:1em; align-content:start; min-width:0}
+.lijst{display:grid; gap:1.2em; align-content:start; min-width:0}
+/* Elk tabblad: dezelfde kop en dezelfde afstanden als het scorebord */
+.lijst > h2, .finale > h2, .regels h2, .antw > h2, .topblok h2{font-family:var(--display); font-weight:400; font-size:clamp(1.9rem,3.2vw,2.6rem); letter-spacing:.02em; line-height:1; margin:0}
+.lijst > .uitleg, .finale > .uitleg, .antw > .uitleg{margin:0; max-width:60ch}
 .boek-zoek{font:inherit; width:min(100%,22em); padding:.55em .8em; border-radius:10px; border:1px solid var(--line); background:var(--field); color:var(--fg)}
 .boek-geen{color:var(--muted); font-weight:600}
 .groep[hidden], .boeken li[hidden]{display:none}
@@ -435,7 +447,7 @@ html.licht .bord-achter{display:none!important}
 
 
 /* Awards */
-.finale{display:grid; gap:1em; align-content:start; min-width:0}
+.finale{display:grid; gap:1.2em; align-content:start; min-width:0}
 .awards{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,19em),1fr)); gap:1em; padding:0; margin:0; list-style:none}
 .awards li{display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto 1fr auto; align-items:center; gap:.7em .6em; padding:1em; border-radius:12px; background:var(--surface); border:1px solid transparent}
 .awards li.goud{border-color:rgb(244 197 66 / .5); background:linear-gradient(180deg, rgb(244 197 66 / .1), var(--surface) 45%)}
@@ -849,7 +861,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-vraag textarea:focus-visible{outline:3px solid var(--fg); outline-offset:2px}
 /* Leesvragen nakijken */
 .tab .tel, .menu-item .tel, #menuKnop .tel{display:inline-block; line-height:1.5; font-weight:800; color:#fff!important; margin-left:.4em; min-width:1.5em; padding:0 .4em; border-radius:99px; background:var(--accent); color:var(--fg); font-size:.8em; text-align:center}
-.antw{display:grid; gap:1em; align-content:start; max-width:60em; min-width:0}
+.antw{display:grid; gap:1.2em; align-content:start; max-width:60em; min-width:0}
 .antw-lijst{display:grid; gap:.9em}
 .antw-kaart{display:grid; grid-template-columns:5.2em minmax(0,1fr); gap:.4em 1.1em; background:var(--surface); border-radius:10px; padding:1em 1.2em}
 .antw-kaart.ok{opacity:.55}
@@ -1012,14 +1024,6 @@ body:not(.lid) .alleen-lid{display:none!important}
         <p class="opbouw" id="opbouw" hidden></p>
         <p class="bord-volgende" id="bordVolgende"></p>
         <p class="bord-meta" id="bordKaart" hidden></p>
-        <div class="bord-acties">
-          <button class="knop speel alleen-juf" id="leesStart" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
-            <span id="leesStartTekst">Start leestijd</span>
-          </button>
-          <button class="knop alleen-juf schrijf prive" id="bonusKnop" type="button" hidden>Verder lezen: bonusronde</button>
-        </div>
-        <p class="lees-wanneer" id="leesWanneer" hidden></p>
         <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
              De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
         <div class="bord-invoer" hidden>
@@ -1034,6 +1038,16 @@ body:not(.lid) .alleen-lid{display:none!important}
         </div>
       </div>
 
+      <div class="bord-midden">
+        <div class="bord-acties">
+          <button class="knop speel alleen-juf" id="leesStart" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+            <span id="leesStartTekst">Start leestijd</span>
+          </button>
+          <button class="knop alleen-juf schrijf prive" id="bonusKnop" type="button" hidden>Verder lezen: bonusronde</button>
+        </div>
+        <p class="lees-wanneer" id="leesWanneer" hidden></p>
+      </div>
       <div class="recent" hidden>
         <span class="eyebrow">Net op de plank</span>
         <div class="recent-lijst" id="recent"></div>
@@ -2720,7 +2734,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       : tp.voorbij ? "Het seizoen is afgelopen. Bij Instellen start je een nieuw seizoen." : "";
     $("opbouw").textContent = slot; $("opbouw").hidden = true;
     $("bonusKnop").hidden = !(t >= state.doel && !state.bonus && kanSchrijven && isJuf());
-    $("bonusKnop").textContent = "Verder lezen: bonusronde tot " + state.doel * 2;
+    $("bonusKnop").textContent = "+ Bonusronde tot " + state.doel * 2;
     $("week").hidden = true; /* het weekdoel staat nu als tekst in de regel eronder */
     if (!slot) {
       var klaar = wk >= tp.nodig;
@@ -2796,6 +2810,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       bv.appendChild(document.createTextNode("Nog " + duimen(ms[volg] - t) + " tot "));
       bv.appendChild(el("b", null, bel[volg].trim() || "de volgende beloning"));
     }
+    var allesKlaar = t >= ms[3];
+    $("afleveringen").classList.toggle("alles-klaar", allesKlaar);
+    var klaarLi = $("aflKlaar");
+    if (!klaarLi) { klaarLi = el("li", "afl-klaar"); klaarLi.id = "aflKlaar"; $("afleveringen").appendChild(klaarLi); }
+    klaarLi.textContent = "";
+    klaarLi.appendChild(el("span", null, (blok ? "Alle 4 bonusafleveringen" : "Alle 4 afleveringen") + " vrijgespeeld"));
+    var vk = el("span", "afl-vink", "\u2713"); vk.setAttribute("aria-hidden", "true"); klaarLi.appendChild(vk);
     aflEls.forEach(function (a, i) {
       var open = t >= ms[i], naam = bel[i].trim();
       a.li.classList.toggle("vrij", open);
@@ -2849,7 +2870,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function meldBewaard() {
     if (!kanSchrijven) return;
     var wanneer = state.bijgewerkt ? " · " + tijd(state.bijgewerkt) : "";
-    if (lokaal) meld("let", (document.body.classList.contains("demo") ? "Demo: alleen op dit apparaat" : "Alleen op dit apparaat") + wanneer);
+    if (lokaal) meld("let", (document.body.classList.contains("demo") ? "Demo" : "Alleen op dit apparaat") + (document.body.classList.contains("demo") ? "" : wanneer));
     else { meld("ok", "Opgeslagen"); $("status").title = "Opgeslagen" + wanneer; }
   }
 
@@ -3692,6 +3713,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       var k = 1, tl = $("toplijst");
       st.setProperty("--krimp", "1");
       tl.style.removeProperty("grid-template-rows"); tl.style.removeProperty("align-content");
+      tl.style.removeProperty("grid-template-columns"); tl.style.removeProperty("justify-content");
+      $("bord").style.removeProperty("grid-template-columns");
       /* Steekt er iets onder het scherm uit? Het scorebord kan niet scrollen, dus dan meten we de kolommen zelf */
       var onder = parseFloat(getComputedStyle($("wrap")).paddingBottom) || 0;
       function teHoog() {
@@ -3713,6 +3736,20 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       tl.classList.toggle("smal", !breed);
       var uit = tl.classList.contains("uitgelicht") && breed;
       var li = uit ? null : tl.querySelector("li:not(.top-leeg)");
+      if (li && getComputedStyle(tl).gridTemplateRows.split(" ").length === 2 && !uit) {
+        /* Precies even grote kaften met overal dezelfde tussenruimte, links onder de kop */
+        var g0 = parseFloat(getComputedStyle(tl).columnGap) || 0;
+        tl.style.removeProperty("grid-template-columns");
+        var hBeschik = tl.clientHeight, wBeschik = tl.clientWidth;
+        var kh = Math.floor(Math.min((hBeschik - g0) / 2, (wBeschik - 2 * g0) / 3 * 1.5)), kw = Math.floor(kh / 1.5);
+        tl.style.gridTemplateColumns = "repeat(3," + kw + "px)";
+        tl.style.gridTemplateRows = "repeat(2," + kh + "px)";
+        tl.style.justifyContent = "start"; tl.style.alignContent = "start";
+        /* De rechterkolom precies zo breed als de kaften: geen lege strook rechts */
+        var bord = $("bord"), bw = bord.clientWidth, rw = 3 * kw + 2 * g0;
+        if (bw && rw < bw * 0.62) bord.style.gridTemplateColumns = "minmax(0,1fr) " + rw + "px";
+        li = null;
+      }
       if (li) {
         var kol = getComputedStyle(tl).gridTemplateColumns.split(" ").length, gap = parseFloat(getComputedStyle(tl).rowGap) || 0;
         var kaftH = li.clientWidth * 1.5, hoog = tl.clientHeight - 4;
