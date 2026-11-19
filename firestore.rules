@@ -84,10 +84,12 @@ service cloud.firestore {
       allow get: if d == 'instellingen';
       allow list: if false;
       allow create: if d == 'instellingen' && twSchool() && request.resource.data.owner == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 't']);
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 'open', 't'])
+                    && (!('open' in request.resource.data) || (request.resource.data.open is list && request.resource.data.open.size() <= 40));
       allow update: if d == 'instellingen' && twSchool() && resource.data.owner == request.auth.uid
                     && request.resource.data.owner == resource.data.owner
-                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 't']);
+                    && request.resource.data.keys().hasOnly(['owner', 'min', 'uit', 'alles', 'actief', 'open', 't'])
+                    && (!('open' in request.resource.data) || (request.resource.data.open is list && request.resource.data.open.size() <= 40));
       allow delete: if false;
     }
   }
