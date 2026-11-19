@@ -97,6 +97,9 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 .ikoon:hover{background:var(--raised); color:var(--fg)}
 .ikoon svg{width:1.35em; height:1.35em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 .ikoon .vol-uit{display:none}
+.ikoon.met-tekst{display:inline-flex; align-items:center; gap:.45em; width:auto; padding:0 .8em 0 .6em; font-weight:800; color:var(--fg); background:var(--raised)}
+.ikoon.met-tekst:hover{background:var(--raised-2, #3a3942)}
+@media (max-width:599px){ .ikoon.met-tekst span{display:none} .ikoon.met-tekst{width:2.4em; padding:0; justify-content:center} }
 .vol .ikoon .vol-aan{display:none} .vol .ikoon .vol-uit{display:block}
 .kop-rechts{gap:.4em 1em}
 .kop .bewaard:not(.let) #statusTekst{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
@@ -420,6 +423,20 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
   .kop-rechts{margin-left:auto}
 }
 /* Aanraakscherm: iOS zoomt in op kleine invoervelden, dus die blijven minstens 16px */
+/* Rondleiding voor een nieuwe leerkracht: drie stappen, het besproken onderdeel licht op */
+.rond{position:fixed; inset:0; z-index:30; background:rgb(5 5 8 / .72); display:grid; align-items:end; justify-items:center; padding:24px 16px calc(32px + env(safe-area-inset-bottom,0px))}
+.rond[hidden]{display:none}
+.rond-kaart{width:min(100%,34rem); background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:1.4em 1.5em 1.2em; box-shadow:0 24px 60px rgb(0 0 0 / .5); display:grid; gap:.5em}
+.rond-kaart h2{margin:0}
+.rond-tekst{margin:0; color:var(--muted); font-weight:600; line-height:1.5}
+.rond-voet{display:flex; align-items:center; gap:1em; margin-top:.6em}
+.rond-stippen{display:flex; gap:.4em; margin-right:auto}
+.rond-stippen i{width:.55em; height:.55em; border-radius:50%; background:var(--line)}
+.rond-stippen i.aan{background:var(--accent)}
+.kop.rond-op{position:relative; z-index:31}
+.wijs{position:relative; z-index:1; outline:3px solid var(--fg); outline-offset:4px; border-radius:8px; animation:wijs 1.4s ease-in-out infinite}
+@keyframes wijs{50%{outline-color:var(--accent); outline-offset:8px}}
+@media (prefers-reduced-motion:reduce){ .wijs{animation:none} }
 /* Leestijd op het digibord: herkenbaar Bookflix, zoals een film die loopt */
 .stil{position:fixed; inset:0; z-index:26; container-type:size; background:#07060a; color:var(--fg); overflow:hidden}
 .stil[hidden], .stil [hidden], .lees[hidden], .lees [hidden]{display:none!important}
@@ -745,8 +762,8 @@ body:not(.lid) .alleen-lid{display:none!important}
       <button class="ikoon schrijf alleen-juf" id="instelKnop" type="button" aria-label="Instellen" title="Instellen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
-      <button class="ikoon alleen-juf" id="stilKnop" type="button" aria-label="Stilleesklok" title="Stilleesklok">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5M19 5.5l-1.5 1.5"/></svg>
+      <button class="ikoon met-tekst alleen-juf" id="stilKnop" type="button" title="Leestijd starten">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5M19 5.5l-1.5 1.5"/></svg><span>Leestijd</span>
       </button>
       <button class="ikoon" id="volKnop" type="button" aria-label="Volledig scherm" title="Volledig scherm" hidden>
         <svg class="vol-aan" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -966,7 +983,7 @@ body:not(.lid) .alleen-lid{display:none!important}
     <section class="instel alleen-juf" id="controleBlok">
       <h3>Werkt alles?</h3>
       <p class="uitleg">Controleert opslaan, boeken zoeken, kaften en de vragen van de AI.</p>
-      <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button></div>
+      <div class="opnieuw"><button class="knop" id="controleKnop" type="button">Controleer de koppelingen</button> <button class="tekstknop" id="rondOpnieuw" type="button">Rondleiding bekijken</button></div>
       <ul class="controle" id="controleLijst"></ul>
     </section>
     <section class="instel alleen-juf">
@@ -1114,6 +1131,19 @@ body:not(.lid) .alleen-lid{display:none!important}
   </div>
 </div>
 <button class="lees-terug" id="leesTerug" type="button" hidden>Terug naar je leesplek</button>
+
+<div class="rond" id="rond" role="dialog" aria-modal="true" aria-labelledby="rondTitel" hidden>
+  <div class="rond-kaart">
+    <p class="eyebrow" id="rondStap">Stap 1 van 3</p>
+    <h2 id="rondTitel"></h2>
+    <p class="rond-tekst" id="rondTekst"></p>
+    <div class="rond-voet">
+      <div class="rond-stippen" aria-hidden="true"><i></i><i></i><i></i></div>
+      <button class="tekstknop" id="rondOver" type="button">Overslaan</button>
+      <button class="knop wit" id="rondVerder" type="button">Volgende</button>
+    </div>
+  </div>
+</div>
 
 <datalist id="titels"></datalist>
 
@@ -3187,10 +3217,49 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     pasAan();
   }
-  $("startGa").addEventListener("click", function () { kies("bord"); });
+  /* ---------- Rondleiding: de eerste keer voor een leerkracht ---------- */
+  var ROND = [
+    { titel: "Koppel de iPads", doel: function () { return !$("koppelKnop").hidden ? "koppelKnop" : "instelKnop"; },
+      tekst: function () { return !$("koppelKnop").hidden
+        ? "Tik op iPads koppelen. Op het digibord verschijnen de klascode en een QR-code. De kinderen scannen die of tikken de code in op hun iPad."
+        : "Bij Instellen vind je de klascode en de QR-code. De kinderen scannen die of tikken de code in op hun iPad."; } },
+    { titel: "Kinderen vullen hun boek in", doel: function () { return "tabAntw"; },
+      tekst: function () { return "Boek uit? Op de iPad kiezen ze bij Mijn boek de titel, beantwoorden ze drie vragen over het boek en geven ze sterren. Bij Vragen kijk jij de antwoorden na."; } },
+    { titel: "Samen lezen", doel: function () { return "stilKnop"; },
+      tekst: function () { return "Met Leestijd start je de klok met een kampvuur of leeslamp, en de iPads doen mee. Bij Instellen zet je een vaste tijd, bijvoorbeeld elke werkdag om 10.00."; } }
+  ], rondNr = 0;
+  function rondToon() {
+    var st = ROND[rondNr];
+    Array.prototype.forEach.call(document.querySelectorAll(".wijs"), function (e) { e.classList.remove("wijs"); });
+    $(st.doel()).classList.add("wijs");
+    $("rondStap").textContent = "Stap " + (rondNr + 1) + " van " + ROND.length;
+    $("rondTitel").textContent = st.titel; $("rondTekst").textContent = st.tekst();
+    Array.prototype.forEach.call(document.querySelectorAll(".rond-stippen i"), function (e, i) { e.classList.toggle("aan", i === rondNr); });
+    $("rondVerder").textContent = rondNr === ROND.length - 1 ? "Aan de slag" : "Volgende";
+  }
+  function rondStart() {
+    rondNr = 0; $("rond").hidden = false; document.querySelector(".kop").classList.add("rond-op");
+    rondToon(); setTimeout(function () { $("rondVerder").focus(); }, 30);
+  }
+  function rondKlaar() {
+    $("rond").hidden = true; document.querySelector(".kop").classList.remove("rond-op");
+    Array.prototype.forEach.call(document.querySelectorAll(".wijs"), function (e) { e.classList.remove("wijs"); });
+    try { localStorage.setItem("bookflix.rondleiding", "1"); } catch (e) {}
+  }
+  function rondMisschien() {
+    var gezien = "1"; try { gezien = localStorage.getItem("bookflix.rondleiding"); } catch (e) {}
+    if (gezien || !isJuf() || !kanSchrijven || !$("start").hidden || !$("stilScherm").hidden || $("instellen").open || !$("rond").hidden) return;
+    if (!$("poort") || $("poort").hidden) rondStart();
+  }
+  $("rondVerder").addEventListener("click", function () { if (rondNr < ROND.length - 1) { rondNr++; rondToon(); } else rondKlaar(); });
+  $("rondOver").addEventListener("click", rondKlaar);
+  $("rond").addEventListener("keydown", function (e) { if (e.key === "Escape") rondKlaar(); });
+  $("rondOpnieuw").addEventListener("click", function () { $("instellen").close(); rondStart(); });
+
+  $("startGa").addEventListener("click", function () { kies("bord"); setTimeout(rondMisschien, 700); });
   $("startRegels").addEventListener("click", function () { kies("regels"); });
   $("naarStart").addEventListener("click", function () { kies("start"); });
-  if (location.hash === "#bord") kies("bord");
+  if (location.hash === "#bord") { kies("bord"); setTimeout(rondMisschien, 1500); }
   Object.keys(TABS).forEach(function (k) {
     $(TABS[k]).addEventListener("click", function () { kies(k); });
   });
