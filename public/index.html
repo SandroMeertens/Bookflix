@@ -803,6 +803,9 @@ body:not(.lid) .alleen-lid{display:none!important}
           <span class="week-tekst" id="weekTekst"></span>
         </div>
         <p class="opbouw" id="opbouw" hidden></p>
+        <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
+             De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
+        <div class="bord-invoer" hidden>
         <div class="acties schrijf alleen-juf">
           <input type="text" id="boekTitel" maxlength="80" placeholder="Welk boek?" aria-label="Titel van het boek bij deze duim" list="titels" autocomplete="off">
           <button class="knop" id="terug" type="button" disabled>Laatste duim terug</button>
@@ -810,6 +813,7 @@ body:not(.lid) .alleen-lid{display:none!important}
         <div class="kies schrijf alleen-juf">
           <p class="eyebrow" id="kiesKop">Duim erbij: tik op de rij van het boek</p>
           <div class="genres" id="genres" role="group" aria-labelledby="kiesKop"></div>
+        </div>
         </div>
       </div>
 
