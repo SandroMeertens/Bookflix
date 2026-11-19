@@ -128,20 +128,32 @@ body:not(.lid) #tabInvoer{display:none}
 .knop.plus{padding-inline:.85em; font-weight:800}
 .knop.plus span{font-size:1.25em; line-height:0; margin-right:.1em}
 .knop.plus[aria-pressed="true"]{background:var(--fg); color:var(--bg)}
-#koppelKnop{display:inline-flex; align-items:center; gap:.45em}
-#koppelKnop svg{width:1.2em; height:1.2em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round}
-#koppelKnop[hidden]{display:none}
+
 /* Na het koppelen is het geen hoofdknop meer: alleen het pictogram */
-#koppelKnop.klein{padding:0; width:2.4em; height:2.4em; justify-content:center; background:transparent; color:var(--muted)}
-#koppelKnop.klein:hover{background:var(--raised); color:var(--fg)}
-#koppelKnop.klein span{display:none}
+
 #presKnop .pres-uit{display:none}
 .presentatie #presKnop .pres-aan{display:none} .presentatie #presKnop .pres-uit{display:block}
 .presentatie #presKnop{background:var(--raised); color:var(--fg)}
 /* Klasweergave: wat alleen voor de leerkracht is, verdwijnt van het digibord */
 #volKnop{display:none!important}
-#koppelKnop.klein{display:none!important}
-.presentatie .prive, .presentatie #bonusKnop, .presentatie .boek-meer, .presentatie .kop .bewaard, .presentatie #koppelKnop{display:none!important}
+
+/* Menu onder het tandwieltje: alles wat alleen voor de leerkracht is */
+.menu-plek{position:relative}
+#menuKnop{position:relative}
+#menuKnop .tel{position:absolute; top:-.35em; right:-.45em; margin:0; font-size:.68em}
+#menuKnop .tel[hidden], .menu-item .tel[hidden]{display:none}
+#menuKnop[aria-expanded="true"]{background:var(--raised); color:var(--fg)}
+.jufmenu{position:absolute; right:0; top:calc(100% + .5em); z-index:40; min-width:15em; display:grid; padding:.4em; border-radius:12px;
+  background:var(--surface); border:1px solid var(--line); box-shadow:0 18px 40px rgb(0 0 0 / .45)}
+.jufmenu[hidden]{display:none}
+.jufmenu hr{border:0; border-top:1px solid var(--line); margin:.35em .3em}
+.menu-item{display:flex; align-items:center; justify-content:space-between; gap:1em; width:100%; padding:.6em .8em; border:0; border-radius:8px; background:none; color:var(--fg); font:inherit; font-weight:700; text-align:left; cursor:pointer}
+.menu-item:hover, .menu-item:focus-visible{background:var(--raised)}
+.menu-item[hidden]{display:none}
+.menu-item .tel{margin:0}
+/* Spelregels: voor de leerkracht in het menu, op de iPad als tab */
+body:not(.lid) #tabRegels{display:none}
+.presentatie .prive, .presentatie #bonusKnop, .presentatie .boek-meer, .presentatie .kop .bewaard{display:none!important}
 /* De opslagstatus alleen laten zien als er iets is */
 .kop .bewaard.ok{display:none}
 .tab{border:0; background:none; padding:.25em 0; font-weight:800; color:var(--muted); border-bottom:.18em solid transparent}
@@ -555,7 +567,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 }
 /* iPad liggend en kleine laptop: de kop blijft op één regel, alles iets compacter */
 @media (min-width:1000px) and (max-width:1440px){
-  #koppelKnop span{display:none} #koppelKnop{padding:0; width:2.4em; height:2.4em; justify-content:center}
+
   .kop-streep{display:none}
   .kop{gap:.4em 1.1em}
   .merk{font-size:1.25em}
@@ -796,7 +808,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .inv-vraag textarea{font:inherit; font-weight:600; font-size:max(1.05em,16px); color:var(--fg); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:.45em .65em; min-height:3em; resize:vertical; width:100%}
 .inv-vraag textarea:focus-visible{outline:3px solid var(--fg); outline-offset:2px}
 /* Leesvragen nakijken */
-.tab .tel{display:inline-block; margin-left:.4em; min-width:1.5em; padding:0 .4em; border-radius:99px; background:var(--accent); color:var(--fg); font-size:.8em; text-align:center}
+.tab .tel, .menu-item .tel, #menuKnop .tel{display:inline-block; line-height:1.5; font-weight:800; color:#fff!important; margin-left:.4em; min-width:1.5em; padding:0 .4em; border-radius:99px; background:var(--accent); color:var(--fg); font-size:.8em; text-align:center}
 .antw{display:grid; gap:1em; align-content:start; max-width:60em; min-width:0}
 .antw-lijst{display:grid; gap:.9em}
 .antw-kaart{display:grid; grid-template-columns:5.2em minmax(0,1fr); gap:.4em 1.1em; background:var(--surface); border-radius:10px; padding:1em 1.2em}
@@ -892,27 +904,30 @@ body:not(.lid) .alleen-lid{display:none!important}
     <h1 class="merk"><button class="merk-knop" id="naarStart" type="button" aria-label="Bookflix, naar de startpagina"><b>BOOKFLIX</b></button></h1>
     <nav class="tabs" aria-label="Weergave">
       <button class="tab" id="tabInvoer" type="button" aria-pressed="false">Mijn boek</button>
-      <button class="tab" id="tabBord" type="button" aria-pressed="true">Scorebord</button>
+      <button class="tab" id="tabBord" type="button" aria-pressed="true">Score</button>
       <button class="tab" id="tabLijst" type="button" aria-pressed="false">Boeken</button>
       <button class="tab" id="tabFinale" type="button" aria-pressed="false">Awards</button>
       <button class="tab" id="tabRegels" type="button" aria-pressed="false">Spelregels</button>
     </nav>
     <div class="kop-rechts">
       <p class="bewaard" id="status" role="status"><span class="stip"></span><span id="statusTekst">Stand wordt geladen</span></p>
-      <div class="kop-juf alleen-juf prive">
-        <button class="knop plus schrijf" id="plusBoek" type="button" aria-pressed="false" title="Een boek op de plank zetten"><span aria-hidden="true">+</span> Boek</button>
-        <button class="tab" id="tabAntw" type="button" aria-pressed="false">Vragen<span class="tel" id="antwTel" hidden></span></button>
-      </div>
-      <span class="kop-streep alleen-juf prive" aria-hidden="true"></span>
-      <button class="knop alleen-juf" id="koppelKnop" type="button" hidden title="iPads koppelen">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.2"/><path d="M10.5 18.5h3"/></svg><span>iPads koppelen</span>
-      </button>
-      <button class="ikoon schrijf alleen-juf prive" id="instelKnop" type="button" aria-label="Instellen" title="Instellen">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-      </button>
       <button class="ikoon met-tekst alleen-juf" id="stilKnop" type="button" title="Leestijd starten">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5M19 5.5l-1.5 1.5"/></svg><span>Leestijd</span>
       </button>
+      <div class="menu-plek alleen-juf prive">
+        <button class="ikoon" id="menuKnop" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="jufMenu" aria-label="Menu voor de leerkracht" title="Menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="tel" id="menuTel" hidden></span>
+        </button>
+        <div class="jufmenu" id="jufMenu" role="menu" hidden>
+          <button class="menu-item" id="tabAntw" type="button" role="menuitem" aria-pressed="false">Vragen nakijken<span class="tel" id="antwTel" hidden></span></button>
+          <button class="menu-item schrijf" id="plusBoek" type="button" role="menuitem" aria-pressed="false">Boek op de plank zetten</button>
+          <button class="menu-item" id="koppelKnop" type="button" role="menuitem" hidden>iPads koppelen</button>
+          <button class="menu-item" id="menuRegels" type="button" role="menuitem">Spelregels</button>
+          <hr>
+          <button class="menu-item" id="menuHand" type="button" role="menuitem">Handleiding</button>
+          <button class="menu-item schrijf" id="instelKnop" type="button" role="menuitem">Instellen</button>
+        </div>
+      </div>
       <button class="ikoon alleen-juf" id="presKnop" type="button" aria-pressed="false" title="Klasweergave: volledig scherm, zonder wat alleen voor de leerkracht is">
         <svg class="pres-aan" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
         <svg class="pres-uit" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1138,7 +1153,7 @@ body:not(.lid) .alleen-lid{display:none!important}
       <ul>
         <li>Kies bij Instellen → Seizoen het doel en de laatste dag. Reken op ongeveer 4 boeken per kind per seizoen.</li>
         <li>Kies vier beloningen, samen met de klas als dat kan. Dan willen ze er ook echt voor lezen.</li>
-        <li>Koppel de iPads met de klascode of de QR-code (knop iPads koppelen).</li>
+        <li>Koppel de iPads met de klascode of de QR-code (tandwieltje → iPads koppelen).</li>
       </ul>
     </section>
     <section>
@@ -1146,14 +1161,14 @@ body:not(.lid) .alleen-lid{display:none!important}
       <ul>
         <li>Laat het startscherm zien: "Dit is onze eigen leesserie. Elk boek dat je uitleest, zet een boek op de plank."</li>
         <li>Lees samen de Spelregels. Laat zien hoe je op de iPad bij Mijn boek een boek kiest en drie vragen beantwoordt.</li>
-        <li>Doe het één keer voor met een boek dat je zelf hebt gelezen, met + Boek.</li>
+        <li>Doe het één keer voor met een boek dat je zelf hebt gelezen (tandwieltje → Boek op de plank zetten).</li>
       </ul>
     </section>
     <section>
       <h3>3. Elke week</h3>
       <ul>
         <li>Maandag: bekijk samen het scorebord. Hoeveel duimen nog tot de volgende aflevering?</li>
-        <li>Tussendoor: kijk bij Vragen de antwoorden na. Goed gelezen? Tik op Goed gelezen. Twijfel? Vraag het kind even naar het boek.</li>
+        <li>Tussendoor: kijk de antwoorden na (tandwieltje → Vragen nakijken). Goed gelezen? Tik op Goed gelezen. Twijfel? Vraag het kind even naar het boek.</li>
         <li>Vrijdag: bespreek het Boek van de week en de top van Meest geduimd. Laat een kind vertellen waarom het boek de moeite waard is.</li>
       </ul>
     </section>
@@ -1175,7 +1190,7 @@ body:not(.lid) .alleen-lid{display:none!important}
     <section>
       <h3>Handig om te weten</h3>
       <ul>
-        <li>Op het digibord: tik op het schermpje rechtsboven voor de klasweergave. Dan ziet de klas Vragen en Instellen niet. In volledig scherm gaat dat vanzelf.</li>
+        <li>Op het digibord: tik op het schermpje rechtsboven voor de klasweergave. Dan ziet de klas het menu met Vragen en Instellen niet. In volledig scherm gaat dat vanzelf.</li>
         <li>Er staan geen namen van kinderen in Bookflix. Alleen boektitels en antwoorden zonder naam.</li>
         <li>Werkt iets niet? Instellen → Overig → Werkt alles? controleert de koppelingen.</li>
       </ul>
@@ -3540,6 +3555,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var lijst = $("antwLijst"), alles = $("antwAlles").checked;
     var open = antwoorden.filter(function (x) { return !x.ok; });
     $("antwTel").hidden = !open.length; $("antwTel").textContent = open.length;
+    $("menuTel").hidden = !open.length; $("menuTel").textContent = open.length;
     var rij = antwoorden.slice().sort(function (a, b) { return (a.ok ? 1 : 0) - (b.ok ? 1 : 0) || (b.ts || 0) - (a.ts || 0); })
       .filter(function (x) { return alles || !x.ok; }).slice(0, 80);
     lijst.textContent = "";
@@ -3658,6 +3674,18 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("plusBoek").setAttribute("aria-pressed", String(welke === "invoer"));
     pasAan();
   }
+  /* Menu voor de leerkracht */
+  function menuDicht() { $("jufMenu").hidden = true; $("menuKnop").setAttribute("aria-expanded", "false"); }
+  $("menuKnop").addEventListener("click", function (e) {
+    e.stopPropagation();
+    var open = $("jufMenu").hidden; $("jufMenu").hidden = !open; $("menuKnop").setAttribute("aria-expanded", String(open));
+    if (open) setTimeout(function () { var f = $("jufMenu").querySelector(".menu-item:not([hidden])"); if (f) f.focus(); }, 0);
+  });
+  $("jufMenu").addEventListener("click", function (e) { if (e.target.closest(".menu-item")) menuDicht(); });
+  document.addEventListener("click", function (e) { if (!$("jufMenu").hidden && !e.target.closest(".menu-plek")) menuDicht(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("jufMenu").hidden) { menuDicht(); $("menuKnop").focus(); } });
+  $("menuRegels").addEventListener("click", function () { kies("regels"); });
+  $("menuHand").addEventListener("click", function () { handOpen(); });
   $("plusBoek").addEventListener("click", function () { kies("invoer"); setTimeout(function () { $("invTitel").focus(); }, 50); });
   /* Klasweergave (presentatiemodus): met de knop, en vanzelf in volledig scherm */
   var presHand = false;
@@ -3693,12 +3721,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   document.addEventListener("webkitfullscreenchange", presVol);
   /* ---------- Rondleiding: de eerste keer voor een leerkracht ---------- */
   var ROND = [
-    { titel: "Koppel de iPads", doel: function () { return !$("koppelKnop").hidden ? "koppelKnop" : "instelKnop"; },
-      tekst: function () { return !$("koppelKnop").hidden
-        ? "Tik op iPads koppelen. Op het digibord verschijnen de klascode en een QR-code. De kinderen scannen die of tikken de code in op hun iPad."
-        : "Bij Instellen vind je de klascode en de QR-code. De kinderen scannen die of tikken de code in op hun iPad."; } },
-    { titel: "Kinderen vullen hun boek in", doel: function () { return "tabAntw"; },
-      tekst: function () { return "Boek uit? Op de iPad kiezen ze bij Mijn boek de titel, beantwoorden ze drie vragen over het boek en geven ze sterren. Bij Vragen kijk jij de antwoorden na."; } },
+    { titel: "Koppel de iPads", doel: function () { return "menuKnop"; },
+      tekst: function () { return "Alles wat alleen voor jou is, zit onder het tandwieltje. Kies daar iPads koppelen: op het digibord verschijnen de klascode en een QR-code. De kinderen scannen die of tikken de code in op hun iPad."; } },
+    { titel: "Kinderen vullen hun boek in", doel: function () { return "menuKnop"; },
+      tekst: function () { return "Boek uit? Op de iPad kiezen ze bij Mijn boek de titel, beantwoorden ze drie vragen over het boek en geven ze sterren. Onder het tandwieltje kijk jij bij Vragen nakijken de antwoorden na; het rode getal laat zien hoeveel er klaarstaan."; } },
     { titel: "Samen lezen", doel: function () { return "stilKnop"; },
       tekst: function () { return "Met Leestijd start je de klok met een kampvuur of leeslamp, en de iPads doen mee. Bij Instellen zet je een vaste tijd, bijvoorbeeld elke werkdag om 10.00."; } }
   ], rondNr = 0;

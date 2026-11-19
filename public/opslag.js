@@ -304,7 +304,7 @@ async function begin() {
       const n = s.size;
       $("koppelTel").textContent = n ? n + (n === 1 ? " iPad gekoppeld" : " iPads gekoppeld") : "";
       /* Zijn er iPads gekoppeld? Dan wordt de knop in de kop een klein pictogram */
-      $("koppelKnop").classList.toggle("klein", n > 0);
+
     }, (e) => console.warn(e));
     $("klasCode").textContent = klasData.code;
     $("klasAdres").textContent = location.host;
