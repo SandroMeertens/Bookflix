@@ -803,6 +803,7 @@ body:not(.lid) .alleen-lid{display:none!important}
           <span class="week-tekst" id="weekTekst"></span>
         </div>
         <p class="opbouw" id="opbouw" hidden></p>
+        <button class="knop wit groot alleen-juf schrijf" id="bonusKnop" type="button" style="justify-self:start" hidden>Verder lezen: bonusronde</button>
         <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
              De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
         <div class="bord-invoer" hidden>
@@ -951,6 +952,7 @@ body:not(.lid) .alleen-lid{display:none!important}
     <div id="beloningVelden" style="display:grid;gap:.5em"></div>
     <div class="opnieuw">
       <button class="knop" id="belNu" type="button">Andere beloningen kiezen</button>
+      <button class="knop" id="bonusAan" type="button">Bonusronde toevoegen</button>
     </div>
     <label class="vink" for="belWissel"><input type="checkbox" id="belWissel"> <span>Bij een nieuw seizoen vanzelf andere beloningen</span></label>
     <p class="uitleg" id="belMeld" role="status" hidden></p>
@@ -1242,6 +1244,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         };
       }),
       beloningen: [0, 1, 2, 3].map(function (i) { return Array.isArray(d.beloningen) ? tekst(d.beloningen[i], 60) : BELONINGEN[i][0]; }),
+      /* Bonusronde na het doel: vier extra afleveringen (bij doel 100: 125, 150, 175 en 200) */
+      bonus: Array.isArray(d.bonus) ? [0, 1, 2, 3].map(function (i) { return tekst(d.bonus[i], 60); }) : null,
       awards: a,
       vragen: (function () {
         /* Eigen vragen van de leerkracht per titel: drie zinnen */
@@ -1296,8 +1300,25 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     for (var i = 0; i < GENRES.length; i++) { n += s.genres[GENRES[i].id]; if (GENRES[i].id === g) return n - 1; }
     return n - 1;
   }
-  function mijlpalen(s) { return [1, 2, 3, 4].map(function (i) { return Math.round(s.doel * i / 4); }); }
-  function vrij(s) { var t = totaal(s); return mijlpalen(s).filter(function (m) { return t >= m; }).length; }
+  /* Afleveringen: vier tot het doel, en met een bonusronde nog vier erna. Het scorebord laat steeds
+     het blok van vier zien waar de klas nu in zit. */
+  function alleMijlpalen(s) {
+    var m = [1, 2, 3, 4].map(function (i) { return Math.round(s.doel * i / 4); });
+    if (s.bonus) [1, 2, 3, 4].forEach(function (i) { m.push(s.doel + Math.round(s.doel * i / 4)); });
+    return m;
+  }
+  function alleBeloningen(s) { return s.bonus ? s.beloningen.concat(s.bonus) : s.beloningen; }
+  function eindDoel(s) { return s.bonus ? s.doel * 2 : s.doel; }
+  function blokVan(s) { return s.bonus && totaal(s) >= s.doel ? 1 : 0; }
+  function mijlpalen(s) { var b = blokVan(s); return alleMijlpalen(s).slice(b * 4, b * 4 + 4); }
+  function blokBeloningen(s) { var b = blokVan(s); return alleBeloningen(s).slice(b * 4, b * 4 + 4); }
+  function vrij(s) { var t = totaal(s); return alleMijlpalen(s).filter(function (m) { return t >= m; }).length; }
+  function bonusVoorstel(s) {
+    var extra = ["", "", "", "Pyjamaleesfeest in de klas"];
+    return [0, 1, 2, 3].map(function (i) {
+      return extra[i] || BELONINGEN[i].filter(function (x) { return x !== s.beloningen[i]; })[0];
+    });
+  }
   function duimen(n) { return n + (n === 1 ? " duim" : " duimen"); }
 
   /* Voortgang per dag: de stand aan het eind van elke dag */
@@ -1318,7 +1339,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var weken = Math.max(1, Math.round((maandagVan(eindDatum(s)) - ma) / 6048e5) + 1);
     return {
       week: totaal(s) - basis,
-      nodig: Math.max(0, Math.ceil((s.doel - basis) / weken)),
+      nodig: Math.max(0, Math.ceil((eindDoel(s) - basis) / weken)),
       voorbij: dagSleutel(nu) > s.einde
     };
   }
@@ -2004,7 +2025,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   var plankDoel = 0, rugEls = [];
   var wandRugEls = [], wandEls = [];
   function bouwPlanken() {
-    var ms = mijlpalen(state), begin = 0, stap = Math.min(14, 1600 / state.doel);
+    var ms = mijlpalen(state), begin = blokVan(state) ? state.doel : 0, stap = Math.min(14, 1600 / state.doel);
     rugEls = []; wandRugEls = []; wandEls = [];
     $("wand").textContent = "";
     aflEls.forEach(function (a, i) {
@@ -2021,15 +2042,17 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       for (var n = begin; n < ms[i]; n++) {
         var hoog = (58 + ((n * 37 + ((n * n) % 11) * 4) % 42)) + "%";
         var r = el("span", "rug"), w = el("span", "rug");
+        r._n = n; w._n = n;
         r.style.height = hoog; w.style.height = hoog;
-        w.style.animationDelay = Math.round(250 + n * stap) + "ms";
+        w.style.animationDelay = Math.round(250 + (n - (blokVan(state) ? state.doel : 0)) * stap) + "ms";
         a.plank.appendChild(r); rugEls.push(r);
         ruggen.appendChild(w); wandRugEls.push(w);
       }
       begin = ms[i];
     });
-    plankDoel = state.doel;
+    plankDoel = plankSleutel();
   }
+  function plankSleutel() { return state.doel + "|" + blokVan(state); }
 
   var awardEls = {};
   AWARDS.forEach(function (a) {
@@ -2108,14 +2131,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
   }
 
-  var beloningEls = [0, 1, 2, 3].map(function (i) {
+  var beloningEls = [0, 1, 2, 3, 4, 5, 6, 7].map(function (i) {
     var rij = el("div", "instel-rij"), lab = el("label"), inp = el("input");
     inp.type = "text"; inp.id = "beloning-" + i; inp.maxLength = 60; inp.placeholder = "Wat speelt de klas vrij?"; inp.autocomplete = "off";
     lab.htmlFor = inp.id;
-    inp.addEventListener("input", function () { wijzig(function (s) { s.beloningen[i] = inp.value; }, false); });
+    inp.addEventListener("input", function () {
+      wijzig(function (s) { if (i < 4) s.beloningen[i] = inp.value; else if (s.bonus) s.bonus[i - 4] = inp.value; }, false);
+    });
     rij.appendChild(lab); rij.appendChild(inp);
     $("beloningVelden").appendChild(rij);
-    return { lab: lab, inp: inp };
+    return { rij: rij, lab: lab, inp: inp };
   });
 
   /* Stand corrigeren: elk getal apart aan te passen */
@@ -2253,12 +2278,14 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function toon() {
     var t = totaal(state), ms = mijlpalen(state);
     $("teller").textContent = t;
-    $("van").textContent = "van de " + state.doel + " duimen";
+    $("van").textContent = "van de " + eindDoel(state) + " duimen";
     var tp = tempo(state), wk = Math.max(0, tp.week);
     $("eyebrow").textContent = "Seizoen " + state.seizoen + " · tot " + eindTekst(state);
-    var slot = t >= state.doel ? "Doel gehaald. Tijd voor de Bookflix Awards."
+    var slot = t >= eindDoel(state) ? (state.bonus ? "Ook de bonusronde is vol. Wat een leesklas!" : "Doel gehaald. Tijd voor de Bookflix Awards.")
       : tp.voorbij ? "Het seizoen is afgelopen. Bij Instellen start je een nieuw seizoen." : "";
     $("opbouw").textContent = slot; $("opbouw").hidden = !slot;
+    $("bonusKnop").hidden = !(t >= state.doel && !state.bonus && kanSchrijven && isJuf());
+    $("bonusKnop").textContent = "Verder lezen: 4 bonusafleveringen tot " + state.doel * 2;
     $("week").hidden = !!slot;
     if (!slot) {
       var klaar = wk >= tp.nodig;
@@ -2270,16 +2297,24 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     }
     toonBoeken();
     vulLegenda($("legendaLijst")); vulLegenda($("legendaRegels"));
-    $("regelBeloning").textContent = "Bij " + ms.slice(0, 3).join(", ") + " en " + ms[3] +
-      " duimen is er een plank vol. Dan speelt de klas een beloning vrij.";
+    var alle = alleMijlpalen(state);
+    $("regelBeloning").textContent = "Bij " + alle.slice(0, -1).join(", ") + " en " + alle[alle.length - 1] +
+      " duimen is er een plank vol. Dan speelt de klas een beloning vrij." + (state.bonus ? " Vanaf " + state.doel + " is het de bonusronde." : "");
 
     /* De plank ligt op rij gesorteerd, zodat je ziet wat de klas veel en weinig leest */
-    if (plankDoel !== state.doel) bouwPlanken();
+    if (plankDoel !== plankSleutel()) bouwPlanken();
+    /* In de bonusronde: de nieuwe boeken van na het doel, op rij gesorteerd */
+    var blok = blokVan(state), bel = blokBeloningen(state), soortBonus = [];
+    if (blok) {
+      var volg = {}; GENRES.forEach(function (g, i) { volg[g.id] = i; });
+      soortBonus = state.boeken.slice(state.doel).map(function (b) { return b.g; })
+        .sort(function (x, y) { return (volg[x] || 0) - (volg[y] || 0); });
+    }
     var soort = [];
     GENRES.forEach(function (g) { for (var i = 0; i < state.genres[g.id]; i++) soort.push(g.id); });
     [rugEls, wandRugEls].forEach(function (rij) {
-      rij.forEach(function (r, n) {
-        var wil = n < t ? (soort[n] || "a") : "";
+      rij.forEach(function (r) {
+        var n = r._n, wil = n < t ? ((blok ? soortBonus[n - state.doel] : soort[n]) || "a") : "";
         if (r._g !== wil) { r.className = "rug" + (wil ? " vol g-" + wil : ""); r._g = wil; }
       });
     });
@@ -2287,23 +2322,24 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     /* Startpagina */
     $("startEyebrow").textContent = "Seizoen " + state.seizoen + " · tot " + eindTekst(state);
     $("startGetal").textContent = t;
-    $("startVan").textContent = "van de " + state.doel + " duimen";
+    $("startVan").textContent = "van de " + eindDoel(state) + " duimen";
     var eerst = -1;
     ms.forEach(function (m, i) { if (eerst < 0 && t < m) eerst = i; });
     var teaser = $("startTeaser"); teaser.textContent = "";
-    if (eerst < 0) teaser.textContent = "Doel gehaald. Tijd voor de Bookflix Awards.";
+    if (eerst < 0) teaser.textContent = slot || "Doel gehaald. Tijd voor de Bookflix Awards.";
     else {
-      teaser.appendChild(document.createTextNode("Nog " + duimen(ms[eerst] - t) + " tot "));
-      teaser.appendChild(el("b", null, state.beloningen[eerst].trim() || "de volgende beloning"));
+      teaser.appendChild(document.createTextNode((blok ? "Bonusronde! " : "") + "Nog " + duimen(ms[eerst] - t) + " tot "));
+      teaser.appendChild(el("b", null, bel[eerst].trim() || "de volgende beloning"));
     }
     wandEls.forEach(function (w, i) {
-      var open = t >= ms[i], naam = state.beloningen[i].trim();
+      var open = t >= ms[i], naam = bel[i].trim();
       w.li.classList.toggle("vrij", open);
       w.nr.textContent = ms[i];
       w.naam.textContent = naam || "Beloning nog kiezen";
       w.naam.classList.toggle("leeg", !naam);
       w.stand.textContent = open ? "Vrijgespeeld" : "Nog " + duimen(ms[i] - t);
     });
+    if (blok && nieuw >= 0) nieuw = t - 1 - state.doel;
     if (nieuw >= 0 && rugEls[nieuw]) {
       var r = rugEls[nieuw];
       r.classList.remove("nieuw"); void r.offsetWidth; r.classList.add("nieuw");
@@ -2311,10 +2347,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     nieuw = -1;
 
     aflEls.forEach(function (a, i) {
-      var open = t >= ms[i], naam = state.beloningen[i].trim();
+      var open = t >= ms[i], naam = bel[i].trim();
       a.li.classList.toggle("vrij", open);
       a.nr.textContent = ms[i];
-      a.kopT.textContent = "Aflevering " + (i + 1);
+      a.kopT.textContent = (blok ? "Bonus " : "Aflevering ") + (blok * 4 + i + 1);
       a.stand.textContent = open ? "Vrijgespeeld" : "Nog " + duimen(ms[i] - t);
       a.naam.textContent = naam || "Beloning nog kiezen";
       a.naam.classList.toggle("leeg", !naam);
@@ -2336,10 +2372,14 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("leesSkip").textContent = vandaagGeen ? "Toch leestijd vandaag" : "Vandaag geen leestijd";
     zet($("einde"), state.einde);
     corrEls.forEach(function (c) { zet(c.inp, String(c.lees(state))); });
+    var alleM = alleMijlpalen(state), alleB = alleBeloningen(state);
     beloningEls.forEach(function (b, i) {
-      b.lab.textContent = "Beloning bij " + ms[i];
-      zet(b.inp, state.beloningen[i]);
+      b.rij.hidden = i >= alleM.length;
+      if (i >= alleM.length) return;
+      b.lab.textContent = (i >= 4 ? "Bonus bij " : "Beloning bij ") + alleM[i];
+      zet(b.inp, alleB[i]);
     });
+    $("bonusAan").textContent = state.bonus ? "Bonusronde weghalen" : "Bonusronde toevoegen (tot " + state.doel * 2 + ")";
     $("terug").disabled = stapel.length === 0;
     pasAan();
   }
@@ -2363,12 +2403,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Wijzigen en bewaren */
   /* Feestmoment bij een volle plank */
   function vier(i) {
-    var ms = mijlpalen(state), laatste = i === 3;
-    $("feestKop").textContent = laatste ? "Doel gehaald" : "Plank " + ms[i] + " is vol";
-    $("feestNaam").textContent = state.beloningen[i].trim() || "Kies samen een beloning";
+    var ms = alleMijlpalen(state), bl = alleBeloningen(state), laatste = i === ms.length - 1;
+    $("feestKop").textContent = laatste ? (state.bonus ? "Bonusronde vol" : "Doel gehaald") : "Plank " + ms[i] + " is vol";
+    $("feestNaam").textContent = (bl[i] || "").trim() || "Kies samen een beloning";
     $("feestSub").textContent = laatste
-      ? "De klas heeft alle " + state.doel + " duimen gespaard."
-      : "Vrijgespeeld met " + duimen(totaal(state)) + ". Op naar de " + ms[i + 1] + ".";
+      ? "De klas heeft alle " + eindDoel(state) + " duimen gespaard."
+      : "Vrijgespeeld met " + duimen(totaal(state)) + ". Op naar de " + ms[i + 1] + (i === 3 ? " in de bonusronde." : ".");
     var doos = $("snippers"), soorten = ["s", "f", "l", "w", "t"];
     doos.textContent = "";
     for (var n = 0; n < 34; n++) {
@@ -3013,7 +3053,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     invTipsToon(titel, invRij);
     if (invVast && invVast.bron === "ai" && !state.aiVragen[kk] && !state.vragen[kk]) wijzig(function (s) { s.aiVragen[kk] = getoond; }, false);
     invStap(3);
-    var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
+    var t = totaal(state), m = alleMijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
     clearTimeout(invKlok);
     invKlok = setTimeout(invOpnieuw, 12000);
@@ -3028,7 +3068,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (keuze === "foto" && invFotoData[k]) bewaarKaftFoto(titel, invFotoData[k]);
     duimErbij(invRij, titel, 0, keuze);
     invStap(3);
-    var t = totaal(state), m = mijlpalen(state).filter(function (x) { return x > t; })[0];
+    var t = totaal(state), m = alleMijlpalen(state).filter(function (x) { return x > t; })[0];
     $("invStand").textContent = "De klas heeft nu " + duimen(t) + (m ? ". Nog " + (m - t) + " tot de volgende beloning." : ". Het doel is gehaald!");
     jufVragenToon(titel, invRij);
     clearTimeout(invKlok);
@@ -3285,15 +3325,31 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("opnieuwNee").addEventListener("click", vraagDicht);
   /* Beloningen wisselen: per plank een andere uit de lijst. Wat al is vrijgespeeld, blijft staan. */
   function kiesBeloningen(s, ookVrij) {
-    var t = totaal(s), ms = mijlpalen(s), n = 0;
+    var t = totaal(s), n = 0;
+    var am = alleMijlpalen(s);
     BELONINGEN.forEach(function (lijst, i) {
-      if (!ookVrij && t >= ms[i]) return;
+      if (!ookVrij && t >= am[i]) return;
       var kan = lijst.filter(function (x) { return x !== s.beloningen[i]; });
       s.beloningen[i] = kan[Math.floor(Math.random() * kan.length)];
       n++;
     });
+    if (s.bonus) BELONINGEN.forEach(function (lijst, i) {
+      if (!ookVrij && t >= am[i + 4]) return;
+      var kan = lijst.filter(function (x) { return x !== s.bonus[i] && x !== s.beloningen[i]; });
+      if (kan.length) { s.bonus[i] = kan[Math.floor(Math.random() * kan.length)]; n++; }
+    });
     return n;
   }
+  function bonusErbij() { wijzig(function (s) { if (!s.bonus) s.bonus = bonusVoorstel(s); }, false); }
+  $("bonusKnop").addEventListener("click", bonusErbij);
+  $("bonusAan").addEventListener("click", function () {
+    if (state.bonus) {
+      var k = $("bonusAan");
+      if (!k.classList.contains("zeker")) { k.classList.add("zeker"); k.textContent = "Echt weghalen?"; setTimeout(function () { k.classList.remove("zeker"); toon(); }, 3000); return; }
+      k.classList.remove("zeker");
+      wijzig(function (s) { s.bonus = null; }, false);
+    } else bonusErbij();
+  });
   $("belNu").addEventListener("click", function () {
     var n = 0;
     wijzig(function (s) { n = kiesBeloningen(s, false); }, false);
@@ -3325,7 +3381,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       var g = {};
       GENRES.forEach(function (y) { g[y.id] = s.genres[y.id]; });
       s.archief.push({
-        nr: s.seizoen, datum: dagSleutel(new Date()), totaal: totaal(s), doel: s.doel, genres: g,
+        nr: s.seizoen, datum: dagSleutel(new Date()), totaal: totaal(s), doel: eindDoel(s), genres: g,
         top: ranglijst(s).slice(0, 10).map(function (b) { return { t: b.t, n: b.n }; }),
         awards: AWARDS.filter(function (a) { return s.awards[a.id].trim(); }).map(function (a) { return { k: a.t, t: s.awards[a.id].trim() }; }),
         beloningen: s.beloningen.slice()
@@ -3338,7 +3394,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         s.einde = dagSleutel(eind);
       }
       GENRES.forEach(function (g) { s.genres[g.id] = 0; });
-      s.log = {}; s.boeken = []; s.lezen = {};
+      s.log = {}; s.boeken = []; s.lezen = {}; s.bonus = null;
       if (s.belWissel) kiesBeloningen(s, true);
       AWARDS.forEach(function (a) { s.awards[a.id] = ""; });
     }, false);
