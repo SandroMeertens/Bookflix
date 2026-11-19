@@ -784,9 +784,6 @@ body:not(.lid) .alleen-lid{display:none!important}
       <p class="start-teaser" id="startTeaser">Elke duim zet een boek op de plank.</p>
       <div class="start-knoppen">
         <button class="knop wit groot" id="startGa" type="button"><span class="speel" aria-hidden="true"></span>Naar het scorebord</button>
-        <button class="knop" id="startRegels" type="button">Spelregels</button>
-        <button class="knop alleen-juf" id="startKoppel" type="button" hidden>iPads koppelen</button>
-        <button class="tekstknop" id="volKnop2" type="button" hidden>Volledig scherm</button>
       </div>
     </div>
     <ul class="wand" id="wand" aria-label="De planken van de klas"></ul>
@@ -3260,7 +3257,6 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("rondOpnieuw").addEventListener("click", function () { $("instellen").close(); rondStart(); });
 
   $("startGa").addEventListener("click", function () { kies("bord"); setTimeout(rondMisschien, 700); });
-  $("startRegels").addEventListener("click", function () { kies("regels"); });
   $("naarStart").addEventListener("click", function () { kies("start"); });
   if (location.hash === "#bord") { kies("bord"); setTimeout(rondMisschien, 1500); }
   Object.keys(TABS).forEach(function (k) {
@@ -3352,7 +3348,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   var volUit = document.exitFullscreen || document.webkitExitFullscreen;
   function volNu() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
   if ((document.fullscreenEnabled || document.webkitFullscreenEnabled) && typeof volVraag === "function") {
-    ["volKnop", "volKnop2"].forEach(function (id) {
+    ["volKnop"].forEach(function (id) {
       $(id).hidden = false;
       $(id).addEventListener("click", function () {
         try {
@@ -3363,7 +3359,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     var volTekst = function () {
       var t = volNu() ? "Scherm verkleinen" : "Volledig scherm";
-      $("volKnop").setAttribute("aria-label", t); $("volKnop").title = t; $("volKnop2").textContent = t;
+      $("volKnop").setAttribute("aria-label", t); $("volKnop").title = t;
       document.documentElement.classList.toggle("vol", !!volNu());
     };
     document.addEventListener("fullscreenchange", volTekst);

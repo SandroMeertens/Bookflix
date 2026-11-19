@@ -219,7 +219,7 @@ async function begin() {
   let ledenStop = null;
   function vulKlasBlok() {
     $("klasBlok").hidden = false;
-    $("koppelKnop").hidden = false; $("startKoppel").hidden = false;
+    $("koppelKnop").hidden = false;
     const vak = $("koppelCode"); vak.textContent = ""; vak.setAttribute("aria-label", "Klascode " + klasData.code.split("").join(" "));
     klasData.code.split("").forEach((ch) => { const s = document.createElement("span"); s.textContent = ch; s.setAttribute("aria-hidden", "true"); vak.appendChild(s); });
     /* Hoeveel iPads zijn er gekoppeld? */
@@ -255,7 +255,6 @@ async function begin() {
   function koppelOpen() { if (!klasData) return; $("koppelScherm").hidden = false; tekenQR(); setTimeout(() => $("koppelDicht").focus(), 30); }
   function koppelDicht() { $("koppelScherm").hidden = true; }
   $("koppelKnop").addEventListener("click", koppelOpen);
-  $("startKoppel").addEventListener("click", koppelOpen);
   $("koppelDicht").addEventListener("click", koppelDicht);
   $("koppelScherm").addEventListener("click", (e) => { if (e.target === $("koppelScherm")) koppelDicht(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("koppelScherm").hidden) koppelDicht(); });
