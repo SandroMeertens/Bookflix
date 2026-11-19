@@ -195,6 +195,12 @@ h2{font-family:var(--display); font-weight:400; font-size:1.9em; letter-spacing:
 .teller.tik{animation:tik .35s ease}
 @keyframes tik{40%{transform:scale(1.07)}}
 .van{font-weight:800; font-size:1.35em}
+.bord .teller-rij{flex-wrap:nowrap; align-items:flex-end; gap:0 .5em}
+.bord .van{display:grid; font-size:1.25em; line-height:1.15; padding-bottom:.35em; color:var(--muted)}
+.bord .van span:first-child{color:var(--fg)}
+.bord .stand{gap:1em}
+.bord .bord-volgende{font-size:1.5em; line-height:1.25; text-wrap:balance}
+.bord #bonusKnop{margin-top:.1em}
 .opbouw{color:var(--muted); font-weight:600; text-wrap:balance}
 .acties{display:flex; flex-wrap:wrap; align-items:center; gap:.5em .8em}
 .acties input{flex:1 1 11em; max-width:17em; align-self:stretch; font-size:1.1em}
@@ -2640,10 +2646,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function toon() {
     var t = totaal(state), ms = mijlpalen(state);
     $("teller").textContent = t;
-    $("van").textContent = "van de " + eindDoel(state) + " duimen";
+    /* 'van de 100' en 'duimen' netjes onder elkaar naast het grote getal */
+    var vanEl = $("van"); vanEl.textContent = "";
+    vanEl.appendChild(el("span", null, "van de " + eindDoel(state))); vanEl.appendChild(el("span", null, "duimen"));
     var tp = tempo(state), wk = Math.max(0, tp.week);
-    $("eyebrow").textContent = "Seizoen " + state.seizoen + " · tot " + eindTekst(state);
-    var slot = t >= eindDoel(state) ? (state.bonus ? "Ook de bonusronde is vol. Wat een leesklas!" : "Doel gehaald. Tijd voor de Bookflix Awards.")
+    $("eyebrow").textContent = "Seizoen " + state.seizoen + (blokVan(state) ? " · Bonusronde" : "") + " · tot " + eindTekst(state);
+    var slot = t >= eindDoel(state) ? (state.bonus ? "Bonusronde vol. Wat een leesklas!" : "Doel gehaald! Op naar de Awards.")
       : tp.voorbij ? "Het seizoen is afgelopen. Bij Instellen start je een nieuw seizoen." : "";
     $("opbouw").textContent = slot; $("opbouw").hidden = true;
     $("bonusKnop").hidden = !(t >= state.doel && !state.bonus && kanSchrijven && isJuf());
@@ -2720,9 +2728,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var bv = $("bordVolgende"); bv.textContent = "";
     if (slot || volg < 0) bv.textContent = slot || "Alle afleveringen zijn vrijgespeeld.";
     else {
-      bv.appendChild(document.createTextNode((blok ? "Bonusronde \u00b7 volgende: " : "Volgende aflevering: ")));
-      bv.appendChild(el("b", null, bel[volg].trim() || "beloning nog kiezen"));
-      bv.appendChild(document.createTextNode(" \u00b7 nog " + duimen(ms[volg] - t)));
+      bv.appendChild(document.createTextNode("Nog " + duimen(ms[volg] - t) + " tot "));
+      bv.appendChild(el("b", null, bel[volg].trim() || "de volgende beloning"));
     }
     aflEls.forEach(function (a, i) {
       var open = t >= ms[i], naam = bel[i].trim();
