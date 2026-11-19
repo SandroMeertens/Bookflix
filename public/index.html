@@ -418,7 +418,20 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
   linear-gradient(90deg, rgb(15 14 17 / .9) 8%, rgb(15 14 17 / .55) 45%, rgb(15 14 17 / .2)),
   linear-gradient(0deg, var(--bg), transparent 45%)}
 html.licht .bord-achter{display:none!important}
-.bord > *:not(.bord-achter){position:relative; z-index:1}
+.bord > *:not(.bord-achter):not(.bord-muur){position:relative; z-index:1}
+/* Kaftenmuur achter de stand */
+.bord-muur{display:none}
+.bord:not([hidden]) .bord-muur:not([hidden]){display:block; position:fixed; left:0; top:0; bottom:0; width:58vw; z-index:0; pointer-events:none; overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 55%, transparent 100%); mask-image:linear-gradient(90deg, #000 0%, #000 55%, transparent 100%)}
+.muur-rooster{position:absolute; left:-12vw; top:-30vh; width:90vw; display:grid; grid-template-columns:repeat(7,1fr); gap:1.1vw; transform:rotate(-12deg); opacity:.15; filter:saturate(.85) blur(1.5px)}
+.muur-rooster .kaft{border-radius:.5vw; box-shadow:none; font-size:.8vw}
+.muur-rooster .kaft .rang, .muur-rooster .kaft .duim-tel{display:none}
+.bord-muur::after{content:""; position:absolute; inset:0; background:
+  linear-gradient(90deg, rgb(15 14 17 / .5), rgb(15 14 17 / .2) 60%, transparent),
+  linear-gradient(0deg, rgb(15 14 17 / .9) 0%, transparent 40%),
+  linear-gradient(180deg, rgb(15 14 17 / .6) 0%, transparent 25%)}
+html.licht .bord-muur{display:none!important}
+@media (max-width:999px){ .bord-muur{display:none!important} }
 .kop{position:relative; z-index:2}
 .toplijst li{display:grid; place-items:center; min-width:0; min-height:0}
 .toplijst li.top-leeg{grid-column:1 / -1; place-items:start; color:var(--muted); font-weight:600}
@@ -1022,6 +1035,7 @@ body:not(.lid) .alleen-lid{display:none!important}
 
   <main class="bord" id="bord" hidden>
     <div class="bord-achter" id="bordAchter" aria-hidden="true"></div>
+    <div class="bord-muur" id="bordMuur" aria-hidden="true"><div class="muur-rooster" id="muurRooster"></div></div>
     <div class="links">
       <div class="stand">
         <p class="eyebrow" id="eyebrow">Seizoen 1 · tot de kerstvakantie</p>
@@ -2605,6 +2619,17 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       top.appendChild(li);
     });
     /* Achtergrond: de kaft van nummer 1, groot en wazig, zoals een filmposter */
+    /* Achter de stand: een schuine muur van alle kaften van de klas, donker en vervaagd, zoals een filmposter */
+    var muur = $("muurRooster"), mBoeken = volgorde.slice(0, 28), mSleutel = mBoeken.map(function (g) { return g.k + (state.kaften[g.k] || ""); }).join("|") + fotoVersie;
+    if (muur.dataset.k !== mSleutel) {
+      muur.dataset.k = mSleutel; muur.textContent = "";
+      if (mBoeken.length >= 4) for (var mi = 0; mi < 35; mi++) {
+        var mg = mBoeken[mi % mBoeken.length], mk = maakKaft(mg.t, mg.g, 0);
+        mk.removeAttribute("role"); mk.removeAttribute("tabindex"); mk.removeAttribute("aria-label");
+        muur.appendChild(mk);
+      }
+    }
+    $("bordMuur").hidden = mBoeken.length < 4;
     var achter = $("bordAchter"), akSleutel = volgorde.length ? volgorde[0].k + "|" + (state.kaften[volgorde[0].k] || "") + "|" + fotoVersie : "";
     if (achter.dataset.k !== akSleutel) {
       achter.dataset.k = akSleutel; achter.textContent = "";
