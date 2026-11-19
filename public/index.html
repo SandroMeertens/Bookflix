@@ -268,8 +268,15 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 @keyframes vg-plus{0%{box-shadow:0 0 0 0 rgb(229 50 45 / .7)} 100%{box-shadow:0 0 0 1.4em rgb(229 50 45 / 0)}}
 @keyframes vg-licht{0%{filter:brightness(1.6)} 100%{filter:none}}
 @media (prefers-reduced-motion:reduce){ .vg-vol, .vg-stip{transition:none} .vg-balk.plus .vg-stip, .vg-balk.plus .vg-vol{animation:none} }
-.bord .afleveringen{margin-top:.2em}
-.bord .afl-lijf{padding-top:.9em}
+/* Afleveringen als lijst onder de balk, zoals de afleveringen van een serie */
+.bord .afleveringen{grid-template-columns:minmax(0,1fr)!important; margin-top:.9em; gap:0}
+.bord .afl-lijf{grid-template-columns:2.6em minmax(0,1fr) auto!important; padding:.5em 0!important; gap:0 .9em!important; border-bottom:1px solid var(--line); align-items:center!important}
+.bord .afl:first-child .afl-lijf{border-top:1px solid var(--line)}
+.bord .afl-nr{grid-column:1; grid-row:1; font-size:1.7em!important; text-align:right}
+.bord .afl-naam{grid-column:2; grid-row:1; font-size:1.12em!important; -webkit-line-clamp:1!important; color:var(--fg)!important}
+.bord .afl-kop{grid-column:3; grid-row:1; font-size:.75em!important}
+.bord .afl.vrij .afl-naam{color:var(--muted)!important}
+.bord .afl.volgende .afl-lijf{background:linear-gradient(90deg, rgb(229 50 45 / .14), transparent 70%)!important; border-radius:6px}
 .bord-volgende b{font-weight:800}
 .bord-meta{margin:0; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .bord-meta[hidden]{display:none}
@@ -345,7 +352,9 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .toplijst{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9em}
 .toplijst li{display:grid; place-items:center; min-width:0; min-height:0}
 .toplijst li.top-leeg{grid-column:1 / -1; place-items:start; color:var(--muted); font-weight:600}
-.toplijst:not(.drie) li:nth-child(n+7){display:none}
+.toplijst:not(.drie):not(.vier) li:nth-child(n+7){display:none}
+.toplijst.vier{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.toplijst.vier li:nth-child(n+9){display:none}
 
 /* Boeken van de klas */
 .lijst{display:grid; gap:1em; align-content:start; min-width:0}
@@ -481,7 +490,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 /* Digibord: liggend scherm. Alles schaalt mee met het scherm en past zonder scrollen. */
 /* Breed scherm: links de stand en de planken, rechts de meest geduimde boeken */
 @media (min-width:1200px), (min-width:600px) and (min-height:560px) and (min-aspect-ratio:5/4){
-  .bord{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); column-gap:clamp(28px,3.2vw,56px)}
+  .bord{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); column-gap:clamp(28px,3.2vw,56px)}
   .afleveringen{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
@@ -3606,7 +3615,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         st.setProperty("--krimp", k.toFixed(3));
       }
       /* Meest geduimd: als de kaften smal zijn, geen gaten tussen de rijen maar netjes bovenaan */
-      tl.classList.remove("drie");
+      tl.classList.remove("drie", "vier");
+      /* Brede kolom en weinig hoogte? Dan vier kaften naast elkaar (acht boeken) */
+      if (getComputedStyle(tl).gridTemplateColumns.split(" ").length === 3 && tl.clientWidth / Math.max(1, tl.clientHeight) > 1.12 && tl.children.length > 6)
+        tl.classList.add("vier");
       var li = tl.querySelector("li:not(.top-leeg)");
       if (li) {
         var kol = getComputedStyle(tl).gridTemplateColumns.split(" ").length, gap = parseFloat(getComputedStyle(tl).rowGap) || 0;
@@ -3614,7 +3626,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         var rijen = Math.min(2, Math.ceil(tl.children.length / kol));
         /* Ruimte over? Dan een derde rij, met iets kleinere kaften */
         var h3 = (hoog - 2 * gap) / 3;
-        if (kol === 3 && tl.children.length > 6 && h3 >= kaftH * 0.8) {
+        if (kol === 3 && !tl.classList.contains("vier") && tl.children.length > 6 && h3 >= kaftH * 0.8) {
           tl.classList.add("drie");
           tl.style.gridTemplateRows = "repeat(3," + Math.floor(Math.min(h3, kaftH)) + "px)";
           tl.style.alignContent = "start";
