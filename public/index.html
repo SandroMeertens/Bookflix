@@ -196,9 +196,17 @@ h2{font-family:var(--display); font-weight:400; font-size:1.9em; letter-spacing:
 @keyframes tik{40%{transform:scale(1.07)}}
 .van{font-weight:800; font-size:1.35em}
 .bord .teller-rij{flex-wrap:nowrap; align-items:flex-end; gap:0 .5em}
-.bord .van{display:grid; font-size:1.25em; line-height:1.15; padding-bottom:.35em; color:var(--muted); font-weight:700}
-.bord .van span:first-child{color:var(--fg)}
-.bord .stand{gap:1em}
+.bord .van{display:grid; justify-items:start; gap:.1em; padding-bottom:.45em; color:var(--muted)}
+.bord .van-doel{font-family:var(--display); font-weight:400; font-size:3.1em; line-height:.85; letter-spacing:.02em; color:var(--muted)}
+.bord .van-woord{font-weight:800; font-size:.8em; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); padding-left:.15em}
+.bord .stand{gap:1.25em}
+.bord .stand > *{margin:0}
+.bv-label{display:block; font-weight:800; font-size:.62em; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:.35em}
+.bv-naam{display:block; font-weight:800; line-height:1.15}
+.knop-tijd{margin-left:.35em; padding-left:.65em; border-left:2px solid rgb(18 17 21 / .18); font-weight:700; color:#5c5864}
+.knop.speel.loopt .knop-tijd{display:none}
+#teller.plus{animation:teller-plus 1.4s ease-out}
+@keyframes teller-plus{0%{text-shadow:0 0 0 rgb(229 50 45 / 0)} 25%{text-shadow:0 0 .25em rgb(229 50 45 / .85); color:#fff} 100%{text-shadow:0 0 0 rgb(229 50 45 / 0)}}
 .bord .bord-volgende{font-size:1.5em; line-height:1.25; text-wrap:balance; font-weight:700}
 .bord .lees-wanneer{font-size:1em; font-weight:600}
 .bord .eyebrow{color:var(--muted)}
@@ -1047,7 +1055,7 @@ body:not(.lid) .alleen-lid{display:none!important}
         <div class="bord-acties">
           <button class="knop speel alleen-juf" id="leesStart" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
-            <span id="leesStartTekst">Start leestijd</span>
+            <span id="leesStartTekst">Start leestijd</span><span class="knop-tijd" id="leesStartTijd" hidden></span>
           </button>
           <button class="knop alleen-juf schrijf prive" id="bonusKnop" type="button" hidden>Verder lezen: bonusronde</button>
         </div>
@@ -2695,11 +2703,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var loopt = typeof stil !== "undefined" && stil && !stil.klaar && stilRest() > 0;
     $("leesStartTekst").textContent = loopt ? "Terug naar de leestijd" : "Start leestijd";
     $("leesStart").classList.toggle("loopt", !!loopt);
-    var w = $("leesWanneer");
-    if (state.leestijd.aan && !loopt) {
-      w.textContent = "Vaste leestijd: elke werkdag om " + state.leestijd.van.replace(":", ".") + " uur";
-      w.hidden = false;
-    } else w.hidden = true;
+    $("leesWanneer").hidden = true;
+    var kt = $("leesStartTijd");
+    kt.hidden = !(state.leestijd.aan && !loopt);
+    kt.textContent = state.leestijd.van.replace(":", ".");
+    kt.title = "Vaste leestijd: elke werkdag om " + kt.textContent + " uur";
   }
   function bordKaart() {
     leesKnopTekst();
@@ -2727,12 +2735,28 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
   function zet(inp, v) { if (document.activeElement !== inp && inp.value !== v) inp.value = v; }
 
+  /* Het grote getal telt zichtbaar op als er boeken bijkomen, met een korte gloed */
+  var tellerNu = -1, tellerAnim = 0;
+  function telOp(t) {
+    var tel = $("teller");
+    if (tellerNu < 0 || t <= tellerNu || t - tellerNu > 30 || $("bord").hidden || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      cancelAnimationFrame(tellerAnim); tellerNu = t; tel.textContent = t; return;
+    }
+    var van = tellerNu, start = performance.now(), duur = Math.min(1400, 450 + (t - van) * 120);
+    tellerNu = t; cancelAnimationFrame(tellerAnim);
+    tel.classList.remove("plus"); void tel.offsetWidth; tel.classList.add("plus");
+    (function stap(nu) {
+      var f = Math.min(1, (nu - start) / duur), e = 1 - Math.pow(1 - f, 3);
+      tel.textContent = Math.round(van + (t - van) * e);
+      if (f < 1) tellerAnim = requestAnimationFrame(stap);
+    })(start);
+  }
   function toon() {
     var t = totaal(state), ms = mijlpalen(state);
-    $("teller").textContent = t;
-    /* 'van de 100' en 'duimen' netjes onder elkaar naast het grote getal */
+    telOp(t);
+    /* Score: 100 / 200, met 'duimen' klein eronder */
     var vanEl = $("van"); vanEl.textContent = "";
-    vanEl.appendChild(el("span", null, "van de " + eindDoel(state))); vanEl.appendChild(el("span", null, "duimen"));
+    vanEl.appendChild(el("span", "van-doel", "/ " + eindDoel(state))); vanEl.appendChild(el("span", "van-woord", "duimen"));
     var tp = tempo(state), wk = Math.max(0, tp.week);
     $("eyebrow").textContent = "Seizoen " + state.seizoen + (blokVan(state) ? " · Bonusronde" : "") + " · tot " + eindTekst(state);
     var slot = t >= eindDoel(state) ? (state.bonus ? "Bonusronde vol. Wat een leesklas!" : "Doel gehaald! Op naar de Awards.")
@@ -2812,8 +2836,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var bv = $("bordVolgende"); bv.textContent = "";
     if (slot || volg < 0) bv.textContent = slot || "Alle afleveringen zijn vrijgespeeld.";
     else {
-      bv.appendChild(document.createTextNode("Nog " + duimen(ms[volg] - t) + " tot "));
-      bv.appendChild(el("b", null, bel[volg].trim() || "de volgende beloning"));
+      bv.appendChild(el("span", "bv-label", (blok ? "Volgende bonus" : "Volgende beloning") + " \u00b7 nog " + duimen(ms[volg] - t)));
+      bv.appendChild(el("span", "bv-naam", bel[volg].trim() || "Nog te kiezen"));
     }
     var allesKlaar = t >= ms[3];
     $("afleveringen").classList.toggle("alles-klaar", allesKlaar);
