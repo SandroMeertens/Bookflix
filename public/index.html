@@ -445,7 +445,7 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .stil-afl{margin:0; font-weight:800; font-size:max(12px,2.3cqh); letter-spacing:.14em; text-transform:uppercase; color:rgb(247 245 242 / .7)}
 .stil-knoppen{display:flex; gap:.5em; opacity:.18; transition:opacity .3s}
 .stil-knoppen .knop{background:rgb(20 19 24 / .75)}
-.stil-knoppen:hover, .stil-knoppen:focus-within, .stil.pauze .stil-knoppen{opacity:1}
+.stil-knoppen:hover, .stil-knoppen:focus-within, .stil.pauze .stil-knoppen, .stil.knoppen-aan .stil-knoppen{opacity:1}
 .stil-info{position:absolute; left:4.5cqw; bottom:17cqh; max-width:60cqw}
 .stil-tijd{display:flex; align-items:baseline; gap:2cqh; margin:0}
 #stilGetal{font-family:var(--display); font-size:34cqh; line-height:.78; font-variant-numeric:tabular-nums; text-shadow:0 4px 40px rgb(0 0 0 / .45)}
@@ -464,15 +464,35 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .stil-klaar-tekst{font-weight:800; font-size:max(22px,5cqh); margin:0; text-wrap:balance}
 .stil-klaar-sub{font-weight:700; font-size:max(16px,3cqh); color:rgb(247 245 242 / .78); margin:0; text-wrap:balance}
 /* Intro */
-.stil-intro{position:absolute; inset:0; z-index:9; display:grid; place-items:center; background:#000; opacity:0; pointer-events:none}
-.stil-intro.speel{animation:intro-weg 3.6s ease forwards}
-.stil-intro .woord{font-family:var(--display); color:var(--accent); font-size:24cqh; letter-spacing:.06em; line-height:1}
-.stil-intro.speel .woord{animation:intro-woord 3.6s cubic-bezier(.2,.7,.2,1) forwards}
-.stil-intro .onder{position:absolute; bottom:24cqh; font-weight:800; letter-spacing:.4em; text-transform:uppercase; font-size:2.6cqh; color:var(--muted); opacity:0}
-.stil-intro.speel .onder{animation:intro-onder 3.6s ease forwards}
-@keyframes intro-weg{0%{opacity:1} 78%{opacity:1} 100%{opacity:0}}
-@keyframes intro-woord{0%{transform:scale(1.35); letter-spacing:.4em; opacity:0; filter:blur(8px)} 30%{opacity:1; filter:blur(0)} 70%{transform:scale(1); letter-spacing:.06em; text-shadow:0 0 60px rgb(229 50 45 / .6)} 100%{transform:scale(.96); letter-spacing:.06em}}
-@keyframes intro-onder{0%,35%{opacity:0} 55%,85%{opacity:1} 100%{opacity:0}}
+/* Intro: de letters vallen op hun plek, een lichtstreep glijdt erover, dan vliegen we erdoorheen
+   in stralen van de zes rijkleuren en verschijnt het leesbeeld. Ongeveer 4,6 seconden. */
+.stil-intro{position:absolute; inset:0; z-index:9; display:grid; place-items:center; background:#000; opacity:0; pointer-events:none; overflow:hidden}
+.stil-intro.speel{animation:intro-weg 4.6s linear forwards}
+.intro-merk{position:relative; display:grid; justify-items:center; gap:2.4cqh; z-index:2}
+.intro-woord{display:flex; font-family:var(--display); font-size:26cqh; line-height:.9; letter-spacing:.04em; filter:drop-shadow(0 0 0 rgb(229 50 45 / 0))}
+.intro-woord span{display:inline-block; color:transparent; opacity:0;
+  background:linear-gradient(105deg, var(--accent) 0 40%, #ffe9d6 48%, #fff 50%, #ffe9d6 52%, var(--accent) 60% 100%); background-size:320% 100%; background-position:100% 0;
+  -webkit-background-clip:text; background-clip:text}
+.stil-intro.speel .intro-woord span{animation:intro-val .62s cubic-bezier(.2,1.45,.4,1) calc(.25s + var(--i) * .075s) forwards, intro-glans .9s ease-in-out calc(1.75s + var(--i) * .045s) forwards}
+.stil-intro.speel .intro-woord{animation:intro-klap .5s ease-out 1.28s, intro-gloed 1.3s ease-out 1.28s forwards}
+.stil-intro.speel .intro-merk{animation:intro-door .85s cubic-bezier(.6,0,.9,.4) 2.6s forwards}
+.intro-onder{font-weight:800; letter-spacing:.2em; text-transform:uppercase; font-size:max(14px,3cqh); color:rgb(247 245 242 / .85); opacity:0}
+.stil-intro.speel .intro-onder{animation:intro-onder 1.1s ease-out 1.55s forwards}
+.intro-stralen{position:absolute; inset:0; z-index:1; mix-blend-mode:screen}
+.intro-stralen i{position:absolute; top:-10%; bottom:-10%; left:50%; width:var(--b); background:linear-gradient(180deg, transparent, var(--k) 22%, color-mix(in srgb, var(--k) 55%, #fff) 50%, var(--k) 78%, transparent);
+  box-shadow:0 0 2.4cqh var(--k); opacity:0; transform:translateX(-50%) scaleX(.2)}
+.stil-intro.speel .intro-stralen i{animation:intro-straal 1.35s cubic-bezier(.3,.1,.3,1) calc(2.55s + var(--v)) forwards}
+.intro-flits{position:absolute; inset:0; z-index:3; background:radial-gradient(circle at 50% 50%, #fff 0%, rgb(255 236 220 / .7) 25%, transparent 65%); opacity:0}
+.stil-intro.speel .intro-flits{animation:intro-flits .7s ease-out 3.25s forwards}
+@keyframes intro-weg{0%, 84%{opacity:1} 100%{opacity:0}}
+@keyframes intro-val{0%{opacity:0; transform:translateY(-55%) scale(1.7); filter:blur(1.2cqh)} 60%{opacity:1; filter:blur(0)} 100%{opacity:1; transform:none; filter:blur(0)}}
+@keyframes intro-glans{from{background-position:100% 0} to{background-position:0 0}}
+@keyframes intro-klap{0%{transform:scale(1.07)} 30%{transform:scale(.98) translateX(.3cqh)} 55%{transform:scale(1.01) translateX(-.3cqh)} 100%{transform:none}}
+@keyframes intro-gloed{0%{filter:drop-shadow(0 0 5cqh rgb(229 50 45 / .95))} 100%{filter:drop-shadow(0 0 2.2cqh rgb(229 50 45 / .45))}}
+@keyframes intro-onder{from{opacity:0; letter-spacing:.2em} to{opacity:1; letter-spacing:.62em}}
+@keyframes intro-door{0%{transform:scale(1); opacity:1} 100%{transform:scale(16); opacity:0}}
+@keyframes intro-straal{0%{opacity:0; transform:translateX(-50%) scaleX(.2)} 25%{opacity:1} 100%{opacity:0; transform:translateX(calc(-50% + var(--x))) scaleX(1.6)}}
+@keyframes intro-flits{0%{opacity:0} 30%{opacity:.85} 100%{opacity:0}}
 @media (max-aspect-ratio:1/1){
   .stil-info, .stil-kies{max-width:none; right:4.5cqw}
   #stilGetal{font-size:22cqh} .stil-rechts{top:calc(16cqh + env(safe-area-inset-top,0px)); left:4.5cqw; justify-items:start}
@@ -505,7 +525,10 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
 .lees-rij{display:flex; justify-content:space-between; align-items:center; gap:1em; font-weight:700; font-size:max(15px,3.2cqmin); color:rgb(247 245 242 / .75)}
 .lees-terug{position:fixed; z-index:24; right:calc(16px + env(safe-area-inset-right,0px)); bottom:calc(16px + env(safe-area-inset-bottom,0px)); padding:.7em 1.2em; border:0; border-radius:99px;
   background:var(--accent); color:#fff; font-weight:800; box-shadow:0 8px 24px rgb(0 0 0 / .4)}
-@media (prefers-reduced-motion:reduce){ .stil-intro.speel, .stil-intro.speel *{animation:none} }
+@media (prefers-reduced-motion:reduce){
+  .stil-intro.speel{animation:intro-weg 2.4s linear forwards} .stil-intro.speel *{animation:none!important}
+  .intro-woord span, .intro-onder{opacity:1}
+}
 @media (pointer:coarse){
   input[type=text], input[type=number], input[type=date], .acties input{font-size:max(1em,16px)}
   .knop{min-height:40px}
@@ -1061,7 +1084,11 @@ body:not(.lid) .alleen-lid{display:none!important}
     <p class="stil-klaar-sub" id="stilKlaarSub">Boek uit? Zet hem op de plank met de iPad.</p>
     <button class="knop wit groot" id="stilDicht" type="button">Naar het scorebord</button>
   </div>
-  <div class="stil-intro" id="stilIntro" aria-hidden="true"><span class="woord">BOOKFLIX</span><span class="onder">Leestijd</span></div>
+  <div class="stil-intro" id="stilIntro" aria-hidden="true">
+    <div class="intro-stralen" id="introStralen"></div>
+    <div class="intro-merk"><span class="intro-woord" id="introWoord"></span><span class="intro-onder">Leestijd</span></div>
+    <div class="intro-flits"></div>
+  </div>
 </div>
 
 <div class="lees" id="leesScherm" role="dialog" aria-modal="true" aria-label="Leestijd" hidden>
@@ -1079,7 +1106,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   <div class="lees-scene" id="leesScene" hidden>
     <canvas id="leesDoek" aria-hidden="true"></canvas>
     <span class="lees-logo" aria-hidden="true">BOOKFLIX</span>
-    <button class="lees-pil lees-wissel" id="leesWissel" type="button">Wissel</button>
+    <button class="lees-pil lees-wissel" id="leesWissel" type="button">Andere plek</button>
     <div class="lees-speler">
       <div class="lees-rij"><span id="leesNog"></span><button class="lees-pil" id="leesUit2" type="button">Boek uit? Zet hem op de plank</button></div>
       <div class="lees-balk"><span id="leesBalk"></span><i id="leesStip"></i></div>
@@ -3382,8 +3409,55 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       });
     } catch (e) {}
   }
+  /* De intro opbouwen: losse letters en stralen in de kleuren van de rijen */
+  (function () {
+    var w = $("introWoord");
+    "BOOKFLIX".split("").forEach(function (l, i) { var sp = el("span", null, l); sp.style.setProperty("--i", i); w.appendChild(sp); });
+    var KL = ["#e5322d", "#e66767", "#9085e9", "#c98500", "#3987e5", "#d95926", "#199e70", "#ffffff"], st = $("introStralen");
+    for (var i = 0; i < 90; i++) {
+      var r = el("i"), kant = i % 2 ? 1 : -1, ver = Math.pow(Math.random(), 0.7);
+      r.style.setProperty("--k", KL[i % KL.length]);
+      r.style.setProperty("--b", (0.4 + Math.random() * 2.4).toFixed(2) + "cqw");
+      r.style.setProperty("--x", (kant * ver * 62).toFixed(1) + "cqw");
+      r.style.setProperty("--v", (Math.random() * 0.35).toFixed(2) + "s");
+      st.appendChild(r);
+    }
+  })();
+  /* Eigen intromuziek, opgebouwd met de geluidskaart: een aanzwellende ruis, een dreun als de letters
+     landen, een warm akkoord en een zoef als we door het logo vliegen */
+  function stilIntroGeluid() {
+    var ac = stilGeluid; if (!ac) return;
+    try {
+      if (ac.state === "suspended") ac.resume();
+      var t0 = ac.currentTime + 0.05, uit = ac.createGain(); uit.gain.value = 0.9; uit.connect(ac.destination);
+      var len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      function ruis(start, duur, f0, f1, piek, soort) {
+        var n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+        n.buffer = buf; n.loop = true; f.type = soort || "bandpass"; f.Q.value = 1.2;
+        f.frequency.setValueAtTime(f0, start); f.frequency.exponentialRampToValueAtTime(f1, start + duur);
+        g.gain.setValueAtTime(0.0001, start); g.gain.exponentialRampToValueAtTime(piek, start + duur * 0.8); g.gain.exponentialRampToValueAtTime(0.0001, start + duur);
+        n.connect(f); f.connect(g); g.connect(uit); n.start(start); n.stop(start + duur + 0.05);
+      }
+      ruis(t0 + 0.2, 1.1, 250, 2600, 0.12);                       /* aanzwellen */
+      var dr = ac.createOscillator(), dg = ac.createGain(), tk = t0 + 1.28;  /* dreun */
+      dr.type = "sine"; dr.frequency.setValueAtTime(130, tk); dr.frequency.exponentialRampToValueAtTime(42, tk + 0.45);
+      dg.gain.setValueAtTime(0.0001, tk); dg.gain.exponentialRampToValueAtTime(0.75, tk + 0.015); dg.gain.exponentialRampToValueAtTime(0.0001, tk + 1.4);
+      dr.connect(dg); dg.connect(uit); dr.start(tk); dr.stop(tk + 1.5);
+      ruis(tk, 0.25, 900, 200, 0.18, "lowpass");
+      [146.83, 220, 293.66, 369.99, 440, 587.33].forEach(function (fr, i) {  /* akkoord in D */
+        var o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(), ta = tk + 0.04 + i * 0.03;
+        o.type = i < 2 ? "sawtooth" : "triangle"; o.frequency.value = fr; o.detune.value = (i % 2 ? 6 : -6);
+        f.type = "lowpass"; f.frequency.setValueAtTime(700, ta); f.frequency.exponentialRampToValueAtTime(2400, ta + 1.2);
+        g.gain.setValueAtTime(0.0001, ta); g.gain.exponentialRampToValueAtTime(i < 2 ? 0.05 : 0.07, ta + 0.08); g.gain.exponentialRampToValueAtTime(0.0001, ta + 3);
+        o.connect(f); f.connect(g); g.connect(uit); o.start(ta); o.stop(ta + 3.1);
+      });
+      ruis(t0 + 2.55, 1.0, 400, 7000, 0.16, "highpass");           /* zoef */
+    } catch (e) {}
+  }
   function stilIntro() {
     var i = $("stilIntro"); i.classList.remove("speel"); void i.offsetWidth; i.classList.add("speel");
+    stilIntroGeluid();
   }
   function stilTekst() {
     if ($("stilScherm").hidden || !stil) return;
@@ -3437,6 +3511,12 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
   function stilDeelEind(eind) { if (kanSchrijven) wijzig(function (s) { if (s.leesNu) s.leesNu.tot = eind; }, false); }
   $("stilKnop").addEventListener("click", stilOpen);
+  /* Digibord met aanraakscherm: een tik ergens op het scherm laat de knoppen even goed zien */
+  var knoppenTimer = 0;
+  $("stilScherm").addEventListener("pointerdown", function () {
+    $("stilScherm").classList.add("knoppen-aan"); clearTimeout(knoppenTimer);
+    knoppenTimer = setTimeout(function () { $("stilScherm").classList.remove("knoppen-aan"); }, 5000);
+  });
   $("stilTerug").addEventListener("click", function () { stil = null; stilSluit(); });
   $("stilStart").addEventListener("click", function () {
     if (!volNu() && typeof volVraag === "function") {
