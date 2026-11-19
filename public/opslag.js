@@ -105,15 +105,40 @@ async function begin() {
   });
 
   /* ---------- Leerkracht: eigen klas met een klascode ---------- */
+  /* Duo-collega: klassen waar deze leerkracht aan is toegevoegd */
+  let gedeeld = [], eigenKlas = null, ikCollega = false;
+  async function gedeeldeKlassen(u) {
+    const mail = String(u.email || "").toLowerCase();
+    if (!mail) return [];
+    try {
+      const q = await traag(F.getDocs(F.query(F.collection(db, "klassen"), F.where("collegas", "array-contains", mail))));
+      return q.docs.filter((x) => x.id !== u.uid).map((x) => Object.assign({ id: x.id }, x.data()));
+    } catch (e) { console.warn(e); return []; }
+  }
   async function alsLeerkracht(u) {
     const kid = u.uid;
     bewaar("bookflix.leerkracht", "1");
-    let k = await haal(d("klassen", kid));
+    const [k0, gd] = await Promise.all([haal(d("klassen", kid)), gedeeldeKlassen(u)]);
+    gedeeld = gd; eigenKlas = k0;
+    const keuze = lees("bookflix.klaskeuze");
+    const gekozen = gedeeld.find((x) => x.id === keuze);
+    /* Een gedeelde klas als die gekozen is, of als deze leerkracht nog geen eigen klas heeft */
+    if (gekozen || (!k0 && gedeeld.length && keuze !== kid)) {
+      const g = gekozen || gedeeld[0];
+      ikCollega = true; klasData = g;
+      klaarMet(g.id, "juf");
+      return;
+    }
+    let k = k0;
     if (!k) {
       k = { owner: kid, code: "", t: Date.now() };
       await F.setDoc(d("klassen", kid), k);
+      eigenKlas = k;
     }
     if (!k.code) k.code = await maakCode(kid);
+    /* Het e-mailadres van de eigenaar, zodat een collega ziet van wie de klas is */
+    const mail = String(u.email || "").toLowerCase();
+    if (mail && k.ownerMail !== mail) { k.ownerMail = mail; F.updateDoc(d("klassen", kid), { ownerMail: mail }).catch(() => {}); }
     klasData = k;
     klaarMet(kid, "juf");
   }
@@ -184,8 +209,58 @@ async function begin() {
         weg: (id) => F.deleteDoc(d("klassen", kid, "antwoorden", id))
       }
     });
-    if (rol === "juf") vulKlasBlok();
+    if (rol === "juf") { vulKlasBlok(); vulDuo(); }
   }
+
+  /* ---------- Duo-collega's beheren (alleen de eigenaar) en wisselen tussen klassen ---------- */
+  function vulDuo() {
+    const blok = $("duoBlok"); if (!blok) return;
+    blok.hidden = false;
+    const lijst = $("duoLijst"); lijst.textContent = "";
+    const isEigenaar = !ikCollega;
+    $("duoForm").hidden = !isEigenaar;
+    $("nieuweCode").hidden = !isEigenaar;
+    if (isEigenaar) {
+      (klasData.collegas || []).forEach((m) => {
+        const li = document.createElement("li"), t = document.createElement("span"), weg = document.createElement("button");
+        t.textContent = m; weg.type = "button"; weg.className = "tekstknop"; weg.textContent = "Weghalen";
+        weg.addEventListener("click", () => duoZet((klasData.collegas || []).filter((x) => x !== m), m + " is weggehaald."));
+        li.appendChild(t); li.appendChild(weg); lijst.appendChild(li);
+      });
+      $("duoMeld").textContent = (klasData.collegas || []).length ? "" : "Nog geen collega toegevoegd.";
+    } else {
+      $("duoMeld").textContent = "Je beheert de klas van " + (klasData.ownerMail || "een collega") + ".";
+    }
+    /* Meer dan één klas? Dan kun je wisselen */
+    const klassen = [];
+    if (eigenKlas || !ikCollega) klassen.push({ id: auth.currentUser.uid, naam: "Mijn eigen klas" });
+    gedeeld.forEach((g) => klassen.push({ id: g.id, naam: "Klas van " + (g.ownerMail || "een collega") }));
+    if (klassen.length > 1) {
+      klassen.filter((x) => x.id !== klasId).forEach((x) => {
+        const li = document.createElement("li"), t = document.createElement("span"), ga = document.createElement("button");
+        t.textContent = x.naam; ga.type = "button"; ga.className = "knop"; ga.textContent = "Wissel naar deze klas";
+        ga.addEventListener("click", () => { bewaar("bookflix.klaskeuze", x.id); location.reload(); });
+        li.appendChild(t); li.appendChild(ga); lijst.appendChild(li);
+      });
+    }
+  }
+  async function duoZet(nieuw, melding) {
+    try {
+      await F.updateDoc(d("klassen", klasId), { collegas: nieuw });
+      klasData.collegas = nieuw; vulDuo(); $("duoMeld").textContent = melding;
+    } catch (e) { console.warn(e); $("duoMeld").textContent = "Dat lukte niet. Probeer het nog eens."; }
+  }
+  $("duoForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const m = String($("duoMail").value || "").trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)) { $("duoMeld").textContent = "Vul een geldig e-mailadres in."; return; }
+    if (auth.currentUser && m === String(auth.currentUser.email || "").toLowerCase()) { $("duoMeld").textContent = "Dat is je eigen adres."; return; }
+    const lijst = klasData.collegas || [];
+    if (lijst.includes(m)) { $("duoMeld").textContent = "Die collega staat er al bij."; return; }
+    if (lijst.length >= 4) { $("duoMeld").textContent = "Er kunnen maximaal vier collega's bij."; return; }
+    $("duoMail").value = "";
+    duoZet(lijst.concat([m]), m + " is toegevoegd. Die kan nu inloggen met Google en ziet dan deze klas.");
+  });
 
   /* ---------- AI voor leesvragen (Firebase AI Logic, Gemini Developer API) ----------
      Werkt alleen als AI Logic in de Firebase-console aanstaat. Lukt het niet, dan gebruikt

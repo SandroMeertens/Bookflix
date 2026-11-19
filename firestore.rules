@@ -2,7 +2,7 @@ rules_version = '2';
 // Bookflix — wie mag wat?
 // - De leerkracht logt in met Google. Elke leerkracht heeft één klas; die heet net als het account (uid).
 // - Een iPad van de klas logt anoniem in en wordt "lid" van de klas door de klascode in te vullen.
-// - Het scorebord is alleen te zien voor de leerkracht en voor gekoppelde iPads.
+// - Het scorebord is alleen te zien voor de leerkracht, een toegevoegde duo-collega en gekoppelde iPads.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -11,6 +11,12 @@ service cloud.firestore {
     function klas(k) { return get(/databases/$(database)/documents/klassen/$(k)).data; }
     function isOwner(k) { return signedIn() && request.auth.uid == k; }
     function isLid(k) { return signedIn() && exists(/databases/$(database)/documents/klassen/$(k)/leden/$(request.auth.uid)); }
+    // Duo-collega: een tweede leerkracht met een eigen (bevestigd) Google-account, door de eigenaar toegevoegd.
+    function mijnMail() { return request.auth.token.email.lower(); }
+    function heeftMail() { return isJuf() && request.auth.token.email is string && request.auth.token.email_verified == true; }
+    function isCollega(k) { return heeftMail() && exists(/databases/$(database)/documents/klassen/$(k))
+                                   && mijnMail() in klas(k).get('collegas', []); }
+    function isBeheer(k) { return isOwner(k) || isCollega(k); }
 
     // Klascode -> klas. Wie is ingelogd (ook anoniem) mag één code opzoeken, maar niet de lijst van codes.
     match /codes/{code} {
@@ -24,43 +30,45 @@ service cloud.firestore {
 
     match /klassen/{k} {
       allow create: if isJuf() && k == request.auth.uid && request.resource.data.owner == request.auth.uid;
-      allow get: if isOwner(k) || isLid(k);
-      allow list: if false;
-      allow update: if isOwner(k) && request.resource.data.owner == resource.data.owner;
+      allow get: if isOwner(k) || isLid(k) || (heeftMail() && mijnMail() in resource.data.get('collegas', []));
+      // Een collega mag zoeken in welke klassen hij of zij is toegevoegd (alleen met dat filter).
+      allow list: if heeftMail() && mijnMail() in resource.data.get('collegas', []);
+      allow update: if isOwner(k) && request.resource.data.owner == resource.data.owner
+                    && (!('collegas' in request.resource.data) || (request.resource.data.collegas is list && request.resource.data.collegas.size() <= 4));
       allow delete: if isOwner(k);
 
       // Een iPad meldt zich aan met de klascode.
       match /leden/{uid} {
         allow create, update: if signedIn() && uid == request.auth.uid
                     && request.resource.data.code == klas(k).code;
-        allow read: if signedIn() && (uid == request.auth.uid || isOwner(k));
-        allow delete: if signedIn() && (uid == request.auth.uid || isOwner(k));
+        allow read: if signedIn() && (uid == request.auth.uid || isBeheer(k));
+        allow delete: if signedIn() && (uid == request.auth.uid || isBeheer(k));
       }
 
       // Het scorebord zelf: één document met de hele stand.
       match /bord/{d} {
-        allow read, write: if isOwner(k) || isLid(k);
+        allow read, write: if isBeheer(k) || isLid(k);
       }
 
       // Zelfgemaakte foto's van kaften (klein JPEG-plaatje als tekst)
       match /kaftfotos/{f} {
-        allow read: if isOwner(k) || isLid(k);
-        allow create, update: if (isOwner(k) || isLid(k))
+        allow read: if isBeheer(k) || isLid(k);
+        allow create, update: if (isBeheer(k) || isLid(k))
                     && request.resource.data.keys().hasOnly(['k', 'd', 't'])
                     && request.resource.data.k is string && request.resource.data.k.size() <= 80
                     && request.resource.data.d is string && request.resource.data.d.size() < 200000
                     && request.resource.data.d.matches('data:image/jpeg;base64,.*');
-        allow delete: if isOwner(k);
+        allow delete: if isBeheer(k);
       }
 
       // Antwoorden op de leesvragen: iPads en leerkracht voegen toe, alleen de leerkracht leest en kijkt na.
       match /antwoorden/{a} {
-        allow create: if (isOwner(k) || isLid(k))
+        allow create: if (isBeheer(k) || isLid(k))
                     && request.resource.data.keys().hasOnly(['t', 'g', 'd', 'ts', 'v', 'a', 'ok'])
                     && request.resource.data.t is string && request.resource.data.t.size() <= 80
                     && request.resource.data.v is list && request.resource.data.v.size() <= 3
                     && request.resource.data.a is list && request.resource.data.a.size() <= 3;
-        allow read, update, delete: if isOwner(k);
+        allow read, update, delete: if isBeheer(k);
       }
     }
     // Taalwoorden (sandromeertens.github.io/Taalwoorden-): de instellingen van de leerkracht.
