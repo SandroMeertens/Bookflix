@@ -254,6 +254,7 @@ input:disabled{opacity:1; border-color:transparent; background:transparent; padd
 .toplijst{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9em}
 .toplijst li{display:grid; place-items:center; min-width:0; min-height:0}
 .toplijst li.top-leeg{grid-column:1 / -1; place-items:start; color:var(--muted); font-weight:600}
+.toplijst:not(.drie) li:nth-child(n+7){display:none}
 
 /* Boeken van de klas */
 .lijst{display:grid; gap:1em; align-content:start; min-width:0}
@@ -417,10 +418,18 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
   .toplijst{grid-template-columns:repeat(6,minmax(0,1fr)); grid-template-rows:minmax(0,1fr)}
   .teller{font-size:7em}
 }
-/* Smaller liggend scherm (iPad, kleine laptop): de kop mag over twee regels */
-@media (min-width:600px) and (max-width:1300px){
+/* Smal liggend scherm: de kop mag over twee regels */
+@media (min-width:600px) and (max-width:999px){
   .kop{flex-wrap:wrap!important}
   .kop-rechts{margin-left:auto}
+}
+/* iPad liggend en kleine laptop: de kop blijft op één regel, alles iets compacter */
+@media (min-width:1000px) and (max-width:1440px){
+  .kop{gap:.4em 1.1em}
+  .merk{font-size:1.25em}
+  .tabs{gap:.2em .8em}
+  .kop-rechts{gap:.4em .7em}
+  .kop-rechts .knop, .ikoon.met-tekst{padding-inline:.7em}
 }
 /* Aanraakscherm: iOS zoomt in op kleine invoervelden, dus die blijven minstens 16px */
 /* Rondleiding voor een nieuwe leerkracht: drie stappen, het besproken onderdeel licht op */
@@ -803,7 +812,7 @@ body:not(.lid) .alleen-lid{display:none!important}
           <span class="week-tekst" id="weekTekst"></span>
         </div>
         <p class="opbouw" id="opbouw" hidden></p>
-        <button class="knop wit groot alleen-juf schrijf" id="bonusKnop" type="button" style="justify-self:start" hidden>Verder lezen: bonusronde</button>
+        <button class="knop wit alleen-juf schrijf" id="bonusKnop" type="button" style="justify-self:start" hidden>Verder lezen: bonusronde</button>
         <!-- Invullen gaat via de tab Invullen (en de iPads); deze snelle invoer staat niet meer op het scorebord.
              De onderdelen blijven bestaan voor 'Oeps' (laatste duim terug) bij Invullen. -->
         <div class="bord-invoer" hidden>
@@ -2205,10 +2214,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     });
     volgorde.sort(function (a, b) { return b.n - a.n || b.laatst - a.laatst; });
 
-    /* Scorebord: de zes meest geduimde boeken */
+    /* Scorebord: de zes meest geduimde boeken (negen als er ruimte is voor drie rijen) */
     var top = $("toplijst"); top.textContent = "";
     if (!volgorde.length) top.appendChild(el("li", "top-leeg", "Vul bij een duim de titel in. Dan komt het boek hier te staan."));
-    volgorde.slice(0, 6).forEach(function (g) {
+    volgorde.slice(0, 9).forEach(function (g) {
       var li = el("li"), kaft = maakKaft(g.t, g.g, g.n);
       tikbaar(kaft, g, g.t + ", " + duimen(g.n) + ", " + rijNaam(g.g));
       li.appendChild(kaft);
@@ -2285,7 +2294,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       : tp.voorbij ? "Het seizoen is afgelopen. Bij Instellen start je een nieuw seizoen." : "";
     $("opbouw").textContent = slot; $("opbouw").hidden = !slot;
     $("bonusKnop").hidden = !(t >= state.doel && !state.bonus && kanSchrijven && isJuf());
-    $("bonusKnop").textContent = "Verder lezen: 4 bonusafleveringen tot " + state.doel * 2;
+    $("bonusKnop").textContent = "Verder lezen: bonusronde tot " + state.doel * 2;
     $("week").hidden = !!slot;
     if (!slot) {
       var klaar = wk >= tp.nodig;
@@ -3235,11 +3244,38 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       /* Niet verspringen terwijl iemand typt: op een tablet schuift dan het toetsenbord in beeld */
       var actief = document.activeElement;
       if (actief && actief.tagName === "INPUT" && actief.type !== "checkbox" && !$("instellen").open) return;
-      var k = 1;
+      var k = 1, tl = $("toplijst");
       st.setProperty("--krimp", "1");
-      while (document.documentElement.scrollHeight > window.innerHeight + 1 && k > 0.5) {
+      tl.style.removeProperty("grid-template-rows"); tl.style.removeProperty("align-content");
+      /* Steekt er iets onder het scherm uit? Het scorebord kan niet scrollen, dus dan meten we de kolommen zelf */
+      var onder = parseFloat(getComputedStyle($("wrap")).paddingBottom) || 0;
+      function teHoog() {
+        var h = window.innerHeight - onder + 2;
+        return document.documentElement.scrollHeight > window.innerHeight + 1 ||
+          $("afleveringen").getBoundingClientRect().bottom > h ||
+          document.querySelector(".links").scrollHeight > document.querySelector(".links").clientHeight + 2;
+      }
+      while (teHoog() && k > 0.5) {
         k -= 0.025;
         st.setProperty("--krimp", k.toFixed(3));
+      }
+      /* Meest geduimd: als de kaften smal zijn, geen gaten tussen de rijen maar netjes bovenaan */
+      tl.classList.remove("drie");
+      var li = tl.querySelector("li:not(.top-leeg)");
+      if (li) {
+        var kol = getComputedStyle(tl).gridTemplateColumns.split(" ").length, gap = parseFloat(getComputedStyle(tl).rowGap) || 0;
+        var kaftH = li.clientWidth * 1.5, hoog = tl.clientHeight - 4;
+        var rijen = Math.min(2, Math.ceil(tl.children.length / kol));
+        /* Ruimte over? Dan een derde rij, met iets kleinere kaften */
+        var h3 = (hoog - 2 * gap) / 3;
+        if (kol === 3 && tl.children.length > 6 && h3 >= kaftH * 0.8) {
+          tl.classList.add("drie");
+          tl.style.gridTemplateRows = "repeat(3," + Math.floor(Math.min(h3, kaftH)) + "px)";
+          tl.style.alignContent = "start";
+        } else if (rijen * kaftH + (rijen - 1) * gap < hoog) {
+          tl.style.gridTemplateRows = "repeat(" + rijen + "," + Math.floor(kaftH) + "px)";
+          tl.style.alignContent = "start";
+        }
       }
     });
   }
