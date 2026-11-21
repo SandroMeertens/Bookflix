@@ -409,14 +409,14 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .toplijst{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9em}
 /* Rangnummers op de kaften */
 .kaft .rang{position:absolute; left:.45em; bottom:.5em; z-index:3; display:grid; place-items:center; min-width:1.55em; height:1.55em; padding:0 .35em; border-radius:99px;
-  background:rgb(10 9 12 / .78); color:#fff; font-family:var(--display); font-size:.9em; line-height:1; letter-spacing:.02em; box-shadow:0 2px 8px rgb(0 0 0 / .35)}
+  background:rgb(10 9 12 / .6); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); color:#fff; font-family:var(--display); font-size:.9em; line-height:1; letter-spacing:.02em; box-shadow:0 2px 8px rgb(0 0 0 / .35)}
 .kaft .rang.een{background:var(--accent); font-family:var(--body); font-weight:800; font-size:.78em; letter-spacing:.08em; text-transform:uppercase; height:2.2em; padding:0 .8em}
 .rang-kort{display:none}
 .toplijst:not(.uitgelicht) .rang-lang, .toplijst.smal .rang-lang{display:none}
 .toplijst:not(.uitgelicht) .rang-kort, .toplijst.smal .rang-kort{display:inline}
 .toplijst:not(.uitgelicht) .rang.een, .toplijst.smal .rang.een{font-family:var(--display); font-size:.9em; height:1.55em; padding:0 .35em; letter-spacing:.02em}
 /* Op het scorebord: rustiger duimtellers en een lichte 'til' bij aanwijzen */
-.toplijst .kaft-n{font-size:10.5cqw; padding:2.4cqw 4.4cqw; background:rgb(10 9 12 / .8)}
+.toplijst .kaft-n{font-size:10.5cqw; padding:2.4cqw 4.4cqw; background:rgb(10 9 12 / .72); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px)}
 .toplijst .kaft{transition:transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s}
 @media (hover:hover){ .toplijst .kaft:hover{transform:translateY(-4px) scale(1.03); box-shadow:0 1.4em 2.4em -.8em rgb(0 0 0 / .8), 0 0 0 2px rgb(255 255 255 / .85)} }
 #topKop{display:flex; align-items:center; gap:.38em}
@@ -427,8 +427,7 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 /* Filmposter-achtergrond achter het scorebord */
 .bord-achter{display:none}
 .bord:not([hidden]) .bord-achter{display:block; position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
-.bord-achter .kaft{position:absolute; right:-8vw; top:-18vh; width:6.2vw; aspect-ratio:2/3; filter:blur(7px) saturate(1.3) brightness(.55); opacity:.55;
-  transform:scale(10) translateZ(0); transform-origin:top right; will-change:transform}
+.bord-achter .kaft{position:absolute; right:-8vw; top:-18vh; width:62vw; aspect-ratio:2/3; filter:blur(70px) saturate(1.3) brightness(.55); opacity:.55; transform:translateZ(0)}
 .bord-achter{background:var(--bg)}
 /* De rode Bookflix-gloed linksboven blijft zichtbaar, boven op de filmposter-achtergrond */
 .bord-achter::after{content:""; position:absolute; inset:0; background:
@@ -440,9 +439,9 @@ html.licht .bord-achter{display:none!important}
 .bord > *:not(.bord-achter):not(.bord-muur){position:relative; z-index:1}
 /* Kaftenmuur achter de stand */
 .bord-muur{display:none}
-.bord:not([hidden]) .bord-muur:not([hidden]){display:block; position:fixed; left:0; top:0; bottom:0; width:58vw; z-index:0; pointer-events:none; overflow:hidden; contain:strict;
+.bord:not([hidden]) .bord-muur:not([hidden]){display:block; position:fixed; left:0; top:0; bottom:0; width:58vw; z-index:0; pointer-events:none; overflow:hidden;
   -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 55%, transparent 100%); mask-image:linear-gradient(90deg, #000 0%, #000 55%, transparent 100%)}
-.muur-rooster{position:absolute; left:-12vw; top:-30vh; width:90vw; display:grid; grid-template-columns:repeat(7,1fr); gap:1.1vw; transform:rotate(-12deg); opacity:.15; filter:saturate(.85) blur(1.5px); will-change:transform}
+.muur-rooster{position:absolute; left:-12vw; top:-30vh; width:90vw; display:grid; grid-template-columns:repeat(7,1fr); gap:1.1vw; transform:rotate(-12deg); opacity:.15; filter:saturate(.85) blur(1.5px)}
 .muur-rooster .kaft{border-radius:.5vw; box-shadow:none; font-size:.8vw}
 .muur-rooster .kaft .rang, .muur-rooster .kaft .duim-tel{display:none}
 .bord-muur::after{content:""; position:absolute; inset:0; background:
@@ -879,7 +878,8 @@ button.gala-nom:hover .kaft{box-shadow:0 0 0 .35cqh #F4C542, 0 1.4cqh 3cqh -1cqh
 .lees-scene{position:absolute; inset:0}
 .lees-scene canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
 .lees-scene .lees-logo{position:absolute; top:calc(4.5cqmin + env(safe-area-inset-top,0px)); left:5cqmin; font-size:max(26px,6cqmin); text-shadow:0 2px 12px rgb(0 0 0 / .6)}
-.lees-pil{padding:.55em 1.1em; border:0; border-radius:99px; background:rgb(0 0 0 / .58); color:rgb(247 245 242 / .85); font-weight:800; font-size:max(14px,3cqmin)}
+.lees-pil{padding:.55em 1.1em; border:0; border-radius:99px; background:rgb(0 0 0 / .42); color:rgb(247 245 242 / .85); font-weight:800; font-size:max(14px,3cqmin);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
 .lees-wissel{position:absolute; top:calc(4.2cqmin + env(safe-area-inset-top,0px)); right:4.5cqmin}
 .lees-speler{position:absolute; left:5cqmin; right:5cqmin; bottom:calc(5cqmin + env(safe-area-inset-bottom,0px)); display:grid; gap:2.6cqmin}
 .lees-rij{display:flex; justify-content:space-between; align-items:center; gap:1em; font-weight:700; font-size:max(15px,3.2cqmin); color:rgb(247 245 242 / .75)}
@@ -4170,15 +4170,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
           $("afleveringen").getBoundingClientRect().bottom > h ||
           document.querySelector(".links").scrollHeight > document.querySelector(".links").clientHeight + 2;
       }
-      /* Past het niet? Zoek de goede maat door te halveren: hooguit 6 keer meten in plaats van 20 */
+      /* Past het niet? Zoek dezelfde maat als altijd (stapjes van 0,025, niet kleiner dan 0,5),
+         maar door te halveren: hooguit 5 keer meten in plaats van 20 */
       if (teHoog()) {
-        var laag = 0.5, hoog = 1;
-        for (var stap = 0; stap < 6; stap++) {
-          var mid = (laag + hoog) / 2;
-          st.setProperty("--krimp", mid.toFixed(3));
-          if (teHoog()) hoog = mid; else laag = mid;
+        var laag = 1, hoog = 20; /* stapnummer: maat = 1 - 0,025 x stap */
+        while (laag < hoog) {
+          var mid = (laag + hoog) >> 1;
+          st.setProperty("--krimp", (1 - 0.025 * mid).toFixed(3));
+          if (teHoog()) laag = mid + 1; else hoog = mid;
         }
-        k = laag; st.setProperty("--krimp", k.toFixed(3));
+        k = 1 - 0.025 * laag; st.setProperty("--krimp", k.toFixed(3));
       }
       /* Meest geduimd: als de kaften smal zijn, geen gaten tussen de rijen maar netjes bovenaan */
       tl.classList.remove("drie", "vier");

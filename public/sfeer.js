@@ -299,8 +299,7 @@
     var stil = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     function maat() {
       w = cv.clientWidth; h = cv.clientHeight; if (!w || !h) return false;
-      /* Nooit meer dan ~2,2 miljoen pixels per beeld: een 4K-digibord tekent op Full HD */
-      dpr = Math.min(2, window.devicePixelRatio || 1, Math.sqrt(2.2e6 / (w * h))) * kwal;
+      dpr = Math.min(2, window.devicePixelRatio || 1) * kwal;
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       /* Met 'hoogte' kiezen we zelf hoeveel van de scène in beeld komt (breed digibord); anders vullend */
       if (hoogte) { s = h / hoogte; ox = w * plek[0] - sc.focus[0] * s; oy = h * plek[1] - sc.focus[1] * s; }
