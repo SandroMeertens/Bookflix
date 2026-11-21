@@ -47,7 +47,9 @@ if (!firebaseConfig || !firebaseConfig.apiKey || VOORBEELD) {
 }
 
 async function begin() {
-  const F = await import("./vendor/firebase.js");
+  /* Kleine Firebase-bundel (inloggen + database). De AI-module komt pas binnen als er vragen gemaakt worden.
+     De bestandsnamen bevatten een vingerafdruk: de browser mag ze dus een jaar bewaren. */
+  const F = await import("./vendor/fb-kern-GZ7TAGYD.js");
   const app = F.initializeApp(firebaseConfig);
   const auth = F.getAuth(app);
   const db = F.initializeFirestore(app, {});
@@ -267,15 +269,17 @@ async function begin() {
      Bookflix de standaardvragen. Modelnamen veranderen in de loop van de tijd: we proberen ze op volgorde. */
   const MODELLEN = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
   function maakAI() {
-    let ai = null;
-    try { ai = F.getAI(app, { backend: new F.GoogleAIBackend() }); } catch (e) { console.warn(e); return null; }
+    let laden = null;
+    const laad = () => laden || (laden = import("./vendor/fb-ai-X5SMCKNT.js").then((A) => ({ A, ai: A.getAI(app, { backend: new A.GoogleAIBackend() }) }))
+      .catch((e) => { laden = null; throw e; }));
     let begin = Math.max(0, MODELLEN.indexOf(lees("bookflix.model")));
     return {
       async vraag(prompt) {
+        const { A, ai } = await laad();
         let laatste = null;
         for (let i = begin; i < MODELLEN.length; i++) {
           try {
-            const m = F.getGenerativeModel(ai, { model: MODELLEN[i], generationConfig: { responseMimeType: "application/json", temperature: 0.4 } });
+            const m = A.getGenerativeModel(ai, { model: MODELLEN[i], generationConfig: { responseMimeType: "application/json", temperature: 0.4 } });
             const r = await m.generateContent(prompt);
             if (i !== begin) { begin = i; bewaar("bookflix.model", MODELLEN[i]); }
             return r.response.text();
