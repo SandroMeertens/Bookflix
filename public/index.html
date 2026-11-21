@@ -4897,16 +4897,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   /* Liep de klok nog toen de pagina werd ververst? Dan gaat hij gewoon verder */
   try { var stilOud = JSON.parse(localStorage.getItem("bookflix.stil") || "null"); if (stilOud && stilOud.duur && Date.now() - stilOud.eind < 3600000) stil = stilOud; } catch (e) {}
   if (stil && !stil.klaar) stilOpen();
-  /* Intro bij het openen van de app: kort (zo'n 1,9 seconde) en één keer per dag per apparaat,
-     zodat een iPad die vaak open en dicht gaat niet steeds hoeft te wachten */
+  /* Intro bij het openen van de app: één keer per keer dat Bookflix opent */
   else {
-    var introGezien = "1", vandaag = dagSleutel(new Date());
-    try {
-      introGezien = sessionStorage.getItem("bookflix.intro") || (localStorage.getItem("bookflix.introdag") === vandaag ? "1" : "");
-      sessionStorage.setItem("bookflix.intro", "1"); localStorage.setItem("bookflix.introdag", vandaag);
-    } catch (e) {}
+    var introGezien = "1"; try { introGezien = sessionStorage.getItem("bookflix.intro"); sessionStorage.setItem("bookflix.intro", "1"); } catch (e) {}
     if (/[?&]voorbeeld/.test(location.search)) introGezien = "1";
-    if (!introGezien) speelIntro("Elk boek telt", true);
+    if (!introGezien) speelIntro("Elk boek telt");
   }
 
   /* Voorbeeldklas: los van de echte klas, met voorbeeldboeken */
