@@ -120,7 +120,7 @@ svg.duim{width:1em; height:1em; flex:none; fill:none; stroke:currentColor; strok
 .kop .bewaard{cursor:default}
 .ikoon.zeker{width:auto; padding:0 .8em; background:var(--accent); color:var(--fg); font-weight:800; font-size:.85em}
 /* iPad van de klas: alleen wat een leerling nodig heeft */
-.lid #tabFinale, .lid #volKnop{display:none!important}
+.lid #volKnop{display:none!important}
 /* Leerkracht: invullen gaat via '+ Boek' rechts; de tab 'Mijn boek' is er voor de iPads */
 body:not(.lid) #tabInvoer{display:none}
 .kop-juf{display:flex; align-items:center; gap:.4em 1.1em}
@@ -322,6 +322,9 @@ html.licht .bord .rug:not(.vol){background:rgb(0 0 0 / .06)}
 .knop.speel:hover{background:#e9e6e0}
 .knop.speel svg{width:1.15em; height:1.15em; fill:currentColor}
 .knop.speel.loopt{background:var(--accent); color:#fff}
+.knop.goud-knop{background:linear-gradient(180deg, rgb(244 197 66 / .2), rgb(244 197 66 / .08)); color:var(--gold); border:1px solid rgb(244 197 66 / .55)}
+.knop.goud-knop:hover{background:rgb(244 197 66 / .25)}
+.knop.goud-knop svg{width:1.15em; height:1.15em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 #bonusKnop{background:rgb(109 109 110 / .55); color:#fff}
 #bonusKnop:hover{background:rgb(109 109 110 / .75)}
 #bonusKnop[hidden]{display:none}
@@ -442,7 +445,8 @@ html.licht .bord-achter{display:none!important}
   linear-gradient(180deg, rgb(15 14 17 / .6) 0%, transparent 25%)}
 html.licht .bord-muur{display:none!important}
 @media (max-width:999px){ .bord-muur{display:none!important} }
-.kop{position:relative; z-index:2}
+.kop{position:relative; z-index:15} /* boven de kaften, onder de schermvullende lagen */
+.kaft{isolation:isolate}
 .toplijst li{display:grid; place-items:center; min-width:0; min-height:0}
 .toplijst li.top-leeg{grid-column:1 / -1; place-items:start; color:var(--muted); font-weight:600}
 .toplijst:not(.drie):not(.vier) li:nth-child(n+7){display:none}
@@ -681,7 +685,10 @@ input[type=checkbox]{width:1.15em; height:1.15em; flex:none; accent-color:var(--
   .start-merk{font-size:min(9em,25vw)}
   .bord{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:1.3em}
   .afleveringen{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .toplijst{grid-template-columns:repeat(6,minmax(0,1fr)); grid-template-rows:minmax(0,1fr)}
+  .invoer{font-size:1.15em; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)!important; column-gap:2em}
+  .inv-rij{padding-inline:.7em; overflow-wrap:anywhere; hyphens:auto}
+  /* Rechtop is er veel hoogte: twee rijen van drie grote kaften in plaats van één rij kleintjes */
+  .toplijst{grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr))}
   .teller{font-size:7em}
 }
 /* Smal liggend scherm: de kop mag over twee regels */
@@ -833,6 +840,13 @@ button.gala-nom:hover .kaft{box-shadow:0 0 0 .35cqh #F4C542, 0 1.4cqh 3cqh -1cqh
 @keyframes intro-door{0%{opacity:1; transform:scale(1)} 100%{opacity:0; transform:scale(5)}}
 @keyframes intro-straal{0%{opacity:0; transform:translateX(-50%) scaleX(.3)} 30%{opacity:1} 100%{opacity:0; transform:translateX(calc(-50% + var(--x))) scaleX(1.4)}}
 @keyframes intro-flits{0%{opacity:0} 35%{opacity:.8} 100%{opacity:0}}
+/* Smal en hoog (telefoon rechtop): logo kleiner, genomineerden groter */
+@media (max-aspect-ratio:3/4){
+  .stil-logo{font-size:min(8.5cqh,13cqw)}
+  .stil-kies{bottom:6cqh}
+  .gala-nom{width:min(28cqw,24cqh)}
+  .gala-noms{gap:4cqw}
+}
 @media (max-aspect-ratio:1/1){
   .stil-info, .stil-kies{max-width:none; right:4.5cqw}
   #stilGetal{font-size:22cqh} .stil-rechts{top:calc(16cqh + env(safe-area-inset-top,0px)); left:4.5cqw; justify-items:start}
@@ -1052,7 +1066,7 @@ button.gala-nom:hover .kaft{box-shadow:0 0 0 .35cqh #F4C542, 0 1.4cqh 3cqh -1cqh
 .inv-rij{display:flex; align-items:center}
 /* Uitgeschakelde knop: rustig omlijnd in plaats van een grijs blok */
 .inv-vorm .knop.wit:disabled{background:transparent; color:var(--muted); box-shadow:inset 0 0 0 2px var(--line); opacity:1}
-.inv-kaft{width:min(17em,44vh)}
+.inv-kaft{width:min(100%,17em,44vh)}
 .inv-kant{justify-items:center}
 .inv-deel{gap:.9em}
 .inv-deel1 h2, .inv-deel2 .inv-label:first-child{margin-bottom:.3em}
@@ -1129,7 +1143,6 @@ body:not(.lid) .alleen-lid{display:none!important}
       <button class="tab" id="tabInvoer" type="button" aria-pressed="false">Mijn boek</button>
       <button class="tab" id="tabBord" type="button" aria-pressed="true">Score</button>
       <button class="tab" id="tabLijst" type="button" aria-pressed="false">Boeken</button>
-      <button class="tab" id="tabFinale" type="button" aria-pressed="false">Awards</button>
       <button class="tab" id="tabRegels" type="button" aria-pressed="false">Spelregels</button>
     </nav>
     <div class="kop-rechts">
@@ -1146,6 +1159,8 @@ body:not(.lid) .alleen-lid{display:none!important}
           <button class="menu-item schrijf" id="plusBoek" type="button" role="menuitem" aria-pressed="false">Boek op de plank zetten</button>
           <button class="menu-item" id="koppelKnop" type="button" role="menuitem" hidden>iPads koppelen</button>
           <button class="menu-item" id="menuRegels" type="button" role="menuitem">Spelregels</button>
+          <button class="menu-item" id="menuFinale" type="button" role="menuitem">Seizoensfinale</button>
+          <button class="menu-item" id="archiefBlok" type="button" role="menuitem" hidden>Eerdere seizoenen</button>
           <hr>
           <button class="menu-item" id="menuHand" type="button" role="menuitem">Handleiding</button>
           <button class="menu-item schrijf" id="instelKnop" type="button" role="menuitem">Instellen</button>
@@ -1216,6 +1231,7 @@ body:not(.lid) .alleen-lid{display:none!important}
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
             <span id="leesStartTekst">Start leestijd</span><span class="knop-tijd" id="leesStartTijd" hidden></span>
           </button>
+          <button class="knop alleen-juf goud-knop" id="finaleKnop" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0V4zM5 5H3v1a3 3 0 0 0 3 3M19 5h2v1a3 3 0 0 1-3 3M12 12v4M8.5 20h7M10 16h4l.5 4h-5z"/></svg><span>Seizoensfinale</span></button>
           <button class="knop alleen-juf schrijf prive" id="bonusKnop" type="button" hidden>Verder lezen: bonusronde</button>
         </div>
         <p class="lees-wanneer" id="leesWanneer" hidden></p>
@@ -1250,7 +1266,7 @@ body:not(.lid) .alleen-lid{display:none!important}
         <input type="search" id="boekZoek" class="boek-zoek prive" placeholder="Zoek een boek" aria-label="Zoek een boek" autocomplete="off">
       </div>
     </div>
-    <p class="uitleg" id="boekenLeeg">Nog geen titels. Kinderen zetten hun boek op de plank met de iPad, of jij met + Boek.</p>
+    <p class="uitleg" id="boekenLeeg">Nog geen boeken op de plank.</p>
     <div class="boek-balk" id="boekBalk">
       <div class="boek-tabs" id="boekTabs" role="tablist" aria-label="Kies een rij"></div>
     </div>
@@ -1342,7 +1358,6 @@ body:not(.lid) .alleen-lid{display:none!important}
         <p class="uitleg">De drie meest geduimde boeken per rij. De klas stemt; tik op de winnaar.</p>
       </div>
       <div class="pag-acties">
-        <button class="tekstknop" id="archiefBlok" type="button" hidden>Eerdere seizoenen</button>
         <button class="knop speel alleen-juf" id="galaStart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg><span>Uitreiking starten</span></button>
       </div>
     </div>
@@ -1361,7 +1376,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   </div>
   <div class="wiz-stap" data-stap="2" hidden>
     <h2>Tot wanneer loopt het seizoen?</h2>
-    <p class="uitleg">Een seizoen duurt meestal tot een vakantie. Daarna zijn de Bookflix Awards.</p>
+    <p class="uitleg">Een seizoen duurt meestal tot een vakantie. Daarna volgt de seizoensfinale.</p>
     <div class="instel-rij"><label for="wizEinde">Laatste dag</label><input type="date" id="wizEinde"></div>
   </div>
   <div class="wiz-stap" data-stap="3" hidden>
@@ -1441,11 +1456,11 @@ body:not(.lid) .alleen-lid{display:none!important}
       </ul>
     </section>
     <section>
-      <h3>5. De Awards en een nieuw seizoen</h3>
+      <h3>5. De seizoensfinale en een nieuw seizoen</h3>
       <ul>
-        <li>Is het doel gehaald? Ga naar Awards. Per rij staan de drie meest geduimde boeken klaar. De klas stemt, jij tikt de winnaar aan.</li>
+        <li>Is het doel gehaald? Start de Seizoensfinale op het scorebord of via het tandwiel. Per rij komen de drie meest geduimde boeken in beeld. De klas stemt met de hand, jij tikt de winnaar aan en de Gouden Duim wordt onthuld.</li>
         <li>Nog niet klaar met lezen? Zet de bonusronde aan voor vier extra afleveringen.</li>
-        <li>Start daarna bij Instellen → Seizoen een nieuw seizoen. Het oude seizoen blijft bewaard bij Awards.</li>
+        <li>Start daarna bij Instellen → Seizoen een nieuw seizoen. Het oude seizoen blijft bewaard onder het tandwiel → Eerdere seizoenen.</li>
       </ul>
     </section>
     <section>
@@ -1676,7 +1691,7 @@ body:not(.lid) .alleen-lid{display:none!important}
   <a class="knop wit" id="voorbeeldTerug" href="./#bord">Terug naar onze klas</a>
 </div>
 
-<div class="gala" id="gala" role="dialog" aria-modal="true" aria-label="Uitreiking van de Bookflix Awards" hidden>
+<div class="gala" id="gala" role="dialog" aria-modal="true" aria-label="Seizoensfinale" hidden>
   <div class="gala-licht" aria-hidden="true"></div>
   <div class="gala-confetti" id="galaConfetti" aria-hidden="true"></div>
   <div class="gala-kop"><span class="gala-logo">BOOKFLIX</span><span class="gala-stap" id="galaStap"></span></div>
@@ -1756,7 +1771,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     ["Lezen met warme chocomel", "Lezen waar je wilt", "Luisterboek met tekenen", "Een kwartier extra voorlezen", "Buiten lezen"],
     ["Zaklamplezen", "Leeshutten bouwen", "Boekenquiz: klas tegen de leerkracht", "Lezen met kussens en dekens"],
     ["Boekenruilbeurs", "Stripmiddag: zelf een strip tekenen", "Boekenbingo met prijsjes", "Met de klas naar de bibliotheek"],
-    ["Filmmiddag met de Bookflix Awards", "Pyjamaleesfeest met de Bookflix Awards", "Boekenfeest met de Bookflix Awards"]
+    ["Filmmiddag met de seizoensfinale", "Pyjamaleesfeest met de seizoensfinale", "Boekenfeest met de seizoensfinale"]
   ];
   var AWARDS = [
     { id: "a1", g: "s", t: "Spannend" },
@@ -2684,9 +2699,10 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   }
 
   /* ---------- Uitreiking: per categorie de genomineerden, dan de winnaar ---------- */
-  var galaStappen = [], galaNr = 0, galaVol = false;
+  /* Elke finale begint met een frisse stemming: de winnaar wordt pas tijdens de finale gekozen */
+  var galaStappen = [], galaNr = 0, galaVol = false, galaKeuze = {};
   function galaWinnaar(a, top) {
-    var t = (state.awards[a.id] || "").trim(); if (!t) return null;
+    var t = (galaKeuze[a.id] || "").trim(); if (!t) return null;
     var k = sleutelVan(t), x = top.filter(function (y) { return y.k === k; })[0];
     return x || { t: t, g: a.g || "a", n: 0, k: k };
   }
@@ -2725,7 +2741,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     $("galaTerug").disabled = galaNr === 0;
     $("galaVerder").textContent = galaNr === galaStappen.length - 1 ? "Afsluiten" : "Volgende";
     if (st.fase === "nom") {
-      doos.appendChild(el("p", "gala-eyebrow", "Bookflix Awards \u00b7 Seizoen " + state.seizoen));
+      doos.appendChild(el("p", "gala-eyebrow", "Seizoensfinale \u00b7 Seizoen " + state.seizoen));
       doos.appendChild(el("p", "gala-titel", st.a.t));
       doos.appendChild(el("p", "gala-zin", st.top.length === 1 ? "De genomineerde is\u2026" : "De genomineerden zijn\u2026"));
       var rij = el("div", "gala-noms");
@@ -2741,15 +2757,16 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       if (!w) {
         /* Nog geen winnaar gekozen: kies hem hier, met de klas */
         doos.appendChild(el("p", "gala-titel", "Wie wint?"));
-        doos.appendChild(el("p", "gala-zin", kanSchrijven ? "Laat de klas stemmen en tik op de winnaar." : "De juf of meester kiest de winnaar."));
+        doos.appendChild(el("p", "gala-zin", "Steek je hand op voor jouw favoriet! Tik daarna op de winnaar."));
         var rij2 = el("div", "gala-noms");
         st.top.forEach(function (x, i) {
           var b = el("button", "gala-nom"); b.type = "button"; galaLater(b, 100 + i * 150);
-          b.disabled = !kanSchrijven; b.setAttribute("aria-label", x.t + " is de winnaar");
+          b.setAttribute("aria-label", x.t + " is de winnaar");
           b.appendChild(maakKaft(x.t, x.g, 0)); b.appendChild(el("span", null, x.t));
           b.addEventListener("click", function () {
-            wijzig(function (s) { s.awards[st.a.id] = x.t; }, false);
-            setTimeout(galaToon, 50);
+            galaKeuze[st.a.id] = x.t;
+            if (kanSchrijven) wijzig(function (s) { s.awards[st.a.id] = x.t; }, false); /* bewaard voor het archief */
+            galaToon();
           });
           rij2.appendChild(b);
         });
@@ -2766,7 +2783,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
       galaConfetti();
       setTimeout(function () { if (!$("gala").hidden && galaStappen[galaNr] === st) stilGong(); }, 1700);
     } else {
-      doos.appendChild(el("p", "gala-eyebrow", "Bookflix Awards"));
+      doos.appendChild(el("p", "gala-eyebrow", "Seizoensfinale \u00b7 Seizoen " + state.seizoen));
       doos.appendChild(el("p", "gala-titel", "Alle winnaars"));
       var alle = el("div", "gala-alle"), lijst = ranglijst(state), n = 0;
       AWARDS.forEach(function (a) {
@@ -2783,21 +2800,23 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   function galaStart() {
     galaBouw();
     if (!galaStappen.length) { meld("let", "Er zijn nog geen genomineerde boeken."); return; }
-    galaNr = 0;
+    galaNr = 0; galaKeuze = {};
     try { var AC = window.AudioContext || window.webkitAudioContext; if (AC && !stilGeluid) stilGeluid = new AC(); if (stilGeluid && stilGeluid.state === "suspended") stilGeluid.resume(); } catch (e) {}
     galaVol = false;
     if (!volNu()) { try { var p = volVraag.call(root); galaVol = true; if (p && p.catch) p.catch(function () { galaVol = false; }); } catch (e) {} }
     $("gala").hidden = false; document.documentElement.classList.add("vast");
-    speelIntro("Awards"); stilIntroGeluid();
+    speelIntro("Finale"); stilIntroGeluid();
     setTimeout(galaToon, 1900);
     $("galaVerder").focus();
   }
   function galaSluit() {
     $("gala").hidden = true; $("galaInhoud").textContent = ""; $("galaConfetti").textContent = "";
     if (galaVol && volNu()) { try { var p = volUit.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
-    galaVol = false; kies("finale");
+    galaVol = false;
   }
   $("galaStart").addEventListener("click", galaStart);
+  $("finaleKnop").addEventListener("click", galaStart);
+  $("menuFinale").addEventListener("click", function () { galaStart(); });
   $("galaVerder").addEventListener("click", function () { if (galaNr < galaStappen.length - 1) { galaNr++; galaToon(); } else galaSluit(); });
   $("galaTerug").addEventListener("click", function () { if (galaNr > 0) { galaNr--; galaToon(); } });
   $("galaDicht").addEventListener("click", galaSluit);
@@ -2960,6 +2979,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var data = $("titels");
     data.textContent = "";
     $("boekenLeeg").hidden = volgorde.length > 0;
+    $("boekenLeeg").textContent = isJuf() ? "Nog geen boeken op de plank. Kinderen zetten hun boek erop met de iPad, of jij via het tandwiel \u2192 Boek op de plank zetten."
+      : "Nog geen boeken op de plank. Boek uit? Zet het erop bij Mijn boek.";
     /* Rijen om uit te kiezen: nieuw op de plank, alle boeken, en per soort */
     /* Nieuw = de afgelopen twee weken op de plank gezet */
     var nieuwRij = [], nieuwGezien = {}, nieuwVanaf = dagSleutel(new Date(Date.now() - 14 * 864e5));
@@ -3198,10 +3219,11 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     vanEl.appendChild(el("span", "van-doel", "/ " + eindDoel(state))); vanEl.appendChild(el("span", "van-woord", "duimen"));
     var tp = tempo(state), wk = Math.max(0, tp.week);
     $("eyebrow").textContent = "Seizoen " + state.seizoen + (blokVan(state) ? " · Bonusronde" : "") + " · tot " + eindTekst(state);
-    var slot = t >= eindDoel(state) ? (state.bonus ? "Bonusronde vol. Wat een leesklas!" : "Doel gehaald! Op naar de Awards.")
+    var slot = t >= eindDoel(state) ? (state.bonus ? "Bonusronde vol. Wat een leesklas!" : "Doel gehaald! Tijd voor de seizoensfinale.")
       : tp.voorbij ? "Het seizoen is afgelopen. Bij Instellen start je een nieuw seizoen." : "";
     $("opbouw").textContent = slot; $("opbouw").hidden = true;
     $("bonusKnop").hidden = !(t >= state.doel && !state.bonus && kanSchrijven && isJuf());
+    $("finaleKnop").hidden = !(t >= state.doel && isJuf());
     $("bonusKnop").textContent = "+ Bonusronde tot " + state.doel * 2;
     $("week").hidden = true; /* het weekdoel staat nu als tekst in de regel eronder */
     if (!slot) {
@@ -3244,7 +3266,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     var eerst = -1;
     ms.forEach(function (m, i) { if (eerst < 0 && t < m) eerst = i; });
     var teaser = $("startTeaser"); teaser.textContent = "";
-    if (eerst < 0) teaser.textContent = slot || "Doel gehaald. Tijd voor de Bookflix Awards.";
+    if (eerst < 0) teaser.textContent = slot || "Doel gehaald. Tijd voor de seizoensfinale.";
     else {
       teaser.appendChild(document.createTextNode((blok ? "Bonusronde! " : "") + "Nog " + duimen(ms[eerst] - t) + " tot "));
       teaser.appendChild(el("b", null, bel[eerst].trim() || "de volgende beloning"));
@@ -4163,7 +4185,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   });
 
   /* Weergave: scorebord of Awards */
-  var TABS = { invoer: "tabInvoer", bord: "tabBord", lijst: "tabLijst", finale: "tabFinale", antw: "tabAntw", regels: "tabRegels" };
+  var TABS = { invoer: "tabInvoer", bord: "tabBord", lijst: "tabLijst", antw: "tabAntw", regels: "tabRegels" };
   /* Passend maken: op een liggend scherm mag het scorebord nooit scrollen.
      Past het niet (ander lettertype, lange namen, afwijkend scherm), dan krimpt het in stapjes. */
   var bordMQ = window.matchMedia("(min-width:600px) and (min-height:560px)"), pasWacht = false;
@@ -4215,7 +4237,8 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
         tl.style.justifyContent = "start"; tl.style.alignContent = "start";
         /* De rechterkolom precies zo breed als de kaften: geen lege strook rechts */
         var bord = $("bord"), bw = bord.clientWidth, rw = 3 * kw + 2 * g0;
-        if (bw && rw < bw * 0.62) bord.style.gridTemplateColumns = "minmax(0,1fr) " + rw + "px";
+        var tweeKol = getComputedStyle(bord).gridTemplateColumns.split(" ").length === 2;
+        if (bw && tweeKol && rw < bw * 0.62) bord.style.gridTemplateColumns = "minmax(0,1fr) " + rw + "px";
         li = null;
       }
       if (li) {
@@ -4264,7 +4287,13 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
   $("menuKnop").addEventListener("click", function (e) {
     e.stopPropagation();
     var open = $("jufMenu").hidden; $("jufMenu").hidden = !open; $("menuKnop").setAttribute("aria-expanded", String(open));
-    if (open) setTimeout(function () { var f = $("jufMenu").querySelector(".menu-item:not([hidden])"); if (f) f.focus(); }, 0);
+    if (open) {
+      /* Op een smal scherm (telefoon) mag het menu niet links buiten beeld vallen */
+      var m = $("jufMenu"); m.style.right = "";
+      var r = m.getBoundingClientRect();
+      if (r.left < 8) m.style.right = (r.left - 8) + "px";
+      setTimeout(function () { var f = m.querySelector(".menu-item:not([hidden])"); if (f) f.focus(); }, 0);
+    }
   });
   $("jufMenu").addEventListener("click", function (e) { if (e.target.closest(".menu-item")) menuDicht(); });
   document.addEventListener("click", function (e) { if (!$("jufMenu").hidden && !e.target.closest(".menu-plek")) menuDicht(); });
@@ -4448,7 +4477,7 @@ window.bookflixOpslag = new Promise(function (r) { window.bookflixZet = r; });
     if (typeof d.close === "function") d.close(); else d.removeAttribute("open");
   });
   $("opnieuw").addEventListener("click", function () {
-    $("opnieuwTekst").textContent = "Seizoen " + state.seizoen + " gaat naar het archief bij Awards. Seizoen " + (state.seizoen + 1) + " begint op nul.";
+    $("opnieuwTekst").textContent = "Seizoen " + state.seizoen + " gaat naar Eerdere seizoenen (onder het tandwiel). Seizoen " + (state.seizoen + 1) + " begint op nul.";
     $("opnieuwVraag").hidden = false; $("opnieuw").hidden = true;
   });
   $("opnieuwNee").addEventListener("click", vraagDicht);

@@ -292,11 +292,15 @@
   function start(cv, soort, plek, hoogte) {
     plek = plek || [0.5, 0.5];
     var x = cv.getContext("2d"), sc = soort === "vuur" ? new Vuur() : new Lamp();
-    var achter = null, voor = null, w = 0, h = 0, dpr = 1, s = 1, ox = 0, oy = 0, vorige = 0, t = rnd(0, 50), loopt = true, id = 0, zicht = true;
+    var achter = null, voor = null, vignet = null, w = 0, h = 0, dpr = 1, s = 1, ox = 0, oy = 0, vorige = 0, t = rnd(0, 50), loopt = true, id = 0, zicht = true;
+    /* Kwaliteit past zich aan het apparaat aan: is tekenen traag (oude iPad, zwakke digibordcomputer),
+       dan tekenen we op een lagere resolutie. Het beeld blijft vullend, de beweging blijft vloeiend. */
+    var kwal = 1, gem = 0, metingen = 0;
     var stil = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     function maat() {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
       w = cv.clientWidth; h = cv.clientHeight; if (!w || !h) return false;
+      /* Nooit meer dan ~2,2 miljoen pixels per beeld: een 4K-digibord tekent op Full HD */
+      dpr = Math.min(2, window.devicePixelRatio || 1, Math.sqrt(2.2e6 / (w * h))) * kwal;
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       /* Met 'hoogte' kiezen we zelf hoeveel van de scène in beeld komt (breed digibord); anders vullend */
       if (hoogte) { s = h / hoogte; ox = w * plek[0] - sc.focus[0] * s; oy = h * plek[1] - sc.focus[1] * s; }
@@ -308,6 +312,10 @@
       achter = maakDoek(cv.width, cv.height); var a = achter.getContext("2d");
       a.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy); sc.achtergrond(a);
       if (sc.voorgrond) { voor = maakDoek(cv.width, cv.height); var v = voor.getContext("2d"); v.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy); sc.voorgrond(v); }
+      /* Vignet één keer klaarzetten in plaats van elk beeld opnieuw */
+      vignet = maakDoek(cv.width, cv.height); var vc = vignet.getContext("2d");
+      var g = vc.createRadialGradient(cv.width / 2, cv.height / 2, Math.min(cv.width, cv.height) * 0.3, cv.width / 2, cv.height / 2, Math.max(cv.width, cv.height) * 0.75);
+      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.55)"); vc.fillStyle = g; vc.fillRect(0, 0, cv.width, cv.height);
       return true;
     }
     function frame(nu) {
@@ -315,7 +323,8 @@
       id = requestAnimationFrame(frame);
       if (!zicht || document.hidden) { vorige = nu; return; }
       if (nu - vorige < 30 && vorige) return; /* rond 30 beelden per seconde: rustig voor de iPad */
-      var dt = vorige ? Math.min(0.1, (nu - vorige) / 1000) : 0.033; vorige = nu; t += dt;
+      var tussen = vorige ? nu - vorige : 33;
+      var dt = Math.min(0.1, tussen / 1000); vorige = nu; t += dt;
       if (cv.clientWidth !== w || cv.clientHeight !== h) { if (!maat()) return; }
       var f = flakker(t);
       x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(achter, 0, 0);
@@ -325,12 +334,18 @@
       if (sc.licht) sc.licht(x, t, dt);
       /* Vignet en filmkorrel maken het echter */
       x.setTransform(1, 0, 0, 1, 0, 0);
-      var g = x.createRadialGradient(cv.width / 2, cv.height / 2, Math.min(cv.width, cv.height) * 0.3, cv.width / 2, cv.height / 2, Math.max(cv.width, cv.height) * 0.75);
-      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.55)"); x.fillStyle = g; x.fillRect(0, 0, cv.width, cv.height);
-      x.globalAlpha = 0.045; x.globalCompositeOperation = "overlay";
-      var kx = -Math.random() * 200, ky = -Math.random() * 200;
-      for (var px = kx; px < cv.width; px += 200) for (var py = ky; py < cv.height; py += 200) x.drawImage(KORREL, px, py);
-      x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
+      x.drawImage(vignet, 0, 0);
+      if (kwal === 1) { /* filmkorrel alleen op volle kwaliteit: 'overlay' is duur */
+        x.globalAlpha = 0.045; x.globalCompositeOperation = "overlay";
+        var kx = -Math.random() * 200, ky = -Math.random() * 200;
+        for (var px = kx; px < cv.width; px += 200) for (var py = ky; py < cv.height; py += 200) x.drawImage(KORREL, px, py);
+        x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
+      }
+      /* Tijd tussen de beelden bijhouden (daar zit ook het echte schilderen in). Haalt het apparaat
+         nog geen 20 beelden per seconde, dan een stapje lagere resolutie, hooguit tot de helft. */
+      metingen++;
+      gem = metingen === 1 ? tussen : gem * 0.8 + tussen * 0.2;
+      if (metingen > 10 && gem > 50 && kwal > 0.5) { kwal = Math.max(0.5, kwal - 0.25); metingen = 0; maat(); }
       if (stil) { loopt = false; cancelAnimationFrame(id); }
     }
     if ("IntersectionObserver" in window) new IntersectionObserver(function (e) { zicht = e[0].isIntersecting; }).observe(cv);
